@@ -1,0 +1,2 @@
+# dycomodel
+Dynamic Consumption Modeling
