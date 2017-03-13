@@ -1,0 +1,16 @@
+<action-config>  
+	<action-streams 
+		memoryInContainer_streams="true"
+	>
+	</action-streams>
+
+	<form-beans>  
+	</form-beans>
+	<form-redirects>
+	</form-redirects>
+	
+	<action-mappings error="/pages/framework/action_mappings_Error.jsp"
+                     auth_error="/pages/framework/action_mappings_authError.jsp"
+                     session_error="/pages/framework/action_mappings_sessionError.jsp">
+    	</action-mappings>
+</action-config>

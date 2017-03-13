@@ -1,0 +1,257 @@
+
+ <!DOCTYPE html>
+<html lang="en">
+   <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>CSRP</title>
+	<link rel="SHORTCUT ICON" href="images/application.ico">
+
+    <!-- Angular Material CSS -->
+    <link rel="stylesheet" href="css/angular-material.min.css">
+
+  </head>
+
+
+  <body>
+ 
+
+      	<form id="item" method="post" ng-app="itemApp" ng-controller="itemCtrl"> 
+
+      	
+ 				 		<table style="width:100%" data-ng-repeat="item in view.model.previous" cellpadding="0" cellspacing="0" > 
+				
+				 			<tr>
+				 				<td>
+									{{item.date}}
+								</td>
+								<td>
+									{{item.quantity}}
+								</td>
+								<td>
+									<input type="text" style="" 
+						  								data-ng-model="item.quantity"
+						  								>
+								</td>								
+							</tr>
+						</table>		
+      	
+ <!--      	
+	      	<h2 style="width:100%; text-align: right;"><b>Settings</b></h2>
+	      	<div class="form-group">
+	  			<label for="settings.root">Today</label>
+	  			<span>{{ view.model.settings.date}}</span>
+			</div>
+	      	<div class="form-group">
+	  			<label for="settings.config">Configuration</label>
+	  			<span>{{ view.model.settings.config}}</span>
+			</div>			
+			<div class="form-group">
+	  			<label for="settings.root">ROOT</label>
+	  			<input type="text" class="form-control" id="view.model.settings.root" ng-model="view.model.settings.root">
+			</div>
+
+			
+			<div class="form-group">
+	  			
+				
+
+				<table style="width:100%">
+					<tr>
+						<td valign="bottom" align="left">
+							<label>REST Authentication</label><br>
+							<span>
+						  		<label class="btn btn-default">
+									<input type="radio" id="model.settings.restAuth" autocomplete="off" ng-model="view.model.settings.restAuth" ng-value="false"> Disable
+							  	</label>
+							  	<label class="btn btn-default">
+									<input type="radio" id="model.settings.restAuth" autocomplete="off" ng-model="view.model.settings.restAuth" ng-value="true"> Enable
+							  	</label>
+						  	</span>						
+						</td>
+
+						<td ng-if="view.model.settings.restAuth == true">
+				  			<label for="settings.restUser">User</label>
+				 			<input type="text" class="form-control" id="model.settings.restUser" ng-model="view.model.settings.restUser">						
+				 		</td>
+				 		<td>&nbsp;</td>
+						<td ng-if="view.model.settings.restAuth == true">
+				  			<label for="settings.restPassword">Password</label>
+				 			<input type="password" class="form-control" id="model.settings.restPassword" ng-model="view.model.settings.restPassword">				 		
+	 					</td>	
+	 								 		
+					</tr>
+				</table>
+				<br>
+
+				<div class="modal-footer">
+				
+					<button type="button" id="loadButton" data-toggle="button" data-loading-text="Loading..." class="btn btn-primary" autocomplete="off">
+					  	Load
+					</button>
+				
+					<button type="button" id="saveButton" data-toggle="button" data-loading-text="Saving..." class="btn btn-danger" autocomplete="off">
+					  	Save
+					</button>
+				</div>
+			</div>	
+--> 
+
+
+
+
+        </form>
+
+
+
+
+
+
+    
+	<!--  Angular 1.5 JavaScript -->
+	<script src='js/angular.min.js'></script>
+	<script src='js/angular-animate.min.js'></script>
+	<script src='js/angular-aria.min.js'></script>
+	<script src='js/angular-material.min.js'></script>
+	
+	<!--  ClassHidra Ajax JavaScript -->
+	<script src='js/clAjax.js'></script>  	
+	
+	<!--  ClassHidra Model JavaScript -->
+	<script src='js/clModels.js'></script>	
+	
+	 
+	
+	
+	<script>
+
+	
+
+	var ItemServerModel = {
+		previous : [],
+		error : '',
+		warning : '',
+		info : '',
+		success: '',
+		
+		init: function(model){
+			json2model(this,model);
+		},
+		
+	
+		message : function(){
+			if(this.error && this.error!=''){
+				new clpopup({
+					type: 'danger',
+					message: this.error
+				}).open();					 
+			}
+			if(this.success && this.success!=''){
+				new clpopup({
+					type: 'success',
+					message: this.success
+				}).open();					 
+			}	
+			if(this.info && this.info!=''){
+				new clpopup({
+					type: 'info',
+					message: this.info
+				}).open();					 
+			}
+			if(this.warning && this.warning!=''){
+				new clpopup({
+					type: 'warning',
+					message: this.warning
+				}).open();					 
+			}			
+		}
+					
+	}
+	
+	var ViewModel = function(serverModel) {
+		var self = this;
+		self.initialisation = true;
+		self.model = serverModel;
+		
+		self.init = function(parsed){
+			self.initialisation = true;
+			try{
+				self.model.init(parsed.model);
+			}catch(e){
+				showException(e);
+			}
+			self.initialisation = false;					
+		}
+		
+		self.post = function($http,newValue){
+			if(!self.initialisation){
+				
+				$http.post('item-json', JSON.stringify(newValue)).
+			    success(function(data, status, headers, config) {
+			    	self.init(data);
+			      }).
+			      error(function(data, status, headers, config) {
+			    	  console.log(data);
+			      });
+				
+
+			}			
+		}
+	
+		self.postDirty = function($http,newValue){
+			if(!self.initialisation){
+				
+				$http.post('item-diff', JSON.stringify(newValue)).
+			    success(function(data, status, headers, config) {
+			    	self.init(data);
+			      }).
+			      error(function(data, status, headers, config) {
+			    	  console.log(data);
+			      });
+			}			
+		}		
+		
+		self.getDirty = function(oldModel){
+			var result = [];
+			dirtyModelElements(self,oldModel,result);
+			return result;
+		}
+		
+		self.message = function(){
+			self.model.message();
+		}
+	}
+	
+	function getScope(){
+		return angular.element(document.getElementById("item")).scope();
+	}
+	
+	var app = angular.module('itemApp', ['ngMaterial']);
+	app.controller('itemCtrl', function($scope, $http) {
+
+		$scope.view = new ViewModel(ItemServerModel);
+		
+		$http({
+            method : 'GET',
+            url : 'item-json'
+	    }).success(function(data, status, headers, config) {
+	    	getScope().view.init(data);
+	    	
+	    	getScope().$watch('view', function(newValue, oldValue) {
+	    		var diff = newValue.getDirty(oldValue);
+				if(diff.length>0)
+					$scope.view.postDirty($http,diff);
+	  		},true);
+	    	
+	    }).error(function(data, status, headers, config) {
+
+	    });	
+	});
+	
+
+	
+	</script>
+  </body>
+</html>
