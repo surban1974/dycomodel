@@ -19,9 +19,24 @@
  
 
       	<form id="item" method="post" ng-app="itemApp" ng-controller="itemCtrl"> 
+      	
+      	<div class="wrapper">
+	      <md-input-container>
+	        <md-select ng-model="view.model.selectedYear" aria-label="Select a Year">
+	          <md-option ng-value="key" ng-repeat="(key, value) in view.model.prevbyyears">{{key}}</md-option>
+	        </md-select>
+	      </md-input-container>
+	      
+	     <!--  <md-virtual-repeat-container id="vertical-container">
+	        <div md-virtual-repeat="val as value for (key, value) in view.model.prevbyyears" class="repeated-item" >
+	          {{val.date}}
+	        </div>
+	      </md-virtual-repeat-container> -->
+	      
+	     </div>
 
       	
- 				 		<table style="width:100%" data-ng-repeat="item in view.model.previous" cellpadding="0" cellspacing="0" > 
+ 				 	<!-- 	<table style="width:100%" data-ng-repeat="item in view.model.previous" cellpadding="0" cellspacing="0" > 
 				
 				 			<tr>
 				 				<td>
@@ -36,7 +51,7 @@
 						  								>
 								</td>								
 							</tr>
-						</table>		
+						</table>	 -->	
       	
  <!--      	
 	      	<h2 style="width:100%; text-align: right;"><b>Settings</b></h2>
@@ -131,6 +146,8 @@
 
 	var ItemServerModel = {
 		previous : [],
+		prevbyyears: [],
+		selectedYear: '',
 		error : '',
 		warning : '',
 		info : '',
@@ -230,20 +247,27 @@
 	
 	var app = angular.module('itemApp', ['ngMaterial']);
 	app.controller('itemCtrl', function($scope, $http) {
-
+		
 		$scope.view = new ViewModel(ItemServerModel);
+//		$scope.view.selectedYear = '2016';
 		
 		$http({
             method : 'GET',
             url : 'item-json'
 	    }).success(function(data, status, headers, config) {
 	    	getScope().view.init(data);
-	    	
+
 	    	getScope().$watch('view', function(newValue, oldValue) {
 	    		var diff = newValue.getDirty(oldValue);
 				if(diff.length>0)
 					$scope.view.postDirty($http,diff);
 	  		},true);
+
+	    	getScope().$watch('view.model.selectedYear', function(year) {		    	
+	    			console.log(year);	    	
+	    		}
+    		);
+	            
 	    	
 	    }).error(function(data, status, headers, config) {
 

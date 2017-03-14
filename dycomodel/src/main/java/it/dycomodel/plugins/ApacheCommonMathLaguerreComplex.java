@@ -14,7 +14,7 @@ import it.dycomodel.exceptions.RootSolvingException;
 import it.dycomodel.polynomial.APolynomial;
 
 public class ApacheCommonMathLaguerreComplex implements IComputing {
-	
+	private static final long serialVersionUID = 1L;
 	private Double minConstValue;
 
 	@Override

@@ -4,7 +4,6 @@ package it.dycomodel.admin.components.controllers;
 
 
 import java.io.Serializable;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -24,19 +23,24 @@ import it.classhidra.annotation.elements.ActionCall;
 import it.classhidra.annotation.elements.Entity;
 import it.classhidra.annotation.elements.Expose;
 import it.classhidra.annotation.elements.Redirect;
+import it.classhidra.annotation.elements.Rest;
 import it.classhidra.annotation.elements.SessionDirective;
 import it.classhidra.core.controller.bsController;
 import it.classhidra.core.controller.i_action;
 import it.classhidra.core.controller.i_bean;
+import it.classhidra.framework.web.beans.option_element;
 import it.classhidra.serialize.JsonReader2Map;
 import it.classhidra.serialize.JsonWriter;
 import it.classhidra.serialize.Serialized;
+import it.dycomodel.admin.components.beans.DemoRawData;
 import it.dycomodel.admin.components.beans.ViewChartAverage;
 import it.dycomodel.admin.components.beans.ViewChartConsumption;
 import it.dycomodel.admin.components.beans.ViewOrders;
 import it.dycomodel.admin.components.beans.ViewSliders;
+import it.dycomodel.approximation.ISetAdapter;
 import it.dycomodel.plugins.ApacheCommonMathLaguerre;
 import it.dycomodel.polynomial.PolynomialD;
+import it.dycomodel.wrappers.ADateApproximator;
 import it.dycomodel.wrappers.ADateWrapper;
 import it.dycomodel.wrappers.DateWrapperD;
 
@@ -63,9 +67,17 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	@Serialized
 	private ADateWrapper<Double> proxy;
 	
+	@Serialized
+	private ADateApproximator approximator;
+	
 	private SortedMap<Date, Double> consumption;
 	
 	private SortedMap<Date, Double> secureStock;
+	
+	@Serialized
+	private SortedMap<Long, Double> rawdata;
+	
+	private ISetAdapter setAdapter;
 	
 	@Serialized
 	private SortedMap<Date, Double> processedOrders;
@@ -110,21 +122,48 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	private long dayFinishDate;	
 	
 	@Serialized
+	private long dayStockDelta;	
+	
+	@Serialized
 	private double leadDays;	
 	
 	@Serialized
-	private int chartConsumptionDayInterval=1;		
+	private int chartConsumptionDayInterval=1;	
+	
+	@Serialized(children=true,depth=2)
+	private List<option_element> selectFixedPeriod;
+	
+	@Serialized(children=true,depth=2)
+	private List<option_element> selectApproximationType;
+	
+	@Serialized
+	private int approximationType;	
+	
+	@Serialized
+	private String fixedPeriod;
 
 	public ControllerDemo(){
 		super();
 	}
 	
+
+	@ActionCall(
+			name="test",
+			navigated="false",
+			Expose=@Expose(methods = {Expose.POST,Expose.GET},restmapping={@Rest(path="/demo/test/")})
+			
+	)
+	public String test(){
+
+		return "test";
+		
+	}	
 	
 	@ActionCall(
 			name="chartavr",
 			navigated="false",
 			Redirect=@Redirect(contentType="application/json"),
-			Expose=@Expose(methods = {Expose.POST,Expose.GET})
+			Expose=@Expose(methods = {Expose.POST,Expose.GET},restmapping={@Rest(path="/demo/chartavr/")})
 	)
 	public String chartavr(){
 		clear();
@@ -139,7 +178,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			name="chartcons",
 			navigated="false",
 			Redirect=@Redirect(contentType="application/json"),
-			Expose=@Expose(methods = {Expose.POST,Expose.GET})
+			Expose=@Expose(methods = {Expose.POST,Expose.GET},restmapping={@Rest(path="/demo/chartcons/")})
 	)
 	public String chartcons(){
 		clear();
@@ -151,12 +190,33 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	}	
 	
 	
+
+	@ActionCall(
+			name="json2",
+			navigated="false",
+			Redirect=@Redirect(contentType="application/json"),
+			Expose=@Expose(method = Expose.POST,restmapping={@Rest(path="/demo/json/")})
+			)
+	public String json2(HttpServletRequest request, HttpServletResponse response){	
+		return modelAsJson(request, response);
+	}
+	
+	@ActionCall(
+			name="xml2",
+			navigated="false",
+			Redirect=@Redirect(contentType="application/json"),
+			Expose=@Expose(method = Expose.POST,restmapping={@Rest(path="/demo/xml/")})
+			)
+	public String xml2(HttpServletRequest request, HttpServletResponse response){	
+		return modelAsXml(request, response);
+	}	
 	
 	@ActionCall(
 			name="diff",
 			navigated="false",
 			Redirect=@Redirect(contentType="application/json"),
-			Expose=@Expose(method = Expose.POST))
+			Expose=@Expose(method = Expose.POST,restmapping={@Rest(path="/demo/diff/")})
+			)
 	public String diffAsJson(HttpServletRequest request, HttpServletResponse response){
 		
 		String modelName = getString("outputserializedname");
@@ -239,17 +299,64 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			
 			setStartDate(normalizeDate(new Date()));
 			setFinishDate(demoFromStartDate(12));
+			Calendar calendar = Calendar.getInstance();
+			calendar.setTime(getStartDate());
+			setRawdata(DemoRawData.preparedemoRawData(calendar.get(Calendar.YEAR)-1));
+			setDayStockDelta(3);
+			
+			
+			setAdapter = new ISetAdapter() {						
+				private static final long serialVersionUID = 1L;
+
+				@Override
+				public SortedMap<Date, Double> adapt(SortedMap<Date, Double> set1) {
+					SortedMap<Date, Double> result = new TreeMap<Date, Double>();
+					for(Map.Entry<Date, Double> entry : set1.entrySet()) {
+						result.put(entry.getKey(), entry.getValue()*getDayStockDelta());
+					}
+					return result;
+				}
+			};
+			
+			
+			Calendar startAC = Calendar.getInstance();
+			startAC.setTime(startDate);
+			startAC.set(Calendar.DAY_OF_MONTH,1);
+			startAC.set(Calendar.MONTH,startAC.get(Calendar.MONTH)-1);
+			startAC.set(Calendar.YEAR,startAC.get(Calendar.YEAR));
+			Calendar finishAC = Calendar.getInstance();
+			finishAC.setTime(finishDate);
+			finishAC.set(Calendar.DAY_OF_MONTH,finishAC.getActualMaximum(Calendar.DAY_OF_MONTH));
+			finishAC.set(Calendar.YEAR,finishAC.get(Calendar.YEAR));			
+			
+			
+			setApproximator(
+					new ADateApproximator()
+					.setStartDate(startAC.getTime())
+					.setFinishDate(finishAC.getTime())
+					.setType(ADateApproximator.APPROXIMATION_MEAN)
+					.setStockAdapter(setAdapter)
+					.approximation(getRawdata())
+				);
+			
+
+			
+			setConsumption(getApproximator().getForecastedConsumption(1));
+			setSecureStock(getApproximator().getForecastedStock(1));
+			
+			
 			
 			dayFinishDate = (getFinishDate().getTime()-getStartDate().getTime())/(1000 * 60 * 60 * 24);
 			
-			setQuantity(10000d);
-			setFixedQuantity(10000d);
+			setQuantity(1000d);
+			setFixedQuantity(1000d);
 			setLeadDays(15d);
 
 
 
 
-			
+
+/*			
 			setConsumption(
 				new TreeMap<Date, Double>() {
 					private static final long serialVersionUID = 1L;
@@ -288,7 +395,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 						put(demoFromStartDate(11),1250d);			 
 					}}
 				);
-
+*/
 				
 			setProcessedOrders(
 				new TreeMap<Date, Double>() {
@@ -302,8 +409,14 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 //						put(new SimpleDateFormat("yyyyMMdd").parse("20171110"),15000d);
 					}}
 				);	
-				
-				
+			
+			setFixedFeatureOrders(
+					new TreeSet<Date>(){
+						private static final long serialVersionUID = 1L;
+						{			
+						}}
+					);				
+/*				
 			setFixedFeatureOrders(
 				new TreeSet<Date>(){
 					private static final long serialVersionUID = 1L;
@@ -322,18 +435,47 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 						add(new SimpleDateFormat("yyyyMMdd").parse("20180201"));
 					}}
 				);
-	
-				setProxy(
+*/	
+			setSelectFixedPeriod(
+				new ArrayList<option_element>(){
+					private static final long serialVersionUID = 1L;
+					{	
+						add(new option_element("w", "Every week"));
+						add(new option_element("m", "Every month"));
+						add(new option_element("3m", "Every quarter"));
+						add(new option_element("6m", "Every semester"));
+						
+					}}
+				);
+			
+			setSelectApproximationType(
+					new ArrayList<option_element>(){
+						private static final long serialVersionUID = 1L;
+						{	
+							add(new option_element("1", "Simple mean"));
+							add(new option_element("2", "Mean quantile 25"));
+							add(new option_element("3", "Mean quantile 75"));
+							add(new option_element("4", "Neural Network"));
+							
+						}}
+					);
+			setFixedPeriod("m");
+			
+			setProxy(
 						new DateWrapperD()
 						.setLead(new PolynomialD().setConstant(0, getLeadDays()))
 						.setComputingPlugin(new ApacheCommonMathLaguerre())
 						.init(consumption, secureStock)
 					);
-				setSliders(new ViewSliders(this).init());
+				
+			setSliders(
+						new ViewSliders(this)
+						.init()
+					);
 				
 	
 		}catch(Exception e){
-			
+			e.toString();
 		}
 		
 		
@@ -591,6 +733,129 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		if(getProxy()!=null)
 			getProxy().setLead(new PolynomialD().setConstant(0, this.leadDays));
 		this.redrawcharts=true;
+	}
+
+
+	public List<option_element> getSelectFixedPeriod() {
+		return selectFixedPeriod;
+	}
+
+
+	public void setSelectFixedPeriod(List<option_element> selectFixedPeriod) {
+		this.selectFixedPeriod = selectFixedPeriod;
+	}
+
+
+	public String getFixedPeriod() {
+		return fixedPeriod;
+	}
+
+
+	public void setFixedPeriod(String fixedPeriod) {
+		this.fixedPeriod = fixedPeriod;
+		getFixedFeatureOrders().clear();
+		
+		Calendar current = Calendar.getInstance();
+		current.setTimeInMillis(getStartDate().getTime());
+		if(this.fixedPeriod.equalsIgnoreCase("w")){
+			current.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY);
+			current.set(Calendar.WEEK_OF_MONTH, current.get(Calendar.WEEK_OF_MONTH)+1);			
+			while(current.getTime().before(getFinishDate())){
+				getFixedFeatureOrders().add(new Date(current.getTimeInMillis()));
+				current.set(Calendar.WEEK_OF_MONTH, current.get(Calendar.WEEK_OF_MONTH)+1);
+			}
+		}else if(this.fixedPeriod.equalsIgnoreCase("m")){
+			current.set(Calendar.DAY_OF_MONTH, 1);
+			current.set(Calendar.MONTH, current.get(Calendar.MONTH)+1);			
+			while(current.getTime().before(getFinishDate())){
+				getFixedFeatureOrders().add(new Date(current.getTimeInMillis()));
+				current.set(Calendar.MONTH, current.get(Calendar.MONTH)+1);			
+			}
+		}else if(this.fixedPeriod.equalsIgnoreCase("3m")){
+			current.set(Calendar.DAY_OF_MONTH, 1);
+			current.set(Calendar.MONTH, current.get(Calendar.MONTH)+3);			
+			while(current.getTime().before(getFinishDate())){
+				getFixedFeatureOrders().add(new Date(current.getTimeInMillis()));
+				current.set(Calendar.MONTH, current.get(Calendar.MONTH)+3);			
+			}
+		}else if(this.fixedPeriod.equalsIgnoreCase("6m")){
+			current.set(Calendar.DAY_OF_MONTH, 1);
+			current.set(Calendar.MONTH, current.get(Calendar.MONTH)+6);			
+			while(current.getTime().before(getFinishDate())){
+				getFixedFeatureOrders().add(new Date(current.getTimeInMillis()));
+				current.set(Calendar.MONTH, current.get(Calendar.MONTH)+6);			
+			}
+		}
+		
+		
+		this.redrawcharts=true;
+	}
+
+
+	public SortedMap<Long, Double> getRawdata() {
+		return rawdata;
+	}
+
+
+	public void setRawdata(SortedMap<Long, Double> rawdata) {
+		this.rawdata = rawdata;
+	}
+
+
+	public long getDayStockDelta() {
+		return dayStockDelta;
+	}
+
+
+	public void setDayStockDelta(long dayStockDelta) {
+		this.dayStockDelta = dayStockDelta;
+		if(getApproximator()!=null){
+			
+			getApproximator().approximation(getRawdata());			
+			setConsumption(getApproximator().getForecastedConsumption(1));
+			setSecureStock(getApproximator().getForecastedStock(1));
+			if(getProxy()!=null){
+				try{
+					getProxy().init(getConsumption(), getSecureStock());
+					getSliders().init();
+					redraworders=true;
+				}catch(Exception e){
+					
+				}
+				
+			}
+		}
+	}
+
+
+	public ADateApproximator getApproximator() {
+		return approximator;
+	}
+
+
+	public void setApproximator(ADateApproximator approximator) {
+		this.approximator = approximator;
+	}
+
+
+	public List<option_element> getSelectApproximationType() {
+		return selectApproximationType;
+	}
+
+
+	public void setSelectApproximationType(List<option_element> selectApproximationType) {
+		this.selectApproximationType = selectApproximationType;
+	}
+
+
+	public int getApproximationType() {
+		return approximationType;
+	}
+
+
+	public void setApproximationType(int approximationType) {
+		this.approximationType = approximationType;
+		
 	}
 
 

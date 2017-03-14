@@ -21,7 +21,7 @@
 
 	  	<md-toolbar md-scroll-shrink>
 	   		<div class="md-toolbar-tools">
-		        <h2 flex md-truncate>DYNAMIC CONSUMPTION MODEL</h2>	   		
+		        <h2 flex md-truncate>DYNAMIC CONSUMPTION MODEL <i>(only Chrome browser supported)</i></h2>	
 	    	</div>
 		</md-toolbar>
 
@@ -31,11 +31,75 @@
 
 		<div ng-cloak>
 		  <md-content>
+		  
+   
   		  
 		    <md-tabs md-dynamic-height md-border-bottom>
+		      <md-tab label="Approximation" md-on-select="selectTabApproximation()" md-active="view.model.page_tab == 0">
+		        <md-content class="md-padding">
+						<div layout="row">
+							<div flex layout-padding>
+								<md-list>
+									<md-subheader class="md-no-sticky">Customer's infrastructure</md-subheader>
+								</md-list>	
+							</div>	
+							<div flex layout-padding>
+								<md-list>
+									  <md-subheader class="md-no-sticky">Everyday consumption</md-subheader>
+									  <md-list-item class="md-2-line" ng-repeat="(key, value) in view.model.rawdata">
+									    <div class="md-list-item-text">
+									      <h4>{{key | date:'dd/MM/yyyy'}}</h4>
+									      <p>{{value}}</p>
+									    </div>
+									  </md-list-item>
+								</md-list>
+							</div>
+							<div flex layout-padding>	
+								<md-list>
+									<md-input-container class="md-block">
+						          		<label>Average consumption</label>
+						          		<md-select ng-model="view.model.approximationType">
+						            		<md-option ng-repeat="period in view.model.selectApproximationType" ng-value="period.code" >
+						              			{{period.desc}}
+						            		</md-option>
+						         		 </md-select>									
+          							</md-input-container>
+									  <md-list-item class="md-2-line" ng-repeat="consumption in view.model.sliders.consumption">
+									    <md-checkbox ng-model="consumption.done"></md-checkbox>
+									    <div class="md-list-item-text">
+									      <h3>{{consumption.desc}}</h3>
+									      <p>{{consumption.value}}</p>
+									    </div>
+									  </md-list-item>									
+									
+								</md-list>	
+							</div>	
+							<div flex layout-padding>	
+								<md-list>
+										<md-input-container class="md-block">
+										<label>Daily Secure Stock</label>
+											        <input type="number" step="1" name="dayStockDelta" ng-model="view.model.dayStockDelta" min="0"
+											               max="15"/>
+										</md-input-container>
+									  <md-list-item class="md-2-line" ng-repeat="stock in view.model.sliders.stock">
+									    <md-checkbox ng-model="stock.done"></md-checkbox>
+									    <div class="md-list-item-text">
+									      <h3>{{stock.desc}}</h3>
+									      <p>{{stock.value}}</p>
+									    </div>
+									  </md-list-item>									
+								</md-list>	
+							</div>									
+						</div>
+		        
+		        
+		        </md-content>
+		      </md-tab>
+		    
+		    
 		      <md-tab label="Forecasting" md-on-select="selectTabForecasting()" md-active="view.model.page_tab == 1">
 		        <md-content class="md-padding">
-	        	<div id="chartavr_div" style="width: 1150px; height: 250px;"></div>
+	        	<div id="chartavr_div" style="width: 1250px; height: 250px;"></div>
 				<div id="tuning_div" style="padding:5px;">
 
 
@@ -116,14 +180,22 @@
 										<label>Fixed Quantity</label>
 											        <input type="number" step="100" name="quantity" ng-model="view.model.fixedQuantity" min="0"
 											               max="100000"/>
-									</md-input-container>				
+									</md-input-container>	
+									<md-input-container class="md-block" ng-if="view.model.calculatemode==3">
+						          		<label>Periodicity</label>
+						          		<md-select ng-model="view.model.fixedPeriod">
+						            		<md-option ng-repeat="period in view.model.selectFixedPeriod" ng-value="period.code" >
+						              			{{period.desc}}
+						            		</md-option>
+						         		 </md-select>									
+          							</md-input-container>												
 								</div>
 	
 															
 						
 			   			</div>
-							<div flex style="min-width: 1150px;">     
-					          	<div id="chartcons_div" style="width: 1150px; height: 350px;"></div>
+							<div flex style_="min-width: 1150px;">     
+					          	<div id="chartcons_div" style="width: 100%; height: 350px;"></div>
 			  	
 								<md-slider-container style="width: 1150px;">
 									<span class="md-body-1">Zoom</span>
@@ -168,17 +240,21 @@
 							</div>
 							<div flex layout-padding>
 								<md-list>
-									<md-subheader class="md-no-sticky">Precalculated Requests</md-subheader>
-								  <md-list-item class="md-2-line" ng-repeat="item in view.model.orders">
-								    <md-checkbox ng-model="item.done"></md-checkbox>
-								    <div class="md-list-item-text">
-								      <h3>{{item.date}}</h3>
-								      <p>{{item.quantity}}</p>
-								    </div>
-								  </md-list-item>
+									  <md-subheader class="md-no-sticky">Next Requests</md-subheader>
+									  <md-list-item class="md-2-line" ng-repeat="item in view.model.orders">
+									    <md-checkbox ng-model="item.done"></md-checkbox>
+									    <div class="md-list-item-text">
+									      <h3>{{item.date}}</h3>
+									      <p>{{item.quantity}}</p>
+									    </div>
+									  </md-list-item>
 								</md-list>
 							</div>
-			
+							<div flex layout-padding>	
+								<md-list>
+									<md-subheader class="md-no-sticky">Customer's infrastructure</md-subheader>
+								</md-list>	
+							</div>		
 						</div>
 					</div>
 
@@ -227,6 +303,20 @@
 //    google.charts.setOnLoadCallback(function(){drawChart();});
 
 
+	function chartInLoad(id, inLoad){
+		var div = document.getElementById(id);
+		try{
+			if(inLoad==true){
+				div.style.opacity = .1;
+				div.style.filter = "alpha(opacity=10)";
+			}else{
+				div.style.opacity = 1;
+				div.style.filter = "alpha(opacity=100)";
+			}
+		}catch(e){
+			
+		}
+	}
     
     function drawChartAverage(datas){
     	var arr = new Array();
@@ -252,6 +342,7 @@
 
 		var chart = new google.visualization.LineChart(document.getElementById('chartavr_div'));
 		chart.draw(data, options);
+		chartInLoad("chartavr_div",false);
     }
     
     function drawChartConsumption(datas){
@@ -282,13 +373,19 @@
 
 		var chart = new google.visualization.LineChart(document.getElementById('chartcons_div'));
 		chart.draw(data, options);
+		chartInLoad("chartcons_div",false);
     }    
 
 	
 
 	var ServerModel = {
+		rawdata : [],
 		sliders : [],
 		orders : [],
+		selectFixedPeriod: [],
+		selectApproximationType: [],
+		approximationType: 1,
+		fixedPeriod: '',
 		proxy: {},		
 		redrawcharts: false,
 		tunemode: 1,
@@ -299,6 +396,7 @@
 		quantity: 0.0,
 		fixedQuantity: 0.0,
 		leadDays: 15,
+		dayStockDelta: 0,
 		error : '',
 		warning : '',
 		info : '',
@@ -372,19 +470,39 @@
 			if(!self.initialisation){
 				$http.post('demo-diff', JSON.stringify(newValue)).
 			    success(function(data, status, headers, config) {
-			    	self.init(data);
+			    	self.model.redrawcharts = data.model.redrawcharts;
+			    	self.model.redraworders = data.model.redraworders;
+
+//			    	self.init(data);
+					if(self.model.redraworders==true){
+						self.model.redraworders=false;
+			    		if(getScope().view.model.page_tab==0){
+			    			$http({
+			    	            method : 'GET',
+			    	            url : 'demo-json'
+			    		    }).success(function(data, status, headers, config) {
+//			    		    	getScope().view.init(data);	
+			    		    	self.model.sliders = data.model.sliders;
+			    		    });
+			    		}						
+					}
 			    	if(self.model.redrawcharts==true){
 			    		self.model.redrawcharts=false;
+
 			    		if(getScope().view.model.page_tab==1){
+			    			chartInLoad("chartavr_div",true);
 				    		$http({
 				                method : 'GET',
 				                url : 'demo-chartavr'
 				    	    }).success(function(data, status, headers, config) {
 				    	        google.charts.load('current', {'packages':['corechart']});
 				    	        google.charts.setOnLoadCallback(function() {drawChartAverage(data);});
+				    	    }).error(function(data, status, headers, config) {
+				    	    	chartInLoad("chartavr_div",false);
 				    	    });
 			    		}
 			    		if(getScope().view.model.page_tab==2){
+			    			chartInLoad("chartcons_div",true);
 				    		$http({
 				                method : 'GET',
 				                url : 'demo-chartcons'
@@ -396,8 +514,11 @@
 				    	            method : 'GET',
 				    	            url : 'demo-json'
 				    		    }).success(function(data, status, headers, config) {
-				    		    	getScope().view.init(data);	
+//				    		    	getScope().view.init(data);	
+				    		    	self.model.orders = data.model.orders;
 				    		    });
+				    	    }).error(function(data, status, headers, config) {
+				    	    	chartInLoad("chartcons_div",false);
 				    	    });
 			    		}
 			    		
@@ -425,11 +546,31 @@
 	}
 	
 	var app = angular.module('demoApp', ['ngMaterial']);
-	app.controller('demoCtrl', function($scope, $http) {
+	
+	app.service('Browsertype', ['$window', function($window) {
+		this.type = function() {
+	        var userAgent = $window.navigator.userAgent;
+	        var browsers = {chrome: /chrome/i, safari: /safari/i, firefox: /firefox/i, ie: /internet explorer/i};
+	        for(var key in browsers) {
+	            if (browsers[key].test(userAgent)) {
+	                return key;
+	            }
+	       };
+	       return 'unknown';
+	    }
+
+	}]);
+
+	app.controller('demoCtrl', function($scope, $http, $browser, Browsertype) {
 
 		$scope.view = new ViewModel(ServerModel);
 		
+		$scope.selectTabApproximation = function() {
+			$scope.view.model.page_tab = 0;
+		}
+		
 		$scope.selectTabProcessing = function() {
+
 			$scope.view.model.page_tab = 2;
 		    $http({
                 method : 'GET',

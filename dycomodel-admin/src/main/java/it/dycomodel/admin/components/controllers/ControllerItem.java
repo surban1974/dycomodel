@@ -18,7 +18,6 @@ import it.classhidra.annotation.elements.Redirect;
 import it.classhidra.annotation.elements.SessionDirective;
 import it.classhidra.core.controller.i_action;
 import it.classhidra.core.controller.i_bean;
-import it.classhidra.serialize.Format;
 import it.classhidra.serialize.Serialized;
 import it.dycomodel.admin.components.beans.ForecastItem;
 import it.dycomodel.wrappers.ADateWrapper;
@@ -50,6 +49,12 @@ public class ControllerItem extends AbstractBase implements i_action, i_bean, Se
 	
 	@Serialized
 	private List<ForecastItem> previous;
+	
+	@Serialized
+	private SortedMap<String, List<ForecastItem>> prevbyyears;
+	
+	@Serialized
+	private String selectedYear;
 
 
 
@@ -65,7 +70,7 @@ public class ControllerItem extends AbstractBase implements i_action, i_bean, Se
 	public void reimposta() {
 		super.reimposta();
 		try{
-			final SortedMap<Date, Double> speedM = new TreeMap<Date, Double>() {{
+			final SortedMap<Date, Double> speedM16 = new TreeMap<Date, Double>() {{
 				put(new SimpleDateFormat("yyyyMMdd").parse("20160115"),752d);
 				put(new SimpleDateFormat("yyyyMMdd").parse("20160215"),512d);
 				put(new SimpleDateFormat("yyyyMMdd").parse("20160315"),580d);
@@ -81,8 +86,34 @@ public class ControllerItem extends AbstractBase implements i_action, i_bean, Se
 			}};
 			
 			this.previous = new ArrayList<ForecastItem>();
-			for(Map.Entry<Date, Double> entry : speedM.entrySet()) 
+			
+			for(Map.Entry<Date, Double> entry : speedM16.entrySet()) 
 				previous.add(new ForecastItem(entry.getKey(), entry.getValue()));
+			this.prevbyyears = new TreeMap<String, List<ForecastItem>>();
+			prevbyyears.put("2016", previous);
+			
+			final SortedMap<Date, Double> speedM15 = new TreeMap<Date, Double>() {{
+				put(new SimpleDateFormat("yyyyMMdd").parse("20150115"),577d);
+				put(new SimpleDateFormat("yyyyMMdd").parse("20150215"),317d);
+				put(new SimpleDateFormat("yyyyMMdd").parse("20150315"),580d);
+				put(new SimpleDateFormat("yyyyMMdd").parse("20150415"),491d);
+				put(new SimpleDateFormat("yyyyMMdd").parse("20150515"),560d);
+				put(new SimpleDateFormat("yyyyMMdd").parse("20150615"),516d);
+				put(new SimpleDateFormat("yyyyMMdd").parse("20150715"),612d);
+				put(new SimpleDateFormat("yyyyMMdd").parse("20150815"),698d);
+				put(new SimpleDateFormat("yyyyMMdd").parse("20150915"),544d);
+				put(new SimpleDateFormat("yyyyMMdd").parse("20151015"),471d);
+				put(new SimpleDateFormat("yyyyMMdd").parse("20151115"),752d);
+				put(new SimpleDateFormat("yyyyMMdd").parse("20151215"),786d);			 
+			}};
+			
+			this.previous = new ArrayList<ForecastItem>();
+			
+			for(Map.Entry<Date, Double> entry : speedM15.entrySet()) 
+				previous.add(new ForecastItem(entry.getKey(), entry.getValue()));
+			prevbyyears.put("2015", previous);
+			
+			selectedYear="2016";
 			
 		}catch(Exception e){
 			
@@ -121,6 +152,38 @@ public class ControllerItem extends AbstractBase implements i_action, i_bean, Se
 
 	public void setPrevious(List<ForecastItem> previous) {
 		this.previous = previous;
+	}
+
+
+
+
+
+	public SortedMap<String, List<ForecastItem>> getPrevbyyears() {
+		return prevbyyears;
+	}
+
+
+
+
+
+	public void setPrevbyyears(SortedMap<String, List<ForecastItem>> prevbyyears) {
+		this.prevbyyears = prevbyyears;
+	}
+
+
+
+
+
+	public String getSelectedYear() {
+		return selectedYear;
+	}
+
+
+
+
+
+	public void setSelectedYear(String selectedYear) {
+		this.selectedYear = selectedYear;
 	}
 
 

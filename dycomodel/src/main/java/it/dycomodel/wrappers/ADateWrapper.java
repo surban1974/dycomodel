@@ -15,11 +15,14 @@ import it.dycomodel.polynomial.APolynomial;
 public abstract class ADateWrapper<T extends Number> implements Serializable {
 
 	private static final long serialVersionUID = 1L;
+
+	
 	protected Date initialDeltaDate;
 	protected IEquation<T> equation;
 	protected APolynomial<T> lead;
 	protected IComputing computingPlugin;
 	
+
 
 	public ADateWrapper<T> init(SortedMap<Date, Double> forecastedConsumption, SortedMap<Date, Double> forecastedStock) throws Exception{
 		
@@ -143,6 +146,8 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		if(startPeriod<0 ||  initialQuantity==null)
 			throw new InputParameterException();
 		
+		if(finishPeriod-startPeriod<100)
+			finishPeriod+=100;
 		
 		Date point = null;
 		T currentQuantity = initialQuantity;
