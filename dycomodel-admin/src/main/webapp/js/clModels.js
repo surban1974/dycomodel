@@ -1,7 +1,7 @@
 /**
 * Name: classhidra-models.js
-* Version: 1.1.1 
-* Creation date: (10/03/2017)
+* Version: 1.1.2 
+* Creation date: (19/05/2016)
 * @author: Svyatoslav Urbanovych svyatoslav.urbanovych@gmail.com
 */
 var GenericModel = {
@@ -135,7 +135,7 @@ function dirtyModelElements(newModel, oldModel, array, prefix, exclude, include)
 	for(var property in newModel){
 			if(property.indexOf("$$hashKey")>=0){
 				return;
-			}
+			}		
 			var exc=false;
 			var inc=true;
 			if(typeof newModel[property] === 'object'){

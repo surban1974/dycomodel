@@ -12,47 +12,56 @@
     <!-- Angular Material CSS -->
     <link rel="stylesheet" href="css/angular-material.min.css">
 
+
   </head>
 
 
   <body>
-	 
+ 
 <div layout="column" layout-fill id="demo" ng-app="demoApp" ng-controller="demoCtrl as mc">
 
-	  	<md-toolbar md-scroll-shrink>
+
+
+
+
+
+<!--     <main flex> -->
+    
+    	<md-toolbar md-medium-tall >
 	   		<div class="md-toolbar-tools">
-		        <h2 flex md-truncate>DYNAMIC CONSUMPTION MODEL <i>(only Chrome browser supported)</i></h2>	
+		        <h2 flex md-truncate>DYNAMIC CONSUMPTION MODEL <i><font size="2">(only Chrome browser supported)</font></i></h2>	
 	    	</div>
 		</md-toolbar>
 
-
-
-    <main flex>
-
-		<div ng-cloak>
+<!-- 		<div ng-cloak>  -->
 		  <md-content>
 		  
    
   		  
-		    <md-tabs md-dynamic-height md-border-bottom>
-		      <md-tab label="Approximation" md-on-select="selectTabApproximation()" md-active="view.model.page_tab == 0">
-		        <md-content class="md-padding">
+		    <md-tabs md-dynamic-height md-border-bottom md-stretch-tabs>
+		      <md-tab label="STEP 1 - Forecasting" md-on-select="selectTabApproximation()" md-active="view.model.page_tab == 0">
+		        <md-content class="md-padding_">
 						<div layout="row">
-							<div flex layout-padding>
+							<div flex layout-padding >
 								<md-list>
-									<md-subheader class="md-no-sticky">Customer's infrastructure</md-subheader>
+									<md-subheader class="md-no-sticky"><font color="blue">Customer's infrastructure - input chanel</font></md-subheader>									
 								</md-list>	
+									<div layout-align="center center" style="text-align: center">
+										<img src="images/customer_infr.png"/>
+									</div>	
 							</div>	
-							<div flex layout-padding>
-								<md-list>
+							<div flex layout-padding >
+
+								<md-list >
 									  <md-subheader class="md-no-sticky">Everyday consumption</md-subheader>
 									  <md-list-item class="md-2-line" ng-repeat="(key, value) in view.model.rawdata">
 									    <div class="md-list-item-text">
-									      <h4>{{key | date:'dd/MM/yyyy'}}</h4>
+									      <h4>{{key | date:'dd/MM/yyyy'}}</h4> 
 									      <p>{{value}}</p>
-									    </div>
 									  </md-list-item>
+									  </div>
 								</md-list>
+
 							</div>
 							<div flex layout-padding>	
 								<md-list>
@@ -97,65 +106,64 @@
 		      </md-tab>
 		    
 		    
-		      <md-tab label="Forecasting" md-on-select="selectTabForecasting()" md-active="view.model.page_tab == 1">
+		      <md-tab label="STEP 2 - Correction & Prediction" md-on-select="selectTabForecasting()" md-active="view.model.page_tab == 1">
 		        <md-content class="md-padding">
-	        	<div id="chartavr_div" style="width: 1250px; height: 250px;"></div>
-				<div id="tuning_div" style="padding:5px;">
-
-
-		 				
-								<table  cellspacing="0" cellpadding="0" >
-									<tr >
-										<td style="min-width:100px;" data-ng-repeat="consumption in view.model.sliders.consumption" ng-if="view.model.tunemode==1">
-										
-											<md-slider-container flex>
-												<md-input-container>
-										        	<input flex type="number" ng-model="consumption.value" aria-label="consumption" aria-controls="consumption-slider" > 
-										      	</md-input-container>
-										      	<md-slider 	md-discrete ng-model="consumption.value" min="{{view.model.sliders.minC}}" max="{{view.model.sliders.maxC}}" step="1"
-											      				id="consumption-slider"
-											      				aria-label="bass" class="md-primary"
-											                 	md-vertical             	
-											                 	style="padding:0px;height:50px"
-											                 	></md-slider>
-										      	</md-slider>
-										      	<h5>{{consumption.desc}}</h5>
-											</md-slider-container>	
-																				
-										</td>			
-									</tr>
-			
-									<tr >
-										<td style="min-width:100px;" data-ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.tunemode == 2">
-											<md-slider-container flex>
-												<md-input-container>
-										        	<input flex type="number" ng-model="stock.value" aria-label="stock" aria-controls="stock-slider" > 
-										      	</md-input-container>
-										    	
-										      	<md-slider 	md-discrete ng-model="stock.value" min="{{view.model.sliders.minS}}" max="{{view.model.sliders.maxS}}" step="1" 
-										      				id="stock-slider"
-										      				aria-label="stock" class="md-accent"
-										                 	md-vertical md-range></md-slider>
-										      	</md-slider>
-										      	<h5>{{stock.desc}}</h5>
-											</md-slider-container>										
-										</td>
-									</tr>
-								</table>
-
+		        	<div id="chartavr_div" style="width: 1250px; height: 220px;"></div>
+					<div id="tuning_div" style="padding:0px;">
+	
+	
+			 				
+									<table  cellspacing="0" cellpadding="0" >
+										<tr >
+											<td style="min-width:100px;" data-ng-repeat="consumption in view.model.sliders.consumption" ng-if="view.model.tunemode==1">
+											
+												<md-slider-container flex>
+													<md-input-container>
+											        	<input flex type="number" ng-model="consumption.value" aria-label="consumption" aria-controls="consumption-slider" > 
+											      	</md-input-container>
+											      	<md-slider 	md-discrete ng-model="consumption.value" min="{{view.model.sliders.minC}}" max="{{view.model.sliders.maxC}}" step="1"
+												      				id="consumption-slider"
+												      				aria-label="bass" class="md-primary"
+												                 	md-vertical             	
+												                 	style="padding:0px;height:50px"
+												                 	></md-slider>
+											      	</md-slider>
+											      	<h5>{{consumption.desc}}</h5>
+												</md-slider-container>	
+																					
+											</td>			
+										</tr>
+				
+										<tr >
+											<td style="min-width:100px;" data-ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.tunemode == 2">
+												<md-slider-container flex>
+													<md-input-container>
+											        	<input flex type="number" ng-model="stock.value" aria-label="stock" aria-controls="stock-slider" > 
+											      	</md-input-container>
+											    	
+											      	<md-slider 	md-discrete ng-model="stock.value" min="{{view.model.sliders.minS}}" max="{{view.model.sliders.maxS}}" step="1" 
+											      				id="stock-slider"
+											      				aria-label="stock" class="md-accent"
+											                 	md-vertical md-range></md-slider>
+											      	</md-slider>
+											      	<h5>{{stock.desc}}</h5>
+												</md-slider-container>										
+											</td>
+										</tr>
+									</table>
+						</div>
+							
 								<md-radio-group ng-model="view.model.tunemode" layout="row">
 									<md-radio-button value="0" class="md-warn"> Hide </md-radio-button>
 									<md-radio-button value="1" class="md-primary"> Consumption </md-radio-button>
 									<md-radio-button value="2" class="md-accent"> Secure Stock </md-radio-button>							
 								</md-radio-group>   							
-							
-					</div>
 					
 	
   
 		        </md-content>
 		      </md-tab>
-		      <md-tab label="Processing" md-on-select="selectTabProcessing()" md-active="view.model.page_tab == 2">
+		      <md-tab label="STEP 3 - Orders Processing" md-on-select="selectTabProcessing()" md-active="view.model.page_tab == 2">
 		        <md-content class="md-padding">
 
 					<div layout="column">
@@ -194,10 +202,10 @@
 															
 						
 			   			</div>
-							<div flex style_="min-width: 1150px;">     
-					          	<div id="chartcons_div" style="width: 100%; height: 350px;"></div>
+						<div flex >     
+					          	<div id="chartcons_div" style="height: 295px;"></div>
 			  	
-								<md-slider-container style="width: 1150px;">
+								<md-slider-container >
 									<span class="md-body-1">Zoom</span>
 										<md-slider flex md-discrete ng-model="view.model.dayFinishDate" step="1" min="0" max="365" aria-label="dayFinishDate" id="dayFinishDate-slider" class="md-primary">
 										</md-slider>
@@ -206,7 +214,7 @@
 											<input flex type="number" ng-model="view.model.dayFinishDate" aria-label="dayFinishDate" aria-controls="dayFinishDate-slider">
 										</md-input-container>
 								</md-slider-container>		          	
-					        </div>
+					    </div>
 			   
 						<div layout="row">
 							<div flex layout-padding>
@@ -240,7 +248,7 @@
 							</div>
 							<div flex layout-padding>
 								<md-list>
-									  <md-subheader class="md-no-sticky">Next Requests</md-subheader>
+									  <md-subheader class="md-no-sticky"><font color="red">Requests for procurement ready to send - {{view.model.orders.length}}</font></md-subheader>
 									  <md-list-item class="md-2-line" ng-repeat="item in view.model.orders">
 									    <md-checkbox ng-model="item.done"></md-checkbox>
 									    <div class="md-list-item-text">
@@ -250,10 +258,14 @@
 									  </md-list-item>
 								</md-list>
 							</div>
-							<div flex layout-padding>	
+							<div flex layout-padding >	
 								<md-list>
-									<md-subheader class="md-no-sticky">Customer's infrastructure</md-subheader>
+									<md-subheader class="md-no-sticky"><font color="blue">Output chanel - Customer's infrastructure</font></md-subheader>
+
 								</md-list>	
+									<div layout-align="center center" style="text-align: center">
+										<img src="images/customer_infr_out.png"/>
+									</div>								
 							</div>		
 						</div>
 					</div>
@@ -269,10 +281,10 @@
 		    </md-tabs>
 		    
 		  </md-content>
-		</div>
+<!-- 		</div> -->
 
 
-    </main>
+<!--     </main> -->
 
 
   </div>
@@ -304,7 +316,9 @@
 
 
 	function chartInLoad(id, inLoad){
+		return;
 		var div = document.getElementById(id);
+		
 		try{
 			if(inLoad==true){
 				div.style.opacity = .1;
@@ -332,11 +346,11 @@
         var data = google.visualization.arrayToDataTable(arr);
 
 		var options = {
-			title: 'Average Consumption/Secure stock',
+			title_: 'Average Consumption/Secure stock',
 			curveType: 'function',
 			legend: { position: 'top' },
 			hAxis: { textPosition: 'none' },
-			'chartArea':{left:50,top:50,bottom:10,width:"100%"}
+			'chartArea':{left:50,top:25,bottom:5,width:"100%"}
 
 		};
 
@@ -360,14 +374,14 @@
         var data = google.visualization.arrayToDataTable(arr);
 
 		var options = {
-			title: 'Consumption',
+			title_: 'Consumption',
 			curveType_: 'function',
 			legend: { position: 'top' },
 			hAxis_: { textPosition: 'none' },
 			vAxis: {viewWindowMode: "explicit", viewWindow:{ min: 0 }},
 			seriesType: 'line',
 			series: {2: {type: 'bars', color_: 'green'}},
-			'chartArea':{left:75,top:50,bottom:50,width:"100%"}
+			'chartArea':{left:75,top:30,bottom:25,width:"100%"}
 
 		};
 
@@ -472,6 +486,8 @@
 			    success(function(data, status, headers, config) {
 			    	self.model.redrawcharts = data.model.redrawcharts;
 			    	self.model.redraworders = data.model.redraworders;
+			    	if(self.model.approximationType!='1')
+			    		self.model.approximationType='1';
 
 //			    	self.init(data);
 					if(self.model.redraworders==true){
@@ -495,7 +511,7 @@
 				                method : 'GET',
 				                url : 'demo-chartavr'
 				    	    }).success(function(data, status, headers, config) {
-				    	        google.charts.load('current', {'packages':['corechart']});
+//				    	        google.charts.load('current', {'packages':['corechart']});
 				    	        google.charts.setOnLoadCallback(function() {drawChartAverage(data);});
 				    	    }).error(function(data, status, headers, config) {
 				    	    	chartInLoad("chartavr_div",false);
@@ -507,7 +523,7 @@
 				                method : 'GET',
 				                url : 'demo-chartcons'
 				    	    }).success(function(data, status, headers, config) {
-				    	        google.charts.load('current', {'packages':['corechart']});
+//				    	        google.charts.load('current', {'packages':['corechart']});
 				    	        google.charts.setOnLoadCallback(function() {drawChartConsumption(data);});
 				    	        
 				    	        $http({
@@ -576,8 +592,16 @@
                 method : 'GET',
                 url : 'demo-chartcons'
     	    }).success(function(data, status, headers, config) {
-    	        google.charts.load('current', {'packages':['corechart']});
+//    	        google.charts.load('current', {'packages':['corechart']});
     	        google.charts.setOnLoadCallback(function() {drawChartConsumption(data);});
+    	        $http({
+    	            method : 'GET',
+    	            url : 'demo-json'
+    		    }).success(function(data, status, headers, config) {
+//    		    	getScope().view.init(data);	
+    		    	self.model.orders = data.model.orders;
+    		    });
+    	        
     	    });
 		}
 		$scope.selectTabForecasting = function() {
@@ -586,7 +610,7 @@
                 method : 'GET',
                 url : 'demo-chartavr'
     	    }).success(function(data, status, headers, config) {
-    	        google.charts.load('current', {'packages':['corechart']});
+//    	        google.charts.load('current', {'packages':['corechart']});
     	        google.charts.setOnLoadCallback(function() {drawChartAverage(data);});
     	    });
 		}

@@ -29,6 +29,7 @@ import it.classhidra.core.controller.bsController;
 import it.classhidra.core.controller.i_action;
 import it.classhidra.core.controller.i_bean;
 import it.classhidra.framework.web.beans.option_element;
+import it.classhidra.serialize.Format;
 import it.classhidra.serialize.JsonReader2Map;
 import it.classhidra.serialize.JsonWriter;
 import it.classhidra.serialize.Serialized;
@@ -88,10 +89,10 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 	private SortedMap<Date, Double> computedOrders;
 	
-	@Serialized
+	@Serialized(output=@Format(format="MM dd yyyy"))
 	private Date startDate;
 	
-	@Serialized
+	@Serialized(output=@Format(format="MM dd yyyy"))
 	private Date finishDate;
 	
 	@Serialized
@@ -447,6 +448,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 						
 					}}
 				);
+			setFixedPeriod("m");
 			
 			setSelectApproximationType(
 					new ArrayList<option_element>(){
@@ -459,7 +461,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 							
 						}}
 					);
-			setFixedPeriod("m");
+			setApproximationType(1);
 			
 			setProxy(
 						new DateWrapperD()
@@ -808,22 +810,24 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 
 	public void setDayStockDelta(long dayStockDelta) {
-		this.dayStockDelta = dayStockDelta;
-		if(getApproximator()!=null){
-			
-			getApproximator().approximation(getRawdata());			
-			setConsumption(getApproximator().getForecastedConsumption(1));
-			setSecureStock(getApproximator().getForecastedStock(1));
-			if(getProxy()!=null){
-				try{
-					getProxy().init(getConsumption(), getSecureStock());
-					getSliders().init();
-					redraworders=true;
-				}catch(Exception e){
+		if(this.dayStockDelta!=dayStockDelta){
+			this.dayStockDelta = dayStockDelta;
+			if(getApproximator()!=null){				
+				getApproximator().approximation(getRawdata());			
+				setConsumption(getApproximator().getForecastedConsumption(1));
+				setSecureStock(getApproximator().getForecastedStock(1));
+				if(getProxy()!=null){
+					try{
+						getProxy().init(getConsumption(), getSecureStock());
+						getSliders().init();
+						redraworders=true;
+					}catch(Exception e){
+						
+					}
 					
 				}
-				
 			}
+			
 		}
 	}
 
@@ -854,7 +858,30 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 
 	public void setApproximationType(int approximationType) {
-		this.approximationType = approximationType;
+		if(this.approximationType!=approximationType){
+			this.approximationType = approximationType;
+			if(this.approximationType!=1)
+				this.approximationType=1;
+/*			
+			if(getApproximator()!=null){				
+				getApproximator()
+				.setType(this.approximationType)
+				.approximation(getRawdata());			
+				setConsumption(getApproximator().getForecastedConsumption(1));
+				setSecureStock(getApproximator().getForecastedStock(1));
+				if(getProxy()!=null){
+					try{
+						getProxy().init(getConsumption(), getSecureStock());
+						getSliders().init();
+						redraworders=true;
+					}catch(Exception e){
+						
+					}
+					
+				}
+			}
+*/
+		}
 		
 	}
 
