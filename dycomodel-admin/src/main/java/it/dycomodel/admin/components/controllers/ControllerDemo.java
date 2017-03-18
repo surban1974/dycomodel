@@ -89,11 +89,17 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 	private SortedMap<Date, Double> computedOrders;
 	
-	@Serialized(output=@Format(format="MM dd yyyy"))
+	@Serialized
 	private Date startDate;
 	
-	@Serialized(output=@Format(format="MM dd yyyy"))
+	@Serialized
 	private Date finishDate;
+	
+	@Serialized(output=@Format(format="dd/MM/yyyy"))
+	private Date forecastingStartDate;
+	
+	@Serialized(output=@Format(format="dd/MM/yyyy"))
+	private Date forecastingFinishDate;
 	
 	@Serialized
 	private ViewSliders sliders;
@@ -183,7 +189,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	)
 	public String chartcons(){
 		clear();
-		ViewChartConsumption cha = new ViewChartConsumption(new String[]{"Period", "Consumption", "Daily Secure stock","Reorder"}, this);
+		ViewChartConsumption cha = new ViewChartConsumption(new String[]{"Period", "Consumption", "Daily Secure stock", "Reorder points"}, this);
 		String json = JsonWriter.object2json(cha,"chart",null,true,3);
 		clear();
 		return json;
@@ -276,11 +282,10 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		}
 	}		
 
-	private Date demoFromStartDate(int month){
+	private Date demoFromStartDate(int months){
 		Calendar demoC = Calendar.getInstance();
 		demoC.setTimeInMillis(startDate.getTime());
-		demoC.set(Calendar.DATE,15);
-		demoC.set(Calendar.MONTH, demoC.get(Calendar.MONTH)-1+month);
+		demoC.set(Calendar.MONTH, demoC.get(Calendar.MONTH)-1+months);
 		return normalizeDate(demoC.getTime());
 	}
 	
@@ -328,8 +333,9 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			Calendar finishAC = Calendar.getInstance();
 			finishAC.setTime(finishDate);
 			finishAC.set(Calendar.DAY_OF_MONTH,finishAC.getActualMaximum(Calendar.DAY_OF_MONTH));
-			finishAC.set(Calendar.YEAR,finishAC.get(Calendar.YEAR));			
+			finishAC.set(Calendar.MONTH,finishAC.get(Calendar.MONTH)+2);			
 			
+
 			
 			setApproximator(
 					new ADateApproximator()
@@ -340,7 +346,8 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 					.approximation(getRawdata())
 				);
 			
-
+			forecastingStartDate = getApproximator().getApproximation().getStartInterval();
+			forecastingFinishDate = getApproximator().getApproximation().getFinishInterval();
 			
 			setConsumption(getApproximator().getForecastedConsumption(1));
 			setSecureStock(getApproximator().getForecastedStock(1));
@@ -445,6 +452,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 						add(new option_element("m", "Every month"));
 						add(new option_element("3m", "Every quarter"));
 						add(new option_element("6m", "Every semester"));
+						add(new option_element("12m", "Every year"));
 						
 					}}
 				);
@@ -766,6 +774,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 				getFixedFeatureOrders().add(new Date(current.getTimeInMillis()));
 				current.set(Calendar.WEEK_OF_MONTH, current.get(Calendar.WEEK_OF_MONTH)+1);
 			}
+			getFixedFeatureOrders().add(new Date(current.getTimeInMillis()));
 		}else if(this.fixedPeriod.equalsIgnoreCase("m")){
 			current.set(Calendar.DAY_OF_MONTH, 1);
 			current.set(Calendar.MONTH, current.get(Calendar.MONTH)+1);			
@@ -773,6 +782,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 				getFixedFeatureOrders().add(new Date(current.getTimeInMillis()));
 				current.set(Calendar.MONTH, current.get(Calendar.MONTH)+1);			
 			}
+			getFixedFeatureOrders().add(new Date(current.getTimeInMillis()));
 		}else if(this.fixedPeriod.equalsIgnoreCase("3m")){
 			current.set(Calendar.DAY_OF_MONTH, 1);
 			current.set(Calendar.MONTH, current.get(Calendar.MONTH)+3);			
@@ -780,6 +790,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 				getFixedFeatureOrders().add(new Date(current.getTimeInMillis()));
 				current.set(Calendar.MONTH, current.get(Calendar.MONTH)+3);			
 			}
+			getFixedFeatureOrders().add(new Date(current.getTimeInMillis()));	
 		}else if(this.fixedPeriod.equalsIgnoreCase("6m")){
 			current.set(Calendar.DAY_OF_MONTH, 1);
 			current.set(Calendar.MONTH, current.get(Calendar.MONTH)+6);			
@@ -787,6 +798,15 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 				getFixedFeatureOrders().add(new Date(current.getTimeInMillis()));
 				current.set(Calendar.MONTH, current.get(Calendar.MONTH)+6);			
 			}
+			getFixedFeatureOrders().add(new Date(current.getTimeInMillis()));
+		}else if(this.fixedPeriod.equalsIgnoreCase("12m")){
+			current.set(Calendar.DAY_OF_MONTH, 1);
+			current.set(Calendar.MONTH, current.get(Calendar.MONTH)+12);			
+			while(current.getTime().before(getFinishDate())){
+				getFixedFeatureOrders().add(new Date(current.getTimeInMillis()));
+				current.set(Calendar.MONTH, current.get(Calendar.MONTH)+12);			
+			}
+			getFixedFeatureOrders().add(new Date(current.getTimeInMillis()));	
 		}
 		
 		

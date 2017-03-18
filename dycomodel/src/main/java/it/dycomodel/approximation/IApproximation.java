@@ -13,5 +13,8 @@ public interface IApproximation extends Serializable{
 	SortedMap<Date, Double> approximateByMonth(SortedMap<Long, Double> rawdata, Date startDate, Date finishDate);
 
 	SortedMap<Date, Double> approximateByWeek(SortedMap<Long, Double> rawdata, Date startDate, Date finishDate);
+	
+	Date getStartInterval();
+	Date getFinishInterval();
 
 }

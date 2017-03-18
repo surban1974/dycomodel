@@ -1,6 +1,8 @@
 package it.dycomodel.admin.components.beans;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -36,8 +38,8 @@ public class ViewSliders implements Serializable{
 			consumption = new ArrayList<ViewSlider>();
 			for(Map.Entry<Date, Double> entry : controller.getConsumption().entrySet()){
 				consumption.add(new ViewSlider(this, "C", entry.getKey(), entry.getValue()));
-				if(minC>entry.getValue())
-					minC=entry.getValue();
+//				if(minC>entry.getValue())
+//					minC=entry.getValue();
 				if(maxC<entry.getValue())
 					maxC=entry.getValue();
 
@@ -46,12 +48,19 @@ public class ViewSliders implements Serializable{
 
 			for(Map.Entry<Date, Double> entry : controller.getSecureStock().entrySet()){
 				stock.add(new ViewSlider(this, "S", entry.getKey(), entry.getValue()));
-				if(minS>entry.getValue())
-					minS=entry.getValue();
-				if(maxS<entry.getValue())
-					maxS=entry.getValue();				
+//				if(minS>entry.getValue())
+//					minS=entry.getValue();
+//				if(maxS<entry.getValue())
+//					maxS=entry.getValue();				
 
 			}
+			if(maxC==0)
+				maxC=10;
+			else
+				maxC = Math.pow(10d, (int)(Math.log10(maxC)+1));
+			
+			maxS = maxC*controller.getDayStockDelta();
+			
 			
 		}catch(Exception e){
 			

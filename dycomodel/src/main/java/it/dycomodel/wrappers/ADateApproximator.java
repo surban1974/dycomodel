@@ -8,6 +8,7 @@ import java.util.SortedMap;
 import java.util.TreeMap;
 
 import it.dycomodel.approximation.ApproximationMean;
+import it.dycomodel.approximation.IApproximation;
 import it.dycomodel.approximation.ISetAdapter;
 
 public class ADateApproximator implements Serializable{
@@ -23,12 +24,14 @@ public class ADateApproximator implements Serializable{
 	private Date finishDate;
 	private SortedMap<Date, Double> consumption;
 	private SortedMap<Date, Double> stock;
+	private IApproximation approximation;
 	
 
 	public ADateApproximator approximation(SortedMap<Long, Double> rawdata){
 		if(type==APPROXIMATION_MEAN){
 			try{
-				consumption = new ApproximationMean().init().approximateByMonth(rawdata, startDate, finishDate);
+				approximation = new ApproximationMean().init();
+				consumption = approximation.approximateByMonth(rawdata, startDate, finishDate);
 				stock = stockAdapter.adapt(consumption);
 			}catch(Exception e){				
 			}
@@ -105,4 +108,9 @@ public class ADateApproximator implements Serializable{
 	public SortedMap<Date, Double> getStock() {
 		return stock;
 	}
+
+	public IApproximation getApproximation() {
+		return approximation;
+	}
+
 }

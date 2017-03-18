@@ -13,6 +13,10 @@ import java.util.TreeMap;
 public class ApproximationMean implements IApproximation {
 
 	private static final long serialVersionUID = 1L;
+	
+	private Calendar startInterval;
+	
+	private Calendar finishInterval;
 
 	@Override
 	public IApproximation init(){
@@ -29,15 +33,15 @@ public class ApproximationMean implements IApproximation {
 	public SortedMap<Date, Double> approximateByMonth(SortedMap<Long, Double> rawdata, Date startDate, Date finishDate){
 		SortedMap<Date, Double> result = new TreeMap<Date, Double>();
 		
-		Calendar startC = Calendar.getInstance();
-		startC.setTime(startDate);
-		startC.set(Calendar.DAY_OF_MONTH, 1);
-		startC.set(Calendar.YEAR, startC.get(Calendar.YEAR)-1);
+		startInterval = Calendar.getInstance();
+		startInterval.setTime(startDate);
+		startInterval.set(Calendar.DAY_OF_MONTH, 1);
+		startInterval.set(Calendar.YEAR, startInterval.get(Calendar.YEAR)-1);
 		
-		Calendar finishC = Calendar.getInstance();
-		finishC.setTime(finishDate);
-		finishC.set(Calendar.DAY_OF_MONTH, finishC.getActualMaximum(Calendar.DAY_OF_MONTH));	
-		finishC.set(Calendar.YEAR, finishC.get(Calendar.YEAR)-1);
+		finishInterval = Calendar.getInstance();
+		finishInterval.setTime(finishDate);
+		finishInterval.set(Calendar.DAY_OF_MONTH, finishInterval.getActualMaximum(Calendar.DAY_OF_MONTH));	
+		finishInterval.set(Calendar.YEAR, finishInterval.get(Calendar.YEAR)-1);
 		
 		Map<Integer, Double> aggr = new HashMap<Integer, Double>();
 	
@@ -46,7 +50,7 @@ public class ApproximationMean implements IApproximation {
 			Calendar currentC = Calendar.getInstance();
 			currentC.setTimeInMillis(entry.getKey());
 			
-			if(currentC.after(startC) && currentC.before(finishC)){
+			if(currentC.after(startInterval) && currentC.before(finishInterval)){
 				int code = getDateAsYYYYMM(currentC.getTime());
 				if(aggr.get(code)==null)
 					aggr.put(code, entry.getValue());
@@ -57,7 +61,10 @@ public class ApproximationMean implements IApproximation {
 		}
 
 		
-		while(startC.before(finishC)){
+		Calendar startC = Calendar.getInstance();
+		startC.setTimeInMillis(startInterval.getTimeInMillis());
+		
+		while(startC.before(finishInterval)){
 			int code = getDateAsYYYYMM(startC.getTime());
 			double average=0;
 			startC.set(Calendar.DAY_OF_MONTH,15);
@@ -80,6 +87,18 @@ public class ApproximationMean implements IApproximation {
 	private int getDateAsYYYYMM(Date current){
 		return 
 				Integer.valueOf(new java.text.SimpleDateFormat("YYYYMM").format(current));
+	}
+
+	public Date getStartInterval() {
+		if(startInterval==null)
+			return null;
+		return startInterval.getTime();
+	}
+
+	public Date getFinishInterval() {
+		if(finishInterval==null)
+			return null;
+		return finishInterval.getTime();
 	}
 	
 

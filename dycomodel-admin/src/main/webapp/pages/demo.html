@@ -41,11 +41,39 @@
 		    <md-tabs md-dynamic-height md-border-bottom md-stretch-tabs>
 		      <md-tab label="STEP 1 - Forecasting" md-on-select="selectTabApproximation()" md-active="view.model.page_tab == 0">
 		        <md-content class="md-padding_">
-						<div layout="row">
-							<div flex layout-padding >
+		        		<div layout="row">
+		        			<div flex layout-padding >
 								<md-list>
 									<md-subheader class="md-no-sticky"><font color="blue">Customer's infrastructure - input chanel</font></md-subheader>									
 								</md-list>	
+							</div>
+							<div flex layout-padding >
+								<md-list >
+									  <md-subheader class="md-no-sticky">Everyday prior consumption:<br> {{view.model.forecastingStartDate}} - {{view.model.forecastingFinishDate}}</md-subheader>		
+								</md-list>	
+							</div>
+							<div flex layout-padding>	
+									<md-input-container class="md-block">
+						          		<label>Average forecasted consumption</label>
+						          		<md-select ng-model="view.model.approximationType">
+						            		<md-option ng-repeat="period in view.model.selectApproximationType" ng-value="period.code" >
+						              			{{period.desc}}
+						            		</md-option>
+						         		 </md-select>									
+          							</md-input-container>
+							</div>	
+							<div flex layout-padding>	
+								<md-list>
+									<md-input-container class="md-block">
+										<label>Average Daily Secure Stock</label>
+										<input type="number" step="1" name="dayStockDelta" ng-model="view.model.dayStockDelta" min="0" max="30"/>
+									</md-input-container>
+          							</md-input-container>
+							</div>																						  							        		
+		        		</div>
+						<div layout="row">
+							<div flex layout-padding >
+
 									<div layout-align="center center" style="text-align: center">
 										<img src="images/customer_infr.png"/>
 									</div>	
@@ -53,7 +81,7 @@
 							<div flex layout-padding >
 
 								<md-list >
-									  <md-subheader class="md-no-sticky">Everyday consumption</md-subheader>
+
 									  <md-list-item class="md-2-line" ng-repeat="(key, value) in view.model.rawdata">
 									    <div class="md-list-item-text">
 									      <h4>{{key | date:'dd/MM/yyyy'}}</h4> 
@@ -65,14 +93,7 @@
 							</div>
 							<div flex layout-padding>	
 								<md-list>
-									<md-input-container class="md-block">
-						          		<label>Average consumption</label>
-						          		<md-select ng-model="view.model.approximationType">
-						            		<md-option ng-repeat="period in view.model.selectApproximationType" ng-value="period.code" >
-						              			{{period.desc}}
-						            		</md-option>
-						         		 </md-select>									
-          							</md-input-container>
+
 									  <md-list-item class="md-2-line" ng-repeat="consumption in view.model.sliders.consumption">
 									    <md-checkbox ng-model="consumption.done"></md-checkbox>
 									    <div class="md-list-item-text">
@@ -85,11 +106,7 @@
 							</div>	
 							<div flex layout-padding>	
 								<md-list>
-										<md-input-container class="md-block">
-										<label>Daily Secure Stock</label>
-											        <input type="number" step="1" name="dayStockDelta" ng-model="view.model.dayStockDelta" min="0"
-											               max="15"/>
-										</md-input-container>
+
 									  <md-list-item class="md-2-line" ng-repeat="stock in view.model.sliders.stock">
 									    <md-checkbox ng-model="stock.done"></md-checkbox>
 									    <div class="md-list-item-text">
@@ -115,7 +132,7 @@
 			 				
 									<table  cellspacing="0" cellpadding="0" >
 										<tr >
-											<td style="min-width:100px;" data-ng-repeat="consumption in view.model.sliders.consumption" ng-if="view.model.tunemode==1">
+											<td style="min-width:86px;" data-ng-repeat="consumption in view.model.sliders.consumption" ng-if="view.model.tunemode==1">
 											
 												<md-slider-container flex>
 													<md-input-container>
@@ -135,7 +152,7 @@
 										</tr>
 				
 										<tr >
-											<td style="min-width:100px;" data-ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.tunemode == 2">
+											<td style="min-width:86px;" data-ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.tunemode == 2">
 												<md-slider-container flex>
 													<md-input-container>
 											        	<input flex type="number" ng-model="stock.value" aria-label="stock" aria-controls="stock-slider" > 
@@ -203,7 +220,11 @@
 						
 			   			</div>
 						<div flex >     
-					          	<div id="chartcons_div" style="height: 295px;"></div>
+					          	<div id="chartcons_div" style="height: 295px;" ></div>
+					          	<div style="height: 10px;" >
+					          		<md-progress-linear md-mode="indeterminate" ng-if="view.model.chartsInProgress==true"/>
+					          	</div>
+								
 			  	
 								<md-slider-container >
 									<span class="md-body-1">Zoom</span>
@@ -246,18 +267,22 @@
 								  
 								  
 							</div>
-							<div flex layout-padding>
-								<md-list>
-									  <md-subheader class="md-no-sticky"><font color="red">Requests for procurement ready to send - {{view.model.orders.length}}</font></md-subheader>
-									  <md-list-item class="md-2-line" ng-repeat="item in view.model.orders">
+							<div >
+								<md-list flex layout-padding >
+									  <md-subheader class="md-no-sticky"><font color="red">Procurement: requests ready to send - {{view.model.orders.length}}</font></md-subheader>
+									  <md-list-item class="md-2-line" ng-repeat="item in view.model.orders"  ng-if="view.model.redraworders==false">
 									    <md-checkbox ng-model="item.done"></md-checkbox>
 									    <div class="md-list-item-text">
 									      <h3>{{item.date}}</h3>
 									      <p>{{item.quantity}}</p>
-									    </div>
+									    </div>									    
 									  </md-list-item>
+									  <md-progress-linear class="md-warn" md-mode="indeterminate" ng-if="view.model.redraworders==true"/>
 								</md-list>
+								
 							</div>
+
+							
 							<div flex layout-padding >	
 								<md-list>
 									<md-subheader class="md-no-sticky"><font color="blue">Output chanel - Customer's infrastructure</font></md-subheader>
@@ -281,10 +306,7 @@
 		    </md-tabs>
 		    
 		  </md-content>
-<!-- 		</div> -->
 
-
-<!--     </main> -->
 
 
   </div>
@@ -316,16 +338,23 @@
 
 
 	function chartInLoad(id, inLoad){
-		return;
-		var div = document.getElementById(id);
+//		return;
+//		var div = document.getElementById(id);
 		
 		try{
 			if(inLoad==true){
-				div.style.opacity = .1;
-				div.style.filter = "alpha(opacity=10)";
+//				div.style.opacity = .1;
+//				div.style.filter = "alpha(opacity=10)";
+				getScope().view.model.chartsInProgress=true;
 			}else{
-				div.style.opacity = 1;
-				div.style.filter = "alpha(opacity=100)";
+//				div.style.opacity = 1;
+//				div.style.filter = "alpha(opacity=100)";
+				setTimeout(
+						function(){
+							getScope().view.model.chartsInProgress=false;
+						},
+						100
+				);		
 			}
 		}catch(e){
 			
@@ -400,8 +429,10 @@
 		selectApproximationType: [],
 		approximationType: 1,
 		fixedPeriod: '',
-		proxy: {},		
+		proxy: {},
+		chartsInProgress: false,
 		redrawcharts: false,
+		redraworders: false,
 		tunemode: 1,
 		calculatemode: 1,
 		dayFinishDate: 0,
@@ -411,6 +442,8 @@
 		fixedQuantity: 0.0,
 		leadDays: 15,
 		dayStockDelta: 0,
+		forecastingStartDate: '',
+		forecastingFinishDate: '',
 		error : '',
 		warning : '',
 		info : '',
@@ -480,32 +513,35 @@
 			}			
 		}
 	
-		self.postDirty = function($http,newValue){
+		self.postDirty = function($http,$timeout,newValue){
 			if(!self.initialisation){
 				$http.post('demo-diff', JSON.stringify(newValue)).
 			    success(function(data, status, headers, config) {
-			    	self.model.redrawcharts = data.model.redrawcharts;
-			    	self.model.redraworders = data.model.redraworders;
+			    	if(data.model.redrawcharts)
+			    		self.model.redrawcharts = data.model.redrawcharts;
+			    	if(data.model.redraworders)
+			    		self.model.redraworders = data.model.redraworders;
 			    	if(self.model.approximationType!='1')
 			    		self.model.approximationType='1';
 
 //			    	self.init(data);
 					if(self.model.redraworders==true){
-						self.model.redraworders=false;
-			    		if(getScope().view.model.page_tab==0){
+//						self.model.redraworders=false;
+			    		if(self.model.page_tab==0){
 			    			$http({
 			    	            method : 'GET',
 			    	            url : 'demo-json'
 			    		    }).success(function(data, status, headers, config) {
 //			    		    	getScope().view.init(data);	
-			    		    	self.model.sliders = data.model.sliders;
+								if(data.model.sliders)
+			    		    		self.model.sliders = data.model.sliders;
 			    		    });
 			    		}						
 					}
 			    	if(self.model.redrawcharts==true){
 			    		self.model.redrawcharts=false;
 
-			    		if(getScope().view.model.page_tab==1){
+			    		if(self.model.page_tab==1){
 			    			chartInLoad("chartavr_div",true);
 				    		$http({
 				                method : 'GET',
@@ -513,11 +549,17 @@
 				    	    }).success(function(data, status, headers, config) {
 //				    	        google.charts.load('current', {'packages':['corechart']});
 				    	        google.charts.setOnLoadCallback(function() {drawChartAverage(data);});
+								$timeout(
+										function(){
+											self.model.redraworders=false;
+										},
+										500
+								);
 				    	    }).error(function(data, status, headers, config) {
 				    	    	chartInLoad("chartavr_div",false);
 				    	    });
 			    		}
-			    		if(getScope().view.model.page_tab==2){
+			    		if(self.model.page_tab==2){
 			    			chartInLoad("chartcons_div",true);
 				    		$http({
 				                method : 'GET',
@@ -531,13 +573,41 @@
 				    	            url : 'demo-json'
 				    		    }).success(function(data, status, headers, config) {
 //				    		    	getScope().view.init(data);	
-				    		    	self.model.orders = data.model.orders;
+									if(data.model.orders)
+				    		    		self.model.orders = data.model.orders;
+									
+									$timeout(
+											function(){
+												self.model.redraworders=false;
+											},
+											500
+									);
 				    		    });
 				    	    }).error(function(data, status, headers, config) {
 				    	    	chartInLoad("chartcons_div",false);
+				    	    	self.model.redraworders=false;
 				    	    });
 			    		}
 			    		
+			    	}else{
+			    		if(self.model.redraworders==true){
+			    			$http({
+			    	            method : 'GET',
+			    	            url : 'demo-json'
+			    		    }).success(function(data, status, headers, config) {
+//			    		    	getScope().view.init(data);	
+								if(data.model.orders)
+			    		    		self.model.orders = data.model.orders;
+								$timeout(
+										function(){
+											self.model.redraworders=false;
+										},
+										500
+								);
+				    	    }).error(function(data, status, headers, config) {
+				    	    	self.model.redraworders=false;
+				    	    });
+			    		}
 			    	}
 			      }).
 			      error(function(data, status, headers, config) {
@@ -577,7 +647,7 @@
 
 	}]);
 
-	app.controller('demoCtrl', function($scope, $http, $browser, Browsertype) {
+	app.controller('demoCtrl', function($scope, $http, $browser, $timeout, Browsertype) {
 
 		$scope.view = new ViewModel(ServerModel);
 		
@@ -599,7 +669,8 @@
     	            url : 'demo-json'
     		    }).success(function(data, status, headers, config) {
 //    		    	getScope().view.init(data);	
-    		    	self.model.orders = data.model.orders;
+					if(data.model.orders)
+						getScope().view.model.orders = data.model.orders;
     		    });
     	        
     	    });
@@ -621,7 +692,8 @@
             url : 'demo-json'
 	    }).success(function(data, status, headers, config) {
 	    	getScope().view.init(data);
-	    	
+	    	if(getScope().view.model.redraworders==true)
+	    		getScope().view.model.redraworders=false;
 	    	getScope().$watch('view', function(newValue, oldValue) {
 	    		var diff = newValue.getDirty(oldValue,function(property){
 	    			if(property && 
@@ -638,7 +710,7 @@
 		    			return false;
 		    		});
 				if(diff.length>0)
-					$scope.view.postDirty($http,diff);
+					$scope.view.postDirty($http,$timeout,diff);
 	  		},true);
   		
 	    	

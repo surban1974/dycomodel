@@ -291,7 +291,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		
 		for(Date d:pointDates){
 			
-			if(d.after(startDate) && d.before(finishDate)){
+			if(d.after(startDate) && (k0Date==null || k0Date.before(finishDate))){
 				if(k0Date==null){
 					k0Date = forecastPointWithLead(d);
 					T diff = computeConsumptionInPoint(initialQuantity, result, startDate, k0Date);
