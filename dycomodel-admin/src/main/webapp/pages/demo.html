@@ -18,298 +18,273 @@
 
   <body>
  
-<div layout="column" layout-fill id="demo" ng-app="demoApp" ng-controller="demoCtrl as mc">
-
-
-
-
-
-
-<!--     <main flex> -->
-    
+	<div layout="column" layout-fill id="demo" ng-app="demoApp" ng-controller="demoCtrl as mc">
     	<md-toolbar md-medium-tall >
 	   		<div class="md-toolbar-tools">
 		        <h2 flex md-truncate>DYNAMIC CONSUMPTION MODEL <i><font size="2">(only Chrome browser supported)</font></i></h2>	
 	    	</div>
 		</md-toolbar>
-
-<!-- 		<div ng-cloak>  -->
-		  <md-content>
-		  
-   
-  		  
-		    <md-tabs md-dynamic-height md-border-bottom md-stretch-tabs>
-		      <md-tab label="STEP 1 - Forecasting" md-on-select="selectTabApproximation()" md-active="view.model.page_tab == 0">
-		        <md-content class="md-padding_">
+	  	<md-content>
+			<md-tabs md-dynamic-height md-border-bottom md-stretch-tabs>
+		    	<md-tab label="STEP 1 - Forecasting" md-on-select="selectTabApproximation()" md-active="view.model.page_tab == 0">
+		        	<md-content class="md-padding_">
 		        		<div layout="row">
 		        			<div flex layout-padding >
-								<md-list>
-									<md-subheader class="md-no-sticky"><font color="blue">Customer's infrastructure - input chanel</font></md-subheader>									
-								</md-list>	
+								<section >
+									<md-toolbar class="md-primary _md _md-toolbar-transitions">	
+										<div class="md-toolbar-tools">
+											<h2 flex md-truncate>Input chanel from Customer's infrastructure</h2>	
+									    </div>     
+									</md-toolbar>
+								</section>      	        			
 							</div>
 							<div flex layout-padding >
-								<md-list >
-									  <md-subheader class="md-no-sticky">Everyday prior consumption:<br> {{view.model.forecastingStartDate}} - {{view.model.forecastingFinishDate}}</md-subheader>		
-								</md-list>	
+								<section >
+									<md-toolbar class="md-primary _md _md-toolbar-transitions">	
+										<div class="md-toolbar-tools">
+											<h2 flex md-truncate>Consumption:<br> {{view.model.forecastingStartDate}} - {{view.model.forecastingFinishDate}}</h2>	
+									    </div>     
+									</md-toolbar>
+								</section>
 							</div>
 							<div flex layout-padding>	
-									<md-input-container class="md-block">
-						          		<label>Average forecasted consumption</label>
-						          		<md-select ng-model="view.model.approximationType">
-						            		<md-option ng-repeat="period in view.model.selectApproximationType" ng-value="period.code" >
-						              			{{period.desc}}
-						            		</md-option>
-						         		 </md-select>									
-          							</md-input-container>
+								<section >
+									<md-toolbar class="md-primary _md _md-toolbar-transitions" style="background-color:transparent; color: black;">	
+										<md-input-container class="md-block">
+								         	<label>Average forecasted consumption</label>
+								          	<md-select ng-model="view.model.approximationType">
+								            	<md-option ng-repeat="period in view.model.selectApproximationType" ng-value="period.code" >
+								              		{{period.desc}}
+								            	</md-option>
+								         	</md-select>									
+		          						</md-input-container>
+  									</md-toolbar>
+								</section>							
 							</div>	
 							<div flex layout-padding>	
-								<md-list>
-									<md-input-container class="md-block">
-										<label>Average Daily Secure Stock</label>
-										<input type="number" step="1" name="dayStockDelta" ng-model="view.model.dayStockDelta" min="0" max="30"/>
-									</md-input-container>
-          							</md-input-container>
+								<section >
+									<md-toolbar class="md-primary _md _md-toolbar-transitions" style="background-color:transparent; color: black;">	
+										<md-input-container class="md-block">
+											<label>Average Daily Secure Stock</label>
+											<input type="number" step="1" name="dayStockDelta" ng-model="view.model.dayStockDelta" min="0" max="30"/>
+	          							</md-input-container>
+	          							
+  									</md-toolbar>
+								</section>							
 							</div>																						  							        		
 		        		</div>
 						<div layout="row">
 							<div flex layout-padding >
-
-									<div layout-align="center center" style="text-align: center">
-										<img src="images/customer_infr.png"/>
-									</div>	
+								<div layout-align="center center" style="text-align: center">
+									<img src="images/customer_infr.png"/>
+								</div>	
 							</div>	
 							<div flex layout-padding >
-
 								<md-list >
-
-									  <md-list-item class="md-2-line" ng-repeat="(key, value) in view.model.rawdata">
-									    <div class="md-list-item-text">
-									      <h4>{{key | date:'dd/MM/yyyy'}}</h4> 
-									      <p>{{value}}</p>
-									  </md-list-item>
-									  </div>
+									<md-list-item class="md-2-line" ng-repeat="(key, value) in view.model.rawdata">
+										<div class="md-list-item-text">
+									    	<h4>{{key | date:'dd/MM/yyyy'}}</h4> 
+									      	<p>{{value}}</p>
+									   	</div>   	
+									</md-list-item>
 								</md-list>
-
 							</div>
 							<div flex layout-padding>	
 								<md-list>
-
-									  <md-list-item class="md-2-line" ng-repeat="consumption in view.model.sliders.consumption">
-									    <md-checkbox ng-model="consumption.done"></md-checkbox>
-									    <div class="md-list-item-text">
-									      <h3>{{consumption.desc}}</h3>
-									      <p>{{consumption.value}}</p>
-									    </div>
-									  </md-list-item>									
-									
+							  		<md-list-item class="md-2-line" ng-repeat="consumption in view.model.sliders.consumption">
+										<md-checkbox ng-model="consumption.done"></md-checkbox>
+										<div class="md-list-item-text">
+										    <h3>{{consumption.desc}}</h3>
+										   	<p>{{consumption.value}}</p>
+									 	</div>
+									</md-list-item>									
 								</md-list>	
 							</div>	
 							<div flex layout-padding>	
-								<md-list>
-
-									  <md-list-item class="md-2-line" ng-repeat="stock in view.model.sliders.stock">
-									    <md-checkbox ng-model="stock.done"></md-checkbox>
-									    <div class="md-list-item-text">
-									      <h3>{{stock.desc}}</h3>
-									      <p>{{stock.value}}</p>
-									    </div>
-									  </md-list-item>									
+								<md-list >
+							  		<md-list-item class="md-2-line" ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.redraworders==false">
+										<md-checkbox ng-model="stock.done"></md-checkbox>
+										<div class="md-list-item-text">
+											<h3>{{stock.desc}}</h3>
+										    <p>{{stock.value}}</p>
+										</div>
+									</md-list-item>	
+									<md-progress-linear class="md-primary" md-mode="indeterminate" ng-if="view.model.redraworders==true"/>								
 								</md-list>	
-							</div>									
-						</div>
-		        
-		        
-		        </md-content>
-		      </md-tab>
-		    
-		    
-		      <md-tab label="STEP 2 - Correction & Prediction" md-on-select="selectTabForecasting()" md-active="view.model.page_tab == 1">
-		        <md-content class="md-padding">
-		        	<div id="chartavr_div" style="width: 1250px; height: 220px;"></div>
-					<div id="tuning_div" style="padding:0px;">
-	
-	
-			 				
-									<table  cellspacing="0" cellpadding="0" >
-										<tr >
-											<td style="min-width:86px;" data-ng-repeat="consumption in view.model.sliders.consumption" ng-if="view.model.tunemode==1">
-											
-												<md-slider-container flex>
-													<md-input-container>
-											        	<input flex type="number" ng-model="consumption.value" aria-label="consumption" aria-controls="consumption-slider" > 
-											      	</md-input-container>
-											      	<md-slider 	md-discrete ng-model="consumption.value" min="{{view.model.sliders.minC}}" max="{{view.model.sliders.maxC}}" step="1"
-												      				id="consumption-slider"
-												      				aria-label="bass" class="md-primary"
-												                 	md-vertical             	
-												                 	style="padding:0px;height:50px"
-												                 	></md-slider>
-											      	</md-slider>
-											      	<h5>{{consumption.desc}}</h5>
-												</md-slider-container>	
-																					
-											</td>			
-										</tr>
-				
-										<tr >
-											<td style="min-width:86px;" data-ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.tunemode == 2">
-												<md-slider-container flex>
-													<md-input-container>
-											        	<input flex type="number" ng-model="stock.value" aria-label="stock" aria-controls="stock-slider" > 
-											      	</md-input-container>
-											    	
-											      	<md-slider 	md-discrete ng-model="stock.value" min="{{view.model.sliders.minS}}" max="{{view.model.sliders.maxS}}" step="1" 
-											      				id="stock-slider"
-											      				aria-label="stock" class="md-accent"
-											                 	md-vertical md-range></md-slider>
-											      	</md-slider>
-											      	<h5>{{stock.desc}}</h5>
-												</md-slider-container>										
-											</td>
-										</tr>
-									</table>
-						</div>
-							
-								<md-radio-group ng-model="view.model.tunemode" layout="row">
-									<md-radio-button value="0" class="md-warn"> Hide </md-radio-button>
-									<md-radio-button value="1" class="md-primary"> Consumption </md-radio-button>
-									<md-radio-button value="2" class="md-accent"> Secure Stock </md-radio-button>							
-								</md-radio-group>   							
-					
-	
-  
-		        </md-content>
-		      </md-tab>
-		      <md-tab label="STEP 3 - Orders Processing" md-on-select="selectTabProcessing()" md-active="view.model.page_tab == 2">
-		        <md-content class="md-padding">
-
-					<div layout="column">
-						<div layout="row">
-							
+								
+							</div>	
+						</div>									
+		        	</md-content>
+				</md-tab>
+		      	<md-tab label="STEP 2 - Correction & Prediction" md-on-select="selectTabForecasting()" md-active="view.model.page_tab == 1">
+			    	<md-content class="md-padding">
+			        	<div id="chartavr_div" style="width: 1250px; height: 220px;"></div>
+						<div id="tuning_div" style="padding:0px;">
+						<table  cellspacing="0" cellpadding="0" >
+							<tr>
+								<td style="min-width:86px;" data-ng-repeat="consumption in view.model.sliders.consumption" ng-if="view.model.tunemode==1">
+									<md-slider-container flex>
+										<md-input-container>
+											<input flex type="number" ng-model="consumption.value" aria-label="consumption" aria-controls="consumption-slider" > 
+										</md-input-container>
+										<md-slider 	md-discrete ng-model="consumption.value" min="{{view.model.sliders.minC}}" max="{{view.model.sliders.maxC}}" step="1"
+													id="consumption-slider"
+													aria-label="bass" class="md-primary"
+													md-vertical             	
+													style="padding:0px;height:50px"
+													></md-slider>
+								      	<h5>{{consumption.desc}}</h5>
+									</md-slider-container>	
+								</td>			
+							</tr>
+							<tr >
+								<td style="min-width:86px;" data-ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.tunemode == 2">
+									<md-slider-container flex>
+										<md-input-container>
+											<input flex type="number" ng-model="stock.value" aria-label="stock" aria-controls="stock-slider" > 
+										</md-input-container>
+										<md-slider 	md-discrete ng-model="stock.value" min="{{view.model.sliders.minS}}" max="{{view.model.sliders.maxS}}" step="1" 
+												      id="stock-slider"
+												      aria-label="stock" class="md-accent"
+												       md-vertical md-range></md-slider>
+									      <h5>{{stock.desc}}</h5>
+									</md-slider-container>										
+								</td>
+							</tr>
+						</table>
+					</div>
+					<md-radio-group ng-model="view.model.tunemode" layout="row">
+						<md-radio-button value="0" class="md-warn"> Hide </md-radio-button>
+						<md-radio-button value="1" class="md-primary"> Consumption </md-radio-button>
+						<md-radio-button value="2" class="md-accent"> Secure Stock </md-radio-button>							
+					</md-radio-group>   							
+				</md-content>
+			</md-tab>
+				<md-tab label="STEP 3 - Orders Processing" md-on-select="selectTabProcessing()" md-active="view.model.page_tab == 2">
+			        <md-content class="md-padding">
+						<div layout="column">
+							<div layout="row">
 								<div flex >
-										<md-radio-group ng-model="view.model.calculatemode" layout="row">
-											<md-radio-button value="1" class="md-primary"> First Point </md-radio-button>
-											<md-radio-button value="2" class="md-accent"> Fixed Quantity </md-radio-button>	
-											<md-radio-button value="3" class="md-accent"> Fixed Dates </md-radio-button>							
-										</md-radio-group>  		
+									<md-radio-group ng-model="view.model.calculatemode" layout="row">
+										<md-radio-button value="1" class="md-primary"> First Point </md-radio-button>
+										<md-radio-button value="2" class="md-accent"> Fixed Quantity </md-radio-button>	
+										<md-radio-button value="3" class="md-accent"> Fixed Dates </md-radio-button>							
+									</md-radio-group>  		
 								</div>
 								<div flex>
 									<md-input-container class="md-block">
 										<label>Initial Quantity</label>
-											        <input type="number" step="100" name="quantity" ng-model="view.model.quantity" min="0"
-											               max="100000"/>
+										<input type="number" step="100" name="quantity" ng-model="view.model.quantity" min="0" max="100000"/>
 									</md-input-container> 		
 								</div>								
 								<div flex>
 									<md-input-container class="md-block" ng-if="view.model.calculatemode==2">
 										<label>Fixed Quantity</label>
-											        <input type="number" step="100" name="quantity" ng-model="view.model.fixedQuantity" min="0"
-											               max="100000"/>
+										<input type="number" step="100" name="quantity" ng-model="view.model.fixedQuantity" min="0" max="100000"/>
 									</md-input-container>	
 									<md-input-container class="md-block" ng-if="view.model.calculatemode==3">
-						          		<label>Periodicity</label>
-						          		<md-select ng-model="view.model.fixedPeriod">
-						            		<md-option ng-repeat="period in view.model.selectFixedPeriod" ng-value="period.code" >
-						              			{{period.desc}}
-						            		</md-option>
-						         		 </md-select>									
-          							</md-input-container>												
+							          	<label>Periodicity</label>
+							          	<md-select ng-model="view.model.fixedPeriod">
+							            	<md-option ng-repeat="period in view.model.selectFixedPeriod" ng-value="period.code" >
+							              		{{period.desc}}
+							            	</md-option>
+							         	</md-select>									
+	          						</md-input-container>												
 								</div>
-	
-															
-						
-			   			</div>
-						<div flex >     
-					          	<div id="chartcons_div" style="height: 295px;" ></div>
-					          	<div style="height: 10px;" >
-					          		<md-progress-linear md-mode="indeterminate" ng-if="view.model.chartsInProgress==true"/>
-					          	</div>
-								
-			  	
-								<md-slider-container >
-									<span class="md-body-1">Zoom</span>
+				   			</div>
+							<div flex >     
+						    	<div id="chartcons_div" style="height: 270px;" ></div> 
+						        	<div style="height: 5px;" >
+						          		<md-progress-linear md-mode="indeterminate" ng-if="view.model.chartsInProgress==true"/>
+						          	</div>
+									<md-slider-container >
+										<span class="md-body-1">Zoom</span>
 										<md-slider flex md-discrete ng-model="view.model.dayFinishDate" step="1" min="0" max="365" aria-label="dayFinishDate" id="dayFinishDate-slider" class="md-primary">
 										</md-slider>
-						
 										<md-input-container>
 											<input flex type="number" ng-model="view.model.dayFinishDate" aria-label="dayFinishDate" aria-controls="dayFinishDate-slider">
 										</md-input-container>
-								</md-slider-container>		          	
-					    </div>
-			   
-						<div layout="row">
-							<div flex layout-padding>
-              
-									<md-slider-container >
-												<span class="md-body-1">Lead</span>
-													<md-slider flex md-discrete ng-model="view.model.leadDays" step="1" min="0" max="90" 
-														aria-label="leadDays" 
-														id="leadDays-slider" 
-														class="md-primary"
-														>
-													</md-slider>
-												<md-input-container>
-													<input flex type="number" ng-model="view.model.leadDays" aria-label="leadDays" aria-controls="leadDays-slider">
-												</md-input-container>
 									</md-slider-container>		          	
+						    </div>
+							<div layout="row">
+								<div flex layout-padding>
 									<md-slider-container >
-												<span class="md-body-1">Scale</span>
-													<md-slider flex md-discrete ng-model="view.model.chartConsumptionDayInterval" step="1" min="1" max="7" 
-														aria-label="chartConsumptionDayInterval" 
-														id="chartConsumptionDayInterval-slider" 
-														class="md-primary"
-														>
-													</md-slider>
-												<md-input-container>
-													<input flex type="number" ng-model="view.model.chartConsumptionDayInterval" aria-label="chartConsumptionDayInterval" aria-controls="chartConsumptionDayInterval-slider">
-												</md-input-container>
+										<span class="md-body-1">Lead</span>
+										<md-slider flex md-discrete ng-model="view.model.leadDays" step="1" min="0" max="90" 
+													aria-label="leadDays" 
+													id="leadDays-slider" 
+													class="md-primary"
+										>
+										</md-slider>
+										<md-input-container>
+											<input flex type="number" ng-model="view.model.leadDays" aria-label="leadDays" aria-controls="leadDays-slider">
+										</md-input-container>
+									</md-slider-container>	
+									<md-slider-container >
+										<span class="md-body-1">Items x Pack</span>
+										<md-slider flex md-discrete ng-model="view.model.itemsForPack" step="1" min="1" max="100" 
+													aria-label="itemsForPack" 
+													id="itemsForPack-slider" 
+													class="md-primary"
+										>
+										</md-slider>
+										<md-input-container>
+											<input flex type="number" ng-model="view.model.itemsForPack" aria-label="itemsForPack" aria-controls="itemsForPack-slider">
+										</md-input-container>
+									</md-slider-container>											          	
+									<md-slider-container >
+										<span class="md-body-1">Scale</span>
+										<md-slider flex md-discrete ng-model="view.model.chartConsumptionDayInterval" step="1" min="1" max="7" 
+													aria-label="chartConsumptionDayInterval" 
+													id="chartConsumptionDayInterval-slider" 
+													class="md-primary"
+										>
+										</md-slider>
+										<md-input-container>
+											<input flex type="number" ng-model="view.model.chartConsumptionDayInterval" aria-label="chartConsumptionDayInterval" aria-controls="chartConsumptionDayInterval-slider">
+										</md-input-container>
 									</md-slider-container>		        
-								  
-								  
-							</div>
-							<div >
-								<md-list flex layout-padding >
-									  <md-subheader class="md-no-sticky"><font color="red">Procurement: requests ready to send - {{view.model.orders.length}}</font></md-subheader>
-									  <md-list-item class="md-2-line" ng-repeat="item in view.model.orders"  ng-if="view.model.redraworders==false">
-									    <md-checkbox ng-model="item.done"></md-checkbox>
-									    <div class="md-list-item-text">
-									      <h3>{{item.date}}</h3>
-									      <p>{{item.quantity}}</p>
-									    </div>									    
-									  </md-list-item>
-									  <md-progress-linear class="md-warn" md-mode="indeterminate" ng-if="view.model.redraworders==true"/>
-								</md-list>
+								</div>
+								<div flex layout-padding>
+									<section >
+										<md-toolbar class="md-warn _md _md-toolbar-transitions">	
+											<div class="md-toolbar-tools">
+												<h2 flex md-truncate>Procurement orders ready to send - {{view.model.orders.length}}</h2>	
+										    </div>     
+										</md-toolbar>
+										<md-list flex layout-padding >
+											<md-list-item class="md-2-line" ng-repeat="item in view.model.orders"  ng-if="view.model.redraworders==false">
+												<md-checkbox ng-model="item.done"></md-checkbox>
+											    <div class="md-list-item-text">
+											    	<h3>{{item.date}}</h3>
+											      	<p>{{item.quantity}}</p>
+											    </div>									    
+											</md-list-item>
+											<md-progress-linear class="md-warn" md-mode="indeterminate" ng-if="view.model.redraworders==true"/>
+										</md-list>
+										
+									</section>								
+								</div>
+								<div flex layout-padding >	
+									<section >
+										<md-toolbar class="md-primary _md _md-toolbar-transitions">	
+											<div class="md-toolbar-tools">
+												<h2 flex md-truncate>Output chanel to Customer's infrastructure</h2>	
+										    </div>     
+										</md-toolbar>
+										<div layout-align="center center" style="text-align: center">
+											<img src="images/customer_infr_out.png"/>
+										</div>										
+									</section> 								
 								
+								</div>		
 							</div>
-
-							
-							<div flex layout-padding >	
-								<md-list>
-									<md-subheader class="md-no-sticky"><font color="blue">Output chanel - Customer's infrastructure</font></md-subheader>
-
-								</md-list>	
-									<div layout-align="center center" style="text-align: center">
-										<img src="images/customer_infr_out.png"/>
-									</div>								
-							</div>		
 						</div>
-					</div>
-
-
-	
-
-		          	
-		          	
-		          
-		        </md-content>
-		      </md-tab>
-		    </md-tabs>
-		    
-		  </md-content>
-
-
-
-  </div>
+			       	</md-content>
+		      	</md-tab>
+		   	</md-tabs>
+		</md-content>
+	</div>
 
     
 	<!--  Angular 1.5 JavaScript -->
@@ -441,6 +416,7 @@
 		quantity: 0.0,
 		fixedQuantity: 0.0,
 		leadDays: 15,
+		itemsForPack: 1,
 		dayStockDelta: 0,
 		forecastingStartDate: '',
 		forecastingFinishDate: '',

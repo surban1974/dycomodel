@@ -76,5 +76,28 @@ public class PolynomialF extends APolynomial<Float>{
 			return value1/value2;
 	}
 
+	@Override
+	public Float floorPart(Float value1) {
+		if(value1==null)
+			return 0f;
+		return new Float(value1.longValue());
+	}
+
+	@Override
+	public Float fractionalPart(Float value1) {
+		if(value1==null)
+			return 0f;
+		return value1 - floorPart(value1);
+	}
+
+	@Override
+	public boolean equal(Float value1, Float value2) {
+		if(value1==null || value2==null)
+			return false;
+		else if(value1.floatValue()==value2.floatValue())
+			return true;
+		else return false;					
+	}
+	
 
 }

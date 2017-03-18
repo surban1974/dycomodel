@@ -144,7 +144,10 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	private List<option_element> selectApproximationType;
 	
 	@Serialized
-	private int approximationType;	
+	private int approximationType;
+	
+	@Serialized
+	private int itemsForPack;		
 	
 	@Serialized
 	private String fixedPeriod;
@@ -309,6 +312,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			calendar.setTime(getStartDate());
 			setRawdata(DemoRawData.preparedemoRawData(calendar.get(Calendar.YEAR)-1));
 			setDayStockDelta(3);
+			setItemsForPack(1);
 			
 			
 			setAdapter = new ISetAdapter() {						
@@ -903,6 +907,18 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 */
 		}
 		
+	}
+
+
+	public int getItemsForPack() {
+		return itemsForPack;
+	}
+
+
+	public void setItemsForPack(int itemsForPack) {
+		this.itemsForPack = itemsForPack;
+		this.redrawcharts=true;
+		this.redraworders=true;
 	}
 
 

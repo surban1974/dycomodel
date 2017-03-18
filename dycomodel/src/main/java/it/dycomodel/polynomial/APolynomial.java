@@ -19,6 +19,9 @@ public abstract class APolynomial<T extends Number> implements Serializable{
 	public abstract T subtraction(T value1, T value2);
 	public abstract T multiplication(T value1, T value2);
 	public abstract T division(T value1, T value2);
+	public abstract T floorPart(T value1);
+	public abstract T fractionalPart(T value1);
+	public abstract boolean equal(T value1, T value2);
 	
 	public abstract T convertValue(Number value);
 	

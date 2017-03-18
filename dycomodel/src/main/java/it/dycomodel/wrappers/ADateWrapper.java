@@ -240,9 +240,24 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 
 
 	public abstract T convertValue(Number value);
+	
+	public T roundWithGranulation(T quantity, T granulation){
+		if(granulation==null)
+			return quantity;
+		APolynomial<T> calc = equation.initPolynomial();
+		
+		T division = calc.division(quantity, granulation);
+		if(calc.equal(calc.fractionalPart(division), convertValue(0)))
+			return quantity;
+		else
+			return calc.multiplication(
+				calc.addition(calc.floorPart(division),convertValue(1)),
+				granulation
+			);
+	}
 
 	
-	public SortedMap<Date, T> getPoints(T initialQuantity, T fixedQuantity, Date startDate, Date finishDate, SortedMap<Date, T> processedOrders) throws InputParameterException{
+	public SortedMap<Date, T> getPoints(T initialQuantity, T fixedQuantity, Date startDate, Date finishDate, SortedMap<Date, T> processedOrders, T granulation) throws InputParameterException{
 
 		if(startDate==null){
 			if(initialDeltaDate!=null)
@@ -258,7 +273,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		Date current = getFirstPoint(initialQuantity, startDate, finishDate, processedOrders);
 		if(current==null || current.compareTo(startDate)<=0)
 			return result;
-		result.put(computeLead(current), fixedQuantity);
+		result.put(computeLead(current), roundWithGranulation(fixedQuantity, granulation));
 		
 		while(current!=null && current.before(finishDate)){
 			T diff = equation.initPolynomial().addition(fixedQuantity, computeConsumptionInPoint(initialQuantity, result, startDate, current));
@@ -266,13 +281,13 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 			if(point==null || point.compareTo(current)<=0)
 				return result;
 			current=point;
-			result.put(computeLead(current), fixedQuantity);
+			result.put(computeLead(current), roundWithGranulation(fixedQuantity, granulation));
 		}
 		return result;
 	}
 
 
-	public SortedMap<Date, T> getPoints(T initialQuantity, SortedSet<Date> pointDates, Date startDate, Date finishDate, SortedMap<Date, T> processedOrders, boolean withLead) throws InputParameterException{
+	public SortedMap<Date, T> getPoints(T initialQuantity, SortedSet<Date> pointDates, Date startDate, Date finishDate, SortedMap<Date, T> processedOrders, boolean withLead, T granulation) throws InputParameterException{
 
 		if(startDate==null){
 			if(initialDeltaDate!=null)
@@ -325,9 +340,13 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 									:
 										firstPoint
 								,
-								calc
-								.multiplication(diff, convertValue(-1))
-								);
+								roundWithGranulation(
+									calc
+									.multiplication(diff, convertValue(-1))
+									,
+									granulation
+								)
+							);
 						
 					}
 				}else{
@@ -370,9 +389,13 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 									:
 										k0Date
 								,
-								calc
-								.multiplication(diff, convertValue(-1))
-								);
+								roundWithGranulation(
+									calc
+									.multiplication(diff, convertValue(-1))
+									,
+									granulation
+								)
+							);
 					}
 					k0Date=k1Date;
 					
