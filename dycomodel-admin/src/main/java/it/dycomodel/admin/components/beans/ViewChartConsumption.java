@@ -85,7 +85,7 @@ public class ViewChartConsumption implements Serializable{
 			
 			Calendar demoC = Calendar.getInstance();
 			demoC.setTimeInMillis(controller.getStartDate().getTime());
-			demoC.set(Calendar.DATE,15);
+//			demoC.set(Calendar.DATE,15);
 			
 			
 			while(demoC.getTime().before(finishChartDate)){

@@ -1,9 +1,8 @@
 package it.dycomodel.admin.components.beans;
 
 import java.io.Serializable;
-import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -33,21 +32,36 @@ public class ViewSliders implements Serializable{
 	public ViewSliders init(){ 
 		this.initialising=true;
 
-		
+		maxC = 0;
+		maxS = 0;
 		try{
+			Calendar demoC = Calendar.getInstance();
+			if(controller.isViewFullApproximation())
+				demoC.setTimeInMillis(controller.getConsumption().firstKey().getTime());
+			else
+				demoC.setTimeInMillis(controller.getStartAvrDate().getTime());
+//			demoC.set(Calendar.DATE,15);
+			
+			Calendar demoF = Calendar.getInstance();
+			if(controller.isViewFullApproximation())
+				demoF.setTimeInMillis(controller.getConsumption().lastKey().getTime());
+			else
+				demoF.setTimeInMillis(controller.getFinishAvrDate().getTime());
+			
 			consumption = new ArrayList<ViewSlider>();
 			for(Map.Entry<Date, Double> entry : controller.getConsumption().entrySet()){
-				consumption.add(new ViewSlider(this, "C", entry.getKey(), entry.getValue()));
-//				if(minC>entry.getValue())
-//					minC=entry.getValue();
-				if(maxC<entry.getValue())
-					maxC=entry.getValue();
+				if(entry.getKey().compareTo(demoC.getTime())>=0 && entry.getKey().compareTo(demoF.getTime())<=0){
+					consumption.add(new ViewSlider(this, "C", entry.getKey(), entry.getValue()));
+					if(maxC<entry.getValue())
+						maxC=entry.getValue();
+				}
 
 			}
 			stock = new ArrayList<ViewSlider>();
 
 			for(Map.Entry<Date, Double> entry : controller.getSecureStock().entrySet()){
-				stock.add(new ViewSlider(this, "S", entry.getKey(), entry.getValue()));
+				if(entry.getKey().compareTo(demoC.getTime())>=0 && entry.getKey().compareTo(demoF.getTime())<=0)
+					stock.add(new ViewSlider(this, "S", entry.getKey(), entry.getValue()));
 //				if(minS>entry.getValue())
 //					minS=entry.getValue();
 //				if(maxS<entry.getValue())

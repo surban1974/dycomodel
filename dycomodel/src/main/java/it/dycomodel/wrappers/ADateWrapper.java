@@ -237,6 +237,19 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 
 		return equation.getSecureStock().compute(convertValue(pointPeriod));
 	}
+	
+	public T computeSpeedConsumptionInPoint(Date point){
+		Double pointPeriod = null;
+		if(initialDeltaDate!=null){
+			if(point!=null)
+				pointPeriod = Double.valueOf((point.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));			
+		}else{
+			if(point!=null)
+				pointPeriod = Double.valueOf((point.getTime()) / (1000 * 60 * 60 * 24));			
+		}
+
+		return equation.getConsumption().compute(convertValue(pointPeriod));
+	}	
 
 
 	public abstract T convertValue(Number value);

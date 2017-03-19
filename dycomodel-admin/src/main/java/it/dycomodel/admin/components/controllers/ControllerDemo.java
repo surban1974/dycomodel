@@ -28,6 +28,7 @@ import it.classhidra.annotation.elements.SessionDirective;
 import it.classhidra.core.controller.bsController;
 import it.classhidra.core.controller.i_action;
 import it.classhidra.core.controller.i_bean;
+import it.classhidra.core.tool.util.util_format;
 import it.classhidra.framework.web.beans.option_element;
 import it.classhidra.serialize.Format;
 import it.classhidra.serialize.JsonReader2Map;
@@ -40,6 +41,7 @@ import it.dycomodel.admin.components.beans.ViewOrders;
 import it.dycomodel.admin.components.beans.ViewSliders;
 import it.dycomodel.approximation.ISetAdapter;
 import it.dycomodel.plugins.ApacheCommonMathLaguerre;
+import it.dycomodel.plugins.ApacheCommonMathPolynomialFitter;
 import it.dycomodel.polynomial.PolynomialD;
 import it.dycomodel.wrappers.ADateApproximator;
 import it.dycomodel.wrappers.ADateWrapper;
@@ -89,11 +91,17 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 	private SortedMap<Date, Double> computedOrders;
 	
-	@Serialized
+	@Serialized(output=@Format(format="dd/MM/yyyy"))
 	private Date startDate;
 	
-	@Serialized
+	@Serialized(output=@Format(format="dd/MM/yyyy"))
 	private Date finishDate;
+	
+	@Serialized(output=@Format(format="dd/MM/yyyy"))
+	private Date startAvrDate;
+	
+	@Serialized(output=@Format(format="dd/MM/yyyy"))
+	private Date finishAvrDate;	
 	
 	@Serialized(output=@Format(format="dd/MM/yyyy"))
 	private Date forecastingStartDate;
@@ -109,6 +117,9 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	
 	@Serialized
 	private boolean redraworders=false;
+	
+	@Serialized
+	private boolean redrawslider=false;	
 	
 	@Serialized
 	private int tunemode=1;	
@@ -143,14 +154,23 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	@Serialized(children=true,depth=2)
 	private List<option_element> selectApproximationType;
 	
+	@Serialized(children=true,depth=2)
+	private List<option_element> selectApproximationAlgorithm;	
+	
 	@Serialized
 	private int approximationType;
+	
+	@Serialized
+	private String approximationAlgorithm;
 	
 	@Serialized
 	private int itemsForPack;		
 	
 	@Serialized
 	private String fixedPeriod;
+	
+	@Serialized
+	private boolean viewFullApproximation;	
 
 	public ControllerDemo(){
 		super();
@@ -259,6 +279,9 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 					mapped.put("model.redrawcharts", new Boolean(true));
 				if(redraworders)
 					mapped.put("model.redraworders", new Boolean(true));
+				if(redrawslider)
+					mapped.put("model.redrawslider", new Boolean(true));				
+				
 				parameters = new ArrayList<String>();
 				Iterator<String> it = mapped.keySet().iterator();
 				while(it.hasNext())
@@ -308,9 +331,12 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			
 			setStartDate(normalizeDate(new Date()));
 			setFinishDate(demoFromStartDate(12));
+			setStartAvrDate(getStartDate());
+			setFinishAvrDate(getFinishDate());
+			
 			Calendar calendar = Calendar.getInstance();
-			calendar.setTime(getStartDate());
-			setRawdata(DemoRawData.preparedemoRawData(calendar.get(Calendar.YEAR)-1));
+				calendar.setTime(getStartDate());
+			setRawdata(DemoRawData.prepareDemoRawData(calendar.get(Calendar.YEAR)-1));
 			setDayStockDelta(3);
 			setItemsForPack(1);
 			
@@ -330,14 +356,14 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			
 			
 			Calendar startAC = Calendar.getInstance();
-			startAC.setTime(startDate);
-			startAC.set(Calendar.DAY_OF_MONTH,1);
-			startAC.set(Calendar.MONTH,startAC.get(Calendar.MONTH)-1);
-			startAC.set(Calendar.YEAR,startAC.get(Calendar.YEAR));
+				startAC.setTime(startDate);
+				startAC.set(Calendar.DAY_OF_MONTH,1);
+				startAC.set(Calendar.MONTH,startAC.get(Calendar.MONTH)-3);
+				startAC.set(Calendar.YEAR,startAC.get(Calendar.YEAR));
 			Calendar finishAC = Calendar.getInstance();
-			finishAC.setTime(finishDate);
-			finishAC.set(Calendar.DAY_OF_MONTH,finishAC.getActualMaximum(Calendar.DAY_OF_MONTH));
-			finishAC.set(Calendar.MONTH,finishAC.get(Calendar.MONTH)+2);			
+				finishAC.setTime(finishDate);
+				finishAC.set(Calendar.DAY_OF_MONTH,finishAC.getActualMaximum(Calendar.DAY_OF_MONTH));
+				finishAC.set(Calendar.MONTH,finishAC.get(Calendar.MONTH)+3);			
 			
 
 			
@@ -356,6 +382,14 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			setConsumption(getApproximator().getForecastedConsumption(1));
 			setSecureStock(getApproximator().getForecastedStock(1));
 			
+			for(Map.Entry<Date, Double> entry :  getConsumption().entrySet()){
+				if( Integer.valueOf(util_format.dataToString(entry.getKey(), "yyyyMM")).intValue() == Integer.valueOf(util_format.dataToString(getStartDate(), "yyyyMM")).intValue())
+					setStartAvrDate(entry.getKey());
+				if( Integer.valueOf(util_format.dataToString(entry.getKey(), "yyyyMM")).intValue() == Integer.valueOf(util_format.dataToString(getFinishDate(), "yyyyMM")).intValue())
+					setFinishAvrDate(entry.getKey());
+				
+			}
+			
 			
 			
 			dayFinishDate = (getFinishDate().getTime()-getStartDate().getTime())/(1000 * 60 * 60 * 24);
@@ -366,49 +400,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 
 
-
-
-/*			
-			setConsumption(
-				new TreeMap<Date, Double>() {
-					private static final long serialVersionUID = 1L;
-					{
-						put(demoFromStartDate(0),152d);
-						put(demoFromStartDate(1),112d);
-						put(demoFromStartDate(2),180d);
-						put(demoFromStartDate(3),191d);
-						put(demoFromStartDate(4),187d);
-						put(demoFromStartDate(5),116d);
-						put(demoFromStartDate(6),112d);
-						put(demoFromStartDate(7),198d);
-						put(demoFromStartDate(8),144d);
-						put(demoFromStartDate(9),171d);
-						put(demoFromStartDate(10),177d);
-						put(demoFromStartDate(11),118d);			 
-					}}
-				);
-				
-
-			setSecureStock(
-				new TreeMap<Date, Double>() {
-					private static final long serialVersionUID = 1L;
-					{
-						put(demoFromStartDate(0),1150d);
-						put(demoFromStartDate(1),1150d);
-						put(demoFromStartDate(2),1100d);
-						put(demoFromStartDate(3),1100d);
-						put(demoFromStartDate(4),1075d);
-						put(demoFromStartDate(5),1050d);
-						put(demoFromStartDate(6),1025d);
-						put(demoFromStartDate(7),1025d);
-						put(demoFromStartDate(8),1050d);
-						put(demoFromStartDate(9),1075d);
-						put(demoFromStartDate(10),1150d);
-						put(demoFromStartDate(11),1250d);			 
-					}}
-				);
-*/
-				
+			
 			setProcessedOrders(
 				new TreeMap<Date, Double>() {
 					private static final long serialVersionUID = 1L;
@@ -427,27 +419,8 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 						private static final long serialVersionUID = 1L;
 						{			
 						}}
-					);				
-/*				
-			setFixedFeatureOrders(
-				new TreeSet<Date>(){
-					private static final long serialVersionUID = 1L;
-					{
-						add(new SimpleDateFormat("yyyyMMdd").parse("20170301"));
-						add(new SimpleDateFormat("yyyyMMdd").parse("20170401"));
-						add(new SimpleDateFormat("yyyyMMdd").parse("20170501"));
-						add(new SimpleDateFormat("yyyyMMdd").parse("20170601"));
-						add(new SimpleDateFormat("yyyyMMdd").parse("20170701"));
-						add(new SimpleDateFormat("yyyyMMdd").parse("20170801"));
-						add(new SimpleDateFormat("yyyyMMdd").parse("20170901"));
-						add(new SimpleDateFormat("yyyyMMdd").parse("20171001"));
-						add(new SimpleDateFormat("yyyyMMdd").parse("20171101"));
-						add(new SimpleDateFormat("yyyyMMdd").parse("20171201"));
-						add(new SimpleDateFormat("yyyyMMdd").parse("20180101"));
-						add(new SimpleDateFormat("yyyyMMdd").parse("20180201"));
-					}}
-				);
-*/	
+					);		
+			
 			setSelectFixedPeriod(
 				new ArrayList<option_element>(){
 					private static final long serialVersionUID = 1L;
@@ -475,10 +448,22 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 					);
 			setApproximationType(1);
 			
+			setSelectApproximationAlgorithm(
+					new ArrayList<option_element>(){
+						private static final long serialVersionUID = 1L;
+						{	
+							add(new option_element("PL", "Polynomial Laguerre"));
+							add(new option_element("PLS", "Polynomial least squares"));
+							
+						}}
+					);
+			setApproximationAlgorithm("PL");
+			
 			setProxy(
 						new DateWrapperD()
 						.setLead(new PolynomialD().setConstant(0, getLeadDays()))
 						.setComputingPlugin(new ApacheCommonMathLaguerre())
+//						.setComputingPlugin(new ApacheCommonMathPolynomialFitter())
 						.init(consumption, secureStock)
 					);
 				
@@ -921,6 +906,88 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		this.itemsForPack = itemsForPack;
 		this.redrawcharts=true;
 		this.redraworders=true;
+	}
+
+
+	public Date getStartAvrDate() {
+		return startAvrDate;
+	}
+
+
+	public void setStartAvrDate(Date startAvrDate) {
+		this.startAvrDate = startAvrDate;
+	}
+
+
+	public Date getFinishAvrDate() {
+		return finishAvrDate;
+	}
+
+
+	public void setFinishAvrDate(Date finishAvrDate) {
+		this.finishAvrDate = finishAvrDate;
+	}
+
+
+	public List<option_element> getSelectApproximationAlgorithm() {
+		return selectApproximationAlgorithm;
+	}
+
+
+	public void setSelectApproximationAlgorithm(List<option_element> selectApproximationAlgorithm) {
+		this.selectApproximationAlgorithm = selectApproximationAlgorithm;
+	}
+
+
+	public String getApproximationAlgorithm() {
+		return approximationAlgorithm;
+	}
+
+
+	public void setApproximationAlgorithm(String approximationAlgorithm) throws Exception{
+		if(this.approximationAlgorithm==null || !this.approximationAlgorithm.equals(approximationAlgorithm)){
+			this.approximationAlgorithm = approximationAlgorithm;
+			if(getProxy()!=null){
+				if(this.approximationAlgorithm.equals("PL")){
+					getProxy()
+					.setComputingPlugin(new ApacheCommonMathLaguerre())
+					.init(consumption, secureStock);
+					
+				}else if(this.approximationAlgorithm.equals("PLS")){
+					getProxy()
+					.setComputingPlugin(new ApacheCommonMathPolynomialFitter())
+					.init(consumption, secureStock);
+				}
+				this.redrawcharts=true;
+				this.redraworders=true;
+			}
+		}
+		
+	}
+
+
+	public boolean isViewFullApproximation() {
+		return viewFullApproximation;
+	}
+
+
+	public void setViewFullApproximation(boolean viewFullApproximation) {
+		if(this.viewFullApproximation!=viewFullApproximation){
+			this.viewFullApproximation = viewFullApproximation;
+			this.redrawcharts=true;
+			getSliders().init();
+			redrawslider=true;
+		}
+	}
+
+
+	public boolean isRedrawslider() {
+		return redrawslider;
+	}
+
+
+	public void setRedrawslider(boolean redrawslider) {
+		this.redrawslider = redrawslider;
 	}
 
 

@@ -10,7 +10,7 @@ import it.classhidra.core.tool.util.util_format;
 public class DemoRawData implements Serializable{
 	private static final long serialVersionUID = 1L;
 
-	public static SortedMap<Long, Double> preparedemoRawData(int year){
+	public static SortedMap<Long, Double> prepareDemoRawData(int year){
 		TreeMap<Long, Double> result = new TreeMap<Long, Double>();
 		try{
 			result.put(util_format.stringToData(year+"-1-4", "yyyy-MM-dd").getTime(), 224d);

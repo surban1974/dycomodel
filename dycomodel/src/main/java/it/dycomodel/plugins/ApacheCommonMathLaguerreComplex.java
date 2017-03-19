@@ -73,6 +73,16 @@ public class ApacheCommonMathLaguerreComplex implements IComputing {
 		    for(int i=0;i<reals.size();i++)
 		    	result[i] = reals.get(i).doubleValue();
 		    if(result.length==0){
+			    for(Complex complex: roots){
+			    	if(complex.getImaginary()==0 && complex.getReal()<=max )
+			    		reals.add(complex.getReal());
+			    }
+			    result = new double[reals.size()];
+			    for(int i=0;i<reals.size();i++)
+			    	result[i] = reals.get(i).doubleValue();
+		    	
+		    }
+		    if(result.length==0){
 		    	PolynomialFunction polynomial = new PolynomialFunction(completePolynomial.toDoubleArray());
 			    double root = new LaguerreSolver().solve(
 			    		100,

@@ -118,11 +118,14 @@
 				</md-tab>
 		      	<md-tab label="STEP 2 - Correction & Prediction" md-on-select="selectTabForecasting()" md-active="view.model.page_tab == 1">
 			    	<md-content class="md-padding">
-			        	<div id="chartavr_div" style="width: 1250px; height: 220px;"></div>
+			        	<div id="chartavr_div" style="width: 1250px; height: 200px;"></div>
+			        	<div style="height: 5px;" >
+							<md-progress-linear md-mode="indeterminate" ng-if="view.model.redrawslider==true || view.model.redrawcharts==true"/>
+						</div>
 						<div id="tuning_div" style="padding:0px;">
 						<table  cellspacing="0" cellpadding="0" >
 							<tr>
-								<td style="min-width:86px;" data-ng-repeat="consumption in view.model.sliders.consumption" ng-if="view.model.tunemode==1">
+								<td style="min-width:{{view.model.viewFullApproximation==true ? 72 : 108}}px;width:{{view.model.viewFullApproximation==true ? 65 : 108}}px;" data-ng-repeat="consumption in view.model.sliders.consumption" ng-if="view.model.tunemode==1">
 									<md-slider-container flex>
 										<md-input-container>
 											<input flex type="number" ng-model="consumption.value" aria-label="consumption" aria-controls="consumption-slider" > 
@@ -138,7 +141,7 @@
 								</td>			
 							</tr>
 							<tr >
-								<td style="min-width:86px;" data-ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.tunemode == 2">
+								<td style="min-width:{{view.model.viewFullApproximation==true ? 72 : 108}}px;width:{{view.model.viewFullApproximation==true ? 65 : 108}}px;" data-ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.tunemode == 2">
 									<md-slider-container flex>
 										<md-input-container>
 											<input flex type="number" ng-model="stock.value" aria-label="stock" aria-controls="stock-slider" > 
@@ -153,11 +156,35 @@
 							</tr>
 						</table>
 					</div>
-					<md-radio-group ng-model="view.model.tunemode" layout="row">
-						<md-radio-button value="0" class="md-warn"> Hide </md-radio-button>
-						<md-radio-button value="1" class="md-primary"> Consumption </md-radio-button>
-						<md-radio-button value="2" class="md-accent"> Secure Stock </md-radio-button>							
-					</md-radio-group>   							
+
+					<div layout="row">
+						<div flex layout-padding>
+							<section >
+								<md-radio-group ng-model="view.model.tunemode" layout="row">
+									<md-radio-button value="0" class="md-warn"> Hide </md-radio-button>
+									<md-radio-button value="1" class="md-primary"> Consumption </md-radio-button>
+									<md-radio-button value="2" class="md-accent"> Secure Stock </md-radio-button>							
+								</md-radio-group> 
+								<br>
+								<md-input-container class="md-block">
+									<label>Approximation Algorithm</label>
+									<md-select ng-model="view.model.approximationAlgorithm">
+										<md-option ng-repeat="period in view.model.selectApproximationAlgorithm" ng-value="period.code" >
+									    	{{period.desc}}
+									    </md-option>
+									</md-select>									
+			          			</md-input-container>								
+							</section>	
+						</div>	
+
+						<div flex > 
+							<md-switch ng-model="view.model.viewFullApproximation" aria-label="viewFullApproximation" ng-true-value="true" ng-false-value="false" class="md-warn">
+						    	Full approximation set: {{ view.model.viewFullApproximation }}
+						 	</md-switch>						
+								
+						</div> 						
+					</div>
+	 							
 				</md-content>
 			</md-tab>
 				<md-tab label="STEP 3 - Orders Processing" md-on-select="selectTabProcessing()" md-active="view.model.page_tab == 2">
@@ -361,7 +388,7 @@
 
 		var options = {
 			title_: 'Average Consumption/Secure stock',
-			curveType: 'function',
+			curveType_: 'function',
 			legend: { position: 'top' },
 			hAxis: { textPosition: 'none' },
 			'chartArea':{left:50,top:25,bottom:5,width:"100%"}
@@ -413,12 +440,14 @@
 		orders : [],
 		selectFixedPeriod: [],
 		selectApproximationType: [],
+		selectApproximationAlgorithm: [],
 		approximationType: 1,
 		fixedPeriod: '',
 		proxy: {},
 		chartsInProgress: false,
 		redrawcharts: false,
 		redraworders: false,
+		redrawslider: false,
 		tunemode: 1,
 		calculatemode: 1,
 		dayFinishDate: 0,
@@ -431,6 +460,9 @@
 		dayStockDelta: 0,
 		forecastingStartDate: '',
 		forecastingFinishDate: '',
+		approximationAlgorithm: '',
+		viewFullApproximation: false,
+		
 		error : '',
 		warning : '',
 		info : '',
@@ -508,6 +540,8 @@
 			    		self.model.redrawcharts = data.model.redrawcharts;
 			    	if(data.model.redraworders)
 			    		self.model.redraworders = data.model.redraworders;
+			    	if(data.model.redrawslider)
+			    		self.model.redrawslider = data.model.redrawslider;
 			    	if(self.model.approximationType!='1')
 			    		self.model.approximationType='1';
 
@@ -524,6 +558,23 @@
 			    		    		self.model.sliders = data.model.sliders;
 			    		    });
 			    		}						
+					}
+					if(self.model.redrawslider==true){
+						
+			    		if(self.model.page_tab==1){
+			    			$http({
+			    	            method : 'GET',
+			    	            url : 'demo-json'
+			    		    }).success(function(data, status, headers, config) {
+//			    		    	getScope().view.init(data);	
+								if(data.model.sliders)
+			    		    		self.model.sliders = data.model.sliders;
+								self.model.redrawslider=false;
+			    		    }).error(function(data, status, headers, config) {
+			    		    	self.model.redrawslider=false;
+				    	    });
+			    		}						
+						
 					}
 			    	if(self.model.redrawcharts==true){
 			    		self.model.redrawcharts=false;
