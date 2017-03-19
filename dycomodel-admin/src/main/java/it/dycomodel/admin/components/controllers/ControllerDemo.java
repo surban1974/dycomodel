@@ -292,7 +292,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		return normalizeDate(demoC.getTime());
 	}
 	
-	private Date normalizeDate(Date date){
+	public Date normalizeDate(Date date){
 		Calendar demoC = Calendar.getInstance();
 		demoC.setTimeInMillis(date.getTime());
 		demoC.set(Calendar.HOUR_OF_DAY,0);
@@ -486,6 +486,8 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 						new ViewSliders(this)
 						.init()
 					);
+			
+			setDayFinishDate(180);
 				
 	
 		}catch(Exception e){

@@ -29,8 +29,9 @@ public class ApacheCommonMathLaguerreComplex implements IComputing {
 					}
 				}
 				return result;
-			}else
-				return null;
+			}
+			else
+				return new double[0];
 		}catch(Exception e){
 			throw new PolynomialConstantsException(e)
 				.setX(x)
@@ -43,18 +44,25 @@ public class ApacheCommonMathLaguerreComplex implements IComputing {
 	@Override
 	public <T extends Number> double[] getPolynomialRoots(APolynomial<T> completePolynomial, IEquation<T> incompleteEquation, Double startPeriod, Double finishPeriod) throws RootSolvingException {
 		double[] result = new double[0];
+		double initialDelta = 0;
+		double maxInterval = 0;
+		if(incompleteEquation!=null){
+			initialDelta=incompleteEquation.getInitialDelta();
+			maxInterval=incompleteEquation.getMaxInterval();
+		}
 		try{
 		
 			double min = (startPeriod!=null)
 	    				?
-		    				startPeriod.doubleValue()-incompleteEquation.getInitialDelta()
+		    				startPeriod.doubleValue()-initialDelta
 		    			:
 		    				incompleteEquation.getInitialDelta();
 			double max = (finishPeriod!=null)
 						?
-							finishPeriod.doubleValue()-incompleteEquation.getInitialDelta()
+							finishPeriod.doubleValue()-initialDelta
 						:
-							startPeriod.doubleValue()-incompleteEquation.getInitialDelta()+ incompleteEquation.getMaxInterval();
+							startPeriod.doubleValue()-initialDelta+maxInterval;
+							
 		    Complex[] roots = new LaguerreSolver().solveAllComplex(completePolynomial.toDoubleArray(), min, 100);
 		    List<Double> reals = new ArrayList<Double>();
 		    for(Complex complex: roots){

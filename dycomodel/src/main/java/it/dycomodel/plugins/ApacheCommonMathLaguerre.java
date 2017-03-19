@@ -59,7 +59,7 @@ public class ApacheCommonMathLaguerre implements IComputing {
 						?
 							finishPeriod.doubleValue()-initialDelta
 						:
-							startPeriod.doubleValue()-initialDelta+ maxInterval);
+							startPeriod.doubleValue()-initialDelta + maxInterval);
 		    
 		    result[0]=root;
 		}catch(Exception e){

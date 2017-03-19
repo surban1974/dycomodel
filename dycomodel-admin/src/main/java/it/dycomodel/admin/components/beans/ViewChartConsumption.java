@@ -67,9 +67,9 @@ public class ViewChartConsumption implements Serializable{
 			SortedMap<String, Double[]> pointsS = new TreeMap<String, Double[]>();
 			if(allProcessedOrders!=null && allProcessedOrders.size()>0){
 				for(Map.Entry<Date, Double> entry :  allProcessedOrders.entrySet()){
-					double consumption = controller.getProxy().computeConsumptionInPoint(controller.getQuantity(), allProcessedOrders,  controller.getStartDate(), entry.getKey());
-					double stock = controller.getProxy().computeSecureStockInPoint(entry.getKey());
-					points.put(entry.getKey(), new Double[]{
+					double consumption = controller.getProxy().computeConsumptionInPoint(controller.getQuantity(), allProcessedOrders,  controller.getStartDate(), controller.normalizeDate(entry.getKey()));
+					double stock = controller.getProxy().computeSecureStockInPoint(controller.normalizeDate(entry.getKey()));
+					points.put(controller.normalizeDate(entry.getKey()), new Double[]{
 							new BigDecimal(consumption).setScale(2, RoundingMode.HALF_UP).doubleValue(),
 							new BigDecimal(stock).setScale(2, RoundingMode.HALF_UP).doubleValue(),
 							new BigDecimal(entry.getValue()).setScale(2, RoundingMode.HALF_UP).doubleValue()
@@ -101,6 +101,13 @@ public class ViewChartConsumption implements Serializable{
 								});
 					else
 						points.put(demoC.getTime(), new Double[]{0d,new BigDecimal(stock).setScale(2, RoundingMode.HALF_UP).doubleValue(),0d});
+				}else{
+					points.put(demoC.getTime(), new Double[]{
+							new BigDecimal(consumption).setScale(2, RoundingMode.HALF_UP).doubleValue(),
+							new BigDecimal(stock).setScale(2, RoundingMode.HALF_UP).doubleValue(),
+							reorder[2]
+							});
+					
 				}
 				demoC.set(Calendar.DATE,demoC.get(Calendar.DATE)+controller.getChartConsumptionDayInterval());
 
