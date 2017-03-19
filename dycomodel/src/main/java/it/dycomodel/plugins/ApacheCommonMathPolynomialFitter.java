@@ -13,6 +13,7 @@ import it.dycomodel.polynomial.APolynomial;
 public class ApacheCommonMathPolynomialFitter implements IComputing {
 	private static final long serialVersionUID = 1L;
 	private Double minConstValue;
+	private int degree;
 
 	@Override
 	public double[] getPolynomialCoeficients(double[] x, double[] y) throws PolynomialConstantsException {
@@ -28,7 +29,11 @@ public class ApacheCommonMathPolynomialFitter implements IComputing {
 				obs.add(xV,yV);
 			}
 			// Instantiate a third-degree polynomial fitter.
-			final PolynomialCurveFitter fitter = PolynomialCurveFitter.create(x.length);
+			if(degree==0)
+				degree = x.length;
+
+			final PolynomialCurveFitter fitter = PolynomialCurveFitter.create(degree);
+			
 
 			// Retrieve fitted parameters (coefficients of the polynomial function).
 			final double[] result = fitter.fit(obs.toList());
@@ -95,6 +100,17 @@ public class ApacheCommonMathPolynomialFitter implements IComputing {
 
 	public ApacheCommonMathPolynomialFitter setMinConstValue(Double minConstValue) {
 		this.minConstValue = minConstValue;
+		return this;
+	}
+
+
+	public int getDegree() {
+		return degree;
+	}
+
+
+	public ApacheCommonMathPolynomialFitter setDegree(int degree) {
+		this.degree = degree;
 		return this;
 	}
 

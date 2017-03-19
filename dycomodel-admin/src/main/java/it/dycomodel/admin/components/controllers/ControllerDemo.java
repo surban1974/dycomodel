@@ -156,6 +156,9 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	
 	@Serialized(children=true,depth=2)
 	private List<option_element> selectApproximationAlgorithm;	
+
+	@Serialized
+	private int leastSqDegree;	
 	
 	@Serialized
 	private int approximationType;
@@ -473,7 +476,11 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 					);
 			
 			setDayFinishDate(180);
-				
+			
+			if(getProxy()!=null && getProxy().getComputingPlugin()!=null){
+				if(getProxy().getComputingPlugin() instanceof ApacheCommonMathPolynomialFitter)
+					this.leastSqDegree = ((ApacheCommonMathPolynomialFitter)(getProxy().getComputingPlugin())).getDegree();
+			}				
 	
 		}catch(Exception e){
 			e.toString();
@@ -957,6 +964,11 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 					getProxy()
 					.setComputingPlugin(new ApacheCommonMathPolynomialFitter())
 					.init(consumption, secureStock);
+					
+					if(getProxy()!=null && getProxy().getComputingPlugin()!=null){
+						if(getProxy().getComputingPlugin() instanceof ApacheCommonMathPolynomialFitter)
+							this.leastSqDegree = ((ApacheCommonMathPolynomialFitter)(getProxy().getComputingPlugin())).getDegree();
+					}	
 				}
 				this.redrawcharts=true;
 				this.redraworders=true;
@@ -988,6 +1000,28 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 	public void setRedrawslider(boolean redrawslider) {
 		this.redrawslider = redrawslider;
+	}
+
+
+	public int getLeastSqDegree() {
+		if(getProxy()!=null && getProxy().getComputingPlugin()!=null){
+			if(getProxy().getComputingPlugin() instanceof ApacheCommonMathPolynomialFitter)
+				return ((ApacheCommonMathPolynomialFitter)(getProxy().getComputingPlugin())).getDegree();
+		}
+		return leastSqDegree;
+	}
+
+
+	public void setLeastSqDegree(int leastSqDegree) throws Exception{
+		if(this.leastSqDegree != leastSqDegree){
+			this.leastSqDegree = leastSqDegree;
+			getProxy()
+			.setComputingPlugin(new ApacheCommonMathPolynomialFitter().setDegree(this.leastSqDegree))
+			.init(consumption, secureStock);
+			this.redrawcharts=true;
+			this.redraworders=true;
+		}
+		
 	}
 
 
