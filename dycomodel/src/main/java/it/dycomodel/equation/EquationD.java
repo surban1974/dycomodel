@@ -14,8 +14,13 @@ public class EquationD extends AEquation<Double> {
 	}
 
 	@Override
-	public APolynomial<Double> setConstant(APolynomial<Double> polynomial, int n, double value) {
+	public APolynomial<Double> setConstant(APolynomial<Double> polynomial, int n, Double value) {
 		return polynomial.setConstant(n, value);
+	}
+
+	@Override
+	public IEquation<Double> initEquation() {
+		return new EquationD();
 	}
 
 

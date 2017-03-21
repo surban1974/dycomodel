@@ -4,46 +4,20 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.math3.analysis.polynomials.PolynomialFunction;
-import org.apache.commons.math3.analysis.polynomials.PolynomialFunctionLagrangeForm;
 import org.apache.commons.math3.analysis.solvers.LaguerreSolver;
 import org.apache.commons.math3.complex.Complex;
 
 import it.dycomodel.equation.IEquation;
-import it.dycomodel.exceptions.PolynomialConstantsException;
 import it.dycomodel.exceptions.RootSolvingException;
 import it.dycomodel.polynomial.APolynomial;
 
-public class ApacheCommonMathLaguerreComplex implements IComputing {
+public class ComputingLaguerreComplex extends ApacheCommonMath implements IComputing {
 	private static final long serialVersionUID = 1L;
-	private Double minConstValue;
-
-	@Override
-	public double[] getPolynomialCoeficients(double[] x, double[] y) throws PolynomialConstantsException {
-		try{
-			if(PolynomialFunctionLagrangeForm.verifyInterpolationArray(x, y, true)){
-				double[] result = new PolynomialFunctionLagrangeForm(x, y).getCoefficients();
-				if(minConstValue!=null){
-					for(int i=0;i<result.length;i++){
-						if(result[i]<minConstValue)
-							result[i]=0;
-					}
-				}
-				return result;
-			}
-			else
-				return new double[0];
-		}catch(Exception e){
-			throw new PolynomialConstantsException(e)
-				.setX(x)
-				.setY(y);
-		}
-	}
-
 
 
 	@Override
-	public <T extends Number> double[] getPolynomialRoots(APolynomial<T> completePolynomial, IEquation<T> incompleteEquation, Double startPeriod, Double finishPeriod) throws RootSolvingException {
-		double[] result = new double[0];
+	public <T extends Number> T[] getPolynomialRoots(APolynomial<T> completePolynomial, IEquation<T> incompleteEquation, T startPeriod, T finishPeriod, APolynomial<T> adapter) throws RootSolvingException {
+		T[] result = adapter.initArray(0);
 		double initialDelta = 0;
 		double maxInterval = 0;
 		if(incompleteEquation!=null){
@@ -69,48 +43,40 @@ public class ApacheCommonMathLaguerreComplex implements IComputing {
 		    	if(complex.getImaginary()==0 && complex.getReal()>=min && complex.getReal()<=max && complex.getReal()!=startPeriod.doubleValue())
 		    		reals.add(complex.getReal());
 		    }
-		    result = new double[reals.size()];
+		    result = adapter.initArray(reals.size());
 		    for(int i=0;i<reals.size();i++)
-		    	result[i] = reals.get(i).doubleValue();
+		    	result[i] = adapter.convertValue(reals.get(i));
 		    if(result.length==0){
 			    for(Complex complex: roots){
 			    	if(complex.getImaginary()==0 && complex.getReal()<=max )
 			    		reals.add(complex.getReal());
 			    }
-			    result = new double[reals.size()];
+			    result = adapter.initArray(reals.size());
 			    for(int i=0;i<reals.size();i++)
-			    	result[i] = reals.get(i).doubleValue();
+			    	result[i] = adapter.convertValue(reals.get(i));
 		    	
 		    }
 		    if(result.length==0){
 		    	PolynomialFunction polynomial = new PolynomialFunction(completePolynomial.toDoubleArray());
 			    double root = new LaguerreSolver().solve(
-			    		100,
+			    		1000,
 			    		polynomial,
 			    		min,
 						max
 				);
-			    result = new double[1];	  
-			    result[0]=root;
+			    result = adapter.initArray(1);	  
+			    result[0]=adapter.convertValue(root);
 		    }
 		}catch(Exception e){
 			throw new RootSolvingException(e)
 					.setCompletePolynomial(completePolynomial)
 					.setIncompleteEquation(incompleteEquation)
-					.setStartPeriod(startPeriod)
-					.setFinishPeriod(finishPeriod);
+					.setStartPeriod(startPeriod.doubleValue())
+					.setFinishPeriod(finishPeriod.doubleValue());
 		}
 		return result;
 
 	}
-	public Double getMinConstValue() {
-		return minConstValue;
-	}
 
-
-	public ApacheCommonMathLaguerreComplex setMinConstValue(Double minConstValue) {
-		this.minConstValue = minConstValue;
-		return this;
-	}	
 
 }

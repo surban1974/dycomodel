@@ -14,9 +14,13 @@ public class EquationF extends AEquation<Float> {
 	}
 
 	@Override
-	public APolynomial<Float> setConstant(APolynomial<Float> polynomial, int n, double value) {
-		return polynomial.setConstant(n, (float)value);
+	public APolynomial<Float> setConstant(APolynomial<Float> polynomial, int n, Float value) {
+		return polynomial.setConstant(n, value);
 	}
 
+	@Override
+	public IEquation<Float> initEquation() {
+		return new EquationF();
+	}	
 
 }

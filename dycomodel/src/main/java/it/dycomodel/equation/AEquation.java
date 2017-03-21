@@ -1,8 +1,12 @@
 package it.dycomodel.equation;
 
 import java.io.Serializable;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
-import it.dycomodel.plugins.ApacheCommonMathLaguerre;
+import it.dycomodel.plugins.ComputingLaguerre;
 import it.dycomodel.plugins.IComputing;
 import it.dycomodel.polynomial.APolynomial;
 
@@ -18,8 +22,11 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 	protected APolynomial<T> incompleteEquation;
 	protected double initialDelta;
 	protected double maxInterval;
+	protected boolean global=true;
+	protected APolynomial<T> adapter;
 
 	protected IComputing computingPlugin;
+	protected SortedMap<T, IEquation<T>> segmentEquations;
 	
 	public AEquation(){
 		super();
@@ -27,31 +34,34 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 		consumptionIntegral = initPolynomial();
 		secureStock = initPolynomial();
 		secureStockIntegral = initPolynomial();
-		incompleteEquation = initPolynomial();		
+		incompleteEquation = initPolynomial();	
+		adapter = initPolynomial();
 	}
 	
+	public abstract IEquation<T> initEquation();
 	public abstract APolynomial<T> initPolynomial();
-	public abstract APolynomial<T> setConstant(APolynomial<T> polynomial, int n, double value);
+	public abstract APolynomial<T> setConstant(APolynomial<T> polynomial, int n, T value);
 	
-	public IEquation<T> setAveragePoints(double[][] forecastedConsumption, double[][] forecastedStock) throws Exception{
+	public IEquation<T> setAveragePoints(T[][] forecastedConsumption, T[][] forecastedStock) throws Exception{
 		if(computingPlugin==null)
-			computingPlugin = new ApacheCommonMathLaguerre();
+			computingPlugin = new ComputingLaguerre();
+
 		
-		double[] xc = new double[forecastedConsumption.length];
-		double[] yc = new double[forecastedConsumption.length];
+		T[] xc = adapter.initArray(forecastedStock.length);
+		T[] yc = adapter.initArray(forecastedStock.length);
 		if(initialDelta==0 && forecastedConsumption.length>0)
-			initialDelta = forecastedConsumption[0][0];
+			initialDelta = forecastedConsumption[0][0].doubleValue();
 		for(int i=0;i<forecastedConsumption.length;i++){
-			if(initialDelta>forecastedConsumption[i][0])
-				initialDelta = forecastedConsumption[i][0];
-			if(maxInterval<forecastedConsumption[i][0])
-				maxInterval= forecastedConsumption[i][0];
+			if(initialDelta>forecastedConsumption[i][0].doubleValue())
+				initialDelta = forecastedConsumption[i][0].doubleValue();
+			if(maxInterval<forecastedConsumption[i][0].doubleValue())
+				maxInterval= forecastedConsumption[i][0].doubleValue();
 			xc[i]=forecastedConsumption[i][0];
 			yc[i]=forecastedConsumption[i][1];
 		}
 		
-		double[] xs = new double[forecastedStock.length];
-		double[] ys = new double[forecastedStock.length];
+		T[] xs = adapter.initArray(forecastedStock.length);
+		T[] ys = adapter.initArray(forecastedStock.length);
 		for(int i=0;i<forecastedStock.length;i++){
 			xs[i]=forecastedStock[i][0];
 			ys[i]=forecastedStock[i][1];
@@ -59,23 +69,61 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 
 		if(initialDelta>0){
 			for(int i=0;i<xc.length;i++)
-				xc[i]=xc[i]-initialDelta;
+				xc[i]= adapter.subtraction(xc[i],adapter.convertValue(initialDelta));
 			for(int i=0;i<xs.length;i++)
-				xs[i]=xs[i]-initialDelta;
+				xs[i]=adapter.subtraction(xs[i],adapter.convertValue(initialDelta));
 		}
 		
-		double[] coeficients = computingPlugin.getPolynomialCoeficients(xc, yc);
-		if(coeficients!=null){
-			for(int i=0;i<coeficients.length;i++)
-				setConstant(consumption, i, new Double(coeficients[i]));
+		
+		SortedMap<T, T[]> allCoeficients = computingPlugin.getPolynomialCoeficients(xc, yc, adapter);
+		if(allCoeficients!=null && allCoeficients.size()>1){
+			global=false;
+			segmentEquations = new TreeMap<T, IEquation<T>>();
+			for(Map.Entry<T, T[]> entry : allCoeficients.entrySet()){
+				IEquation<T> segmentE = 
+						initEquation()
+						.setComputingPlugin(this.computingPlugin)
+						.init(entry.getValue(), null);
+				segmentEquations.put(entry.getKey(), segmentE);
+			}
+
+			allCoeficients = computingPlugin.getPolynomialCoeficients(xs, ys, adapter);
+			for(Map.Entry<T, T[]> entry : allCoeficients.entrySet()){
+				IEquation<T> segmentE = segmentEquations.get(entry.getKey());
+				if(segmentE!=null)
+					segmentE.init(null, entry.getValue());
+
+			}			
 			
+		}else{
+			T[] coeficientsConsumption = adapter.initArray(0);
+			if(allCoeficients!=null && allCoeficients.size()>0)
+				coeficientsConsumption =allCoeficients.get(allCoeficients.firstKey());
+			
+			T[] coeficientsStock = adapter.initArray(0);
+			allCoeficients = computingPlugin.getPolynomialCoeficients(xs, ys, adapter);
+			if(allCoeficients!=null && allCoeficients.size()>0)
+				coeficientsStock =allCoeficients.get(allCoeficients.firstKey());
+			
+			init(coeficientsConsumption, coeficientsStock);
+		}
+		
+		
+		return this;
+	}
+	
+	public IEquation<T> init(T[] coeficientsConsumption, T[] coeficientsStock) throws Exception{
+
+
+		if(coeficientsConsumption!=null){
+			for(int i=0;i<coeficientsConsumption.length;i++)
+				setConstant(consumption, i, coeficientsConsumption[i]);			
 			consumptionIntegral.init(consumption).integral();
 		}
 		
-		coeficients = computingPlugin.getPolynomialCoeficients(xs, ys);
-		if(coeficients!=null){
-			for(int i=0;i<coeficients.length;i++)
-				setConstant(secureStock, i, new Double(coeficients[i]));
+		if(coeficientsStock!=null){
+			for(int i=0;i<coeficientsStock.length;i++)
+				setConstant(secureStock, i, coeficientsStock[i]);
 			
 		}
 		return this;
@@ -87,41 +135,191 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 		return 
 			polynomial.compute(polynomial.subtraction(value,polynomial.convertValue(initialDelta)));
 	}
+	
+	public T compute(int type, T value){
+		if(global){
+			if(type==COMPUTE_CONSUMPTION)
+				return compute(getConsumption(),value);
+			else if(type==COMPUTE_CONSUMPTION_INTEGRAL)
+				return compute(getConsumptionIntegral(),value);
+			else if(type==COMPUTE_STOCK)
+				return compute(getSecureStock(),value);
+			else if(type==COMPUTE_STOCK_INTEGRAL)
+				return compute(getSecureStockIntegral(),value);
+		}else{
+			if(segmentEquations!=null){
+				IEquation<T> forCompute = null;
+				for(Map.Entry<T, IEquation<T>> entry : segmentEquations.entrySet()){
+					if(value.doubleValue()< entry.getKey().doubleValue() && forCompute!=null)
+						return forCompute.compute(type, value);
+					forCompute = entry.getValue();	
+				}
+				if(forCompute!=null)
+					return forCompute.compute(type, value);
+			}
+
+		}
+		return null;
+	}
+	
+	
+	public T computeConsumption(T initialQuantity, T startPeriod, T finishPeriod){
+		if(global){
+			return adapter
+					.subtraction(
+							adapter.convertValue(initialQuantity),
+							adapter
+								.subtraction(
+									compute(COMPUTE_CONSUMPTION_INTEGRAL, adapter.convertValue(finishPeriod)),
+									compute(COMPUTE_CONSUMPTION_INTEGRAL,adapter.convertValue(startPeriod))
+								)
+							);
+		}else{
+			if(segmentEquations!=null && segmentEquations.size()>0){
+				T segmentStartPeriod = startPeriod;
+				T segmentFinishPeriod = finishPeriod;
+				Iterator<T> itr = segmentEquations.keySet().iterator();
+				T firstSegmentKey = null;
+				T secondSegmentKey = itr.next();
+				while(startPeriod.doubleValue()>secondSegmentKey.doubleValue() && itr.hasNext()){
+					firstSegmentKey = secondSegmentKey;
+					secondSegmentKey = itr.next();
+				}
+				
+				T integralAggregator = adapter.convertValue(0);
+
+
+				while(firstSegmentKey!=null){				
+					if(secondSegmentKey!=null){
+						if(secondSegmentKey.doubleValue()>finishPeriod.doubleValue()){
+							segmentFinishPeriod = finishPeriod;
+							secondSegmentKey=null;
+						}else
+							segmentFinishPeriod = secondSegmentKey;
+					}else
+						segmentFinishPeriod = finishPeriod;
+					
+					IEquation<T> segmentEquation = segmentEquations.get(firstSegmentKey);
+					
+					integralAggregator =
+							adapter
+								.addition(
+									integralAggregator,
+									adapter
+										.subtraction(
+											compute(segmentEquation.getConsumptionIntegral(), adapter.convertValue(segmentFinishPeriod)),
+											compute(segmentEquation.getConsumptionIntegral(),adapter.convertValue(segmentStartPeriod))
+										)
+								);
+					
+	
+					if(secondSegmentKey!=null)
+						segmentStartPeriod = secondSegmentKey;
+						
+					firstSegmentKey = secondSegmentKey;
+					secondSegmentKey = null;	
+					if(itr.hasNext())
+						secondSegmentKey = itr.next();
+					
+				}
+
+				return adapter
+						.subtraction(
+								adapter.convertValue(initialQuantity),
+								integralAggregator
+								);
+			}
+
+		}
+		return null;
+	}	
 
 	public IEquation<T> makeIncompleteEquation() throws Exception{
-
-		incompleteEquation = initPolynomial()
-					.subtraction(secureStock)
-					.subtraction(getConsumptionIntegral())
-					;
+		if(global)
+			incompleteEquation = initPolynomial()
+						.subtraction(secureStock)
+						.subtraction(getConsumptionIntegral())
+						;
+		else{
+			for(Map.Entry<T, IEquation<T>> entry : segmentEquations.entrySet())
+				entry.getValue().makeIncompleteEquation();
+			
+		}
 		return this;
 	}
 	
-	public double solveEquation(T initialQuantity, Double startPeriod, Double finishPeriod) throws Exception{
-		if(computingPlugin!=null){
-			APolynomial<T> computedEquation = 
-					initPolynomial()
-					.init(incompleteEquation)
-					.addition(
-							initPolynomial()
-							.setConstant(0, initialQuantity)
-					)					
-					.addition(
-							initPolynomial()
-								.setConstant(
-										0,
-										compute(
-											getConsumptionIntegral(),
-											getConsumptionIntegral().convertValue(startPeriod)
-										)
-								)
-					)
-					;
-			double[] roots = computingPlugin.getPolynomialRoots(computedEquation,this,startPeriod,finishPeriod);
-			if(roots.length>0)
-				return roots[0]+initialDelta;			
+	public T solveEquation(T initialQuantity, T startPeriod, T finishPeriod) throws Exception{
+		if(global){
+			if(computingPlugin!=null){	
+				APolynomial<T> computedEquation = 
+						initPolynomial()
+						.init(incompleteEquation)
+						.addition(
+								initPolynomial()
+								.setConstant(0, initialQuantity)
+						)					
+						.addition(
+								initPolynomial()
+									.setConstant(
+											0,
+											compute(
+												getConsumptionIntegral(),
+												getConsumptionIntegral().convertValue(startPeriod) 
+											)
+									)
+						)
+						;
+				T[] roots = computingPlugin.getPolynomialRoots(computedEquation,this,startPeriod,finishPeriod, adapter);
+				if(roots.length>0)				
+					return  adapter.addition(roots[0], adapter.convertValue(initialDelta));	
+	
+			}
+			return adapter.convertValue(-1);
+		}else{
+			if(segmentEquations!=null && segmentEquations.size()>0){
+				T segmentInitialQuantity  = initialQuantity;
+				T segmentStartPeriod = startPeriod;
+				T segmentFinishPeriod = finishPeriod;
+				Iterator<T> itr = segmentEquations.keySet().iterator();
+				T firstSegmentKey = null;
+				T secondSegmentKey = itr.next();
+				while(startPeriod.doubleValue()>secondSegmentKey.doubleValue() && itr.hasNext()){
+					firstSegmentKey = secondSegmentKey;
+					secondSegmentKey = itr.next();
+				}
+				
+
+
+				while(firstSegmentKey!=null){
+				
+					
+					
+					if(secondSegmentKey!=null)
+						segmentFinishPeriod = secondSegmentKey;
+					else
+						segmentFinishPeriod = finishPeriod;
+					
+					IEquation<T> segmentEquation = segmentEquations.get(firstSegmentKey);
+					T solved = segmentEquation.solveEquation(segmentInitialQuantity,segmentStartPeriod, segmentFinishPeriod);
+					if(!adapter.equal(solved, adapter.convertValue(-1)))
+						return solved;
+					
+					else{
+						segmentInitialQuantity = computeConsumption(segmentInitialQuantity, segmentStartPeriod, segmentFinishPeriod);	
+						if(secondSegmentKey!=null)
+							segmentStartPeriod = secondSegmentKey;
+						firstSegmentKey = secondSegmentKey;
+						secondSegmentKey = null;	
+						if(itr.hasNext())
+							secondSegmentKey = itr.next();
+					}
+
+				}
+				return adapter.convertValue(-1);
+			}else
+				return adapter.convertValue(-1);
+
 		}
-		return 0;
 	}
 	
 	public APolynomial<T> getConsumption() {
@@ -156,6 +354,14 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 
 	public double getMaxInterval() {
 		return maxInterval;
+	}
+
+	public boolean isGlobal() {
+		return global;
+	}
+
+	public SortedMap<T, IEquation<T>> getSegmentEquations() {
+		return segmentEquations;
 	}
 
 

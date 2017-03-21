@@ -1,21 +1,38 @@
 package it.dycomodel.equation;
 
 
+import java.util.SortedMap;
+
 import it.dycomodel.plugins.IComputing;
 import it.dycomodel.polynomial.APolynomial;
 
 
 public interface IEquation<T extends Number> {
+	
+	
+	
+	final static int COMPUTE_CONSUMPTION = 1;
+	final static int COMPUTE_CONSUMPTION_INTEGRAL = 2;
+	final static int COMPUTE_STOCK = 3;
+	final static int COMPUTE_STOCK_INTEGRAL = 4;
 
-	APolynomial<T> setConstant(APolynomial<T> polynomial, int n, double value);
+	IEquation<T> initEquation();
+	
+	APolynomial<T> setConstant(APolynomial<T> polynomial, int n, T value);
 
-	IEquation<T> setAveragePoints(double[][] forecastingConsumption, double[][] forecastingStock) throws Exception;
+	IEquation<T> setAveragePoints(T[][] forecastingConsumption, T[][] forecastingStock) throws Exception;
+	
+	IEquation<T> init(T[] coeficientsConsumption, T[] coeficientsStock) throws Exception;
 
 	T compute(APolynomial<T> polynomial, T value);
+	
+	T compute(int type, T value);
+	
+	T computeConsumption(T initialQuantity, T startPeriod, T finishPeriod);
 
 	IEquation<T> makeIncompleteEquation() throws Exception;
 
-	double solveEquation(T initialQuantity, Double startPeriod, Double finishPeriod) throws Exception;
+	T solveEquation(T initialQuantity, T startPeriod, T finishPeriod) throws Exception;
 
 	APolynomial<T> getConsumption();
 
@@ -34,6 +51,10 @@ public interface IEquation<T extends Number> {
 	double getMaxInterval();
 	
 	APolynomial<T> initPolynomial();
+	
+	SortedMap<T, IEquation<T>> getSegmentEquations();
+	
+	boolean isGlobal();
 
 
 }

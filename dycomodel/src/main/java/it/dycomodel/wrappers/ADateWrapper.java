@@ -7,6 +7,7 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 
+import it.dycomodel.equation.AEquation;
 import it.dycomodel.equation.IEquation;
 import it.dycomodel.exceptions.InputParameterException;
 import it.dycomodel.plugins.IComputing;
@@ -25,7 +26,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 
 
 	public ADateWrapper<T> init(SortedMap<Date, Double> forecastedConsumption, SortedMap<Date, Double> forecastedStock) throws Exception{
-		
+		APolynomial<T> adapter = initAdapter();
 		double[][] speed = new double[0][0];
 		double[][] secure = new double[0][0];
 	
@@ -59,7 +60,10 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		
 		equation = initEquation()
 				.setComputingPlugin(computingPlugin)
-				.setAveragePoints(speed,secure)
+				.setAveragePoints(
+						adapter.copyToTArray(speed),
+						adapter.copyToTArray(secure)
+					)
 				.makeIncompleteEquation();
 		
 		return this;		
@@ -91,6 +95,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		
 	
 	public Date forecastPointWithLead(Date date){
+		APolynomial<T> adapter = initAdapter();
 		if(date==null)
 			return null;
 		if(lead==null)
@@ -114,7 +119,10 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		
 		double solvedPoint = 0;
 		try{
-			double[] roots = computingPlugin.getPolynomialRoots(computedEquation,null,solved,365d);
+			
+			double[] roots = adapter.copyTodoubleArray(
+						computingPlugin.getPolynomialRoots(computedEquation,null,adapter.convertValue(solved),adapter.convertValue(365), adapter)
+					);
 			if(roots.length>0)
 				solvedPoint = roots[0];
 			else 
@@ -134,6 +142,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 	}	
 	
 	public Date getFirstPoint(T initialQuantity, Date startDate, Date finishDate, SortedMap<Date, T> processedOrders) throws InputParameterException{
+		APolynomial<T> adapter = initAdapter();
 		Double startPeriod = null;
 		Double finishPeriod = null;
 		if(initialDeltaDate!=null){
@@ -162,11 +171,14 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 			try{
 				solved = equation.solveEquation(
 						currentQuantity,
-						startPeriod,
-						finishPeriod);
+						adapter.convertValue(startPeriod),
+						adapter.convertValue(finishPeriod)).doubleValue();
 			}catch(Exception e){
 				return null;
 			}
+			
+			if(solved==-1)
+				return null;
 			
 			if(initialDeltaDate!=null)
 				point = new Date(Long.valueOf(initialDeltaDate.getTime()+(long)solved*(1000 * 60 * 60 * 24)));
@@ -196,7 +208,6 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 	
 	public T computeConsumptionInPoint(T initialQuantity, SortedMap<Date, T> processedOrders, Date startDate, Date point){
 		T processedInitialQuantity = getProcessedOrdersQuantity(initialQuantity, processedOrders, startDate, point);
-		APolynomial<T> calc = equation.initPolynomial();
 		
 		Double startPeriod = null;
 		Double finishPeriod = null;
@@ -212,7 +223,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 				finishPeriod = Double.valueOf((point.getTime()) / (1000 * 60 * 60 * 24));			
 		}
 		
-		
+/*		
 		T diff = calc
 				.subtraction(
 						convertValue(processedInitialQuantity),
@@ -222,6 +233,10 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 								equation.getConsumptionIntegral().compute(convertValue(startPeriod))
 							)
 						);
+*/						
+		T diff = equation.computeConsumption(processedInitialQuantity, convertValue(startPeriod), convertValue(finishPeriod));
+				
+		
 		return diff;
 	}
 	
@@ -235,7 +250,8 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 				pointPeriod = Double.valueOf((point.getTime()) / (1000 * 60 * 60 * 24));			
 		}
 
-		return equation.getSecureStock().compute(convertValue(pointPeriod));
+//		return equation.getSecureStock().compute(convertValue(pointPeriod));
+		return equation.compute(AEquation.COMPUTE_STOCK, convertValue(pointPeriod));
 	}
 	
 	public T computeSpeedConsumptionInPoint(Date point){
@@ -247,8 +263,8 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 			if(point!=null)
 				pointPeriod = Double.valueOf((point.getTime()) / (1000 * 60 * 60 * 24));			
 		}
-
-		return equation.getConsumption().compute(convertValue(pointPeriod));
+//		return equation.getConsumption().compute(convertValue(pointPeriod));
+		return equation.compute(AEquation.COMPUTE_CONSUMPTION, convertValue(pointPeriod));
 	}	
 
 
@@ -334,13 +350,18 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 							finishPeriod = Double.valueOf((k0Date.getTime()) / (1000 * 60 * 60 * 24));			
 					}
 					
-					
+/*					
 					diff = calc
 							.subtraction(
 								diff,
 								equation.getSecureStock().compute(convertValue(finishPeriod))
 							);
-					
+*/					
+					diff = calc
+							.subtraction(
+								diff,
+								equation.compute(AEquation.COMPUTE_STOCK, convertValue(finishPeriod))
+							);
 					
 					if(diff.doubleValue()<0){
 						
@@ -376,11 +397,17 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 							finishPeriod = Double.valueOf((k1Date.getTime()) / (1000 * 60 * 60 * 24));			
 					}
 					
-					
+/*					
 					diff = calc
 							.subtraction(
 								diff,
 								equation.getSecureStock().compute(convertValue(finishPeriod))
+							);
+*/
+					diff = calc
+							.subtraction(
+								diff,
+								equation.compute(AEquation.COMPUTE_STOCK, convertValue(finishPeriod))
 							);
 					
 					
@@ -421,6 +448,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 	}
 	
 	protected abstract IEquation<T> initEquation();
+	protected abstract APolynomial<T> initAdapter();
 
 	public IEquation<T> getEquation() {
 		return equation;

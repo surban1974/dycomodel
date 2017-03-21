@@ -86,8 +86,20 @@ public class ViewSliders implements Serializable{
 	public void changed(ViewSlider slider){
 		if(!this.initialising){
 			if(slider!=null){
-				if(slider.getType().equals("C"))
+				if(slider.getType().equals("C")){
 					controller.getConsumption().put(slider.getPoint(),slider.getValue());
+					if(controller.getDayStockDelta()>0){
+						double stock = slider.getValue()*controller.getDayStockDelta();
+						for(ViewSlider stockSlider: getStock()){
+							if(stockSlider.getPoint().compareTo(slider.getPoint())==0){
+								stockSlider.setValue(stock);
+								break;
+							}
+								
+						}
+						
+					}
+				}
 				if(slider.getType().equals("S"))
 					controller.getSecureStock().put(slider.getPoint(),slider.getValue());	
 				try{

@@ -48,6 +48,14 @@ public class PolynomialF extends APolynomial<Float>{
 		return value.floatValue();
 	}
 	@Override
+	public Float[] initArray(int length){
+		return new Float[length];
+	}	
+	@Override
+	public Float[][] initArray(int length1, int length2) {
+		return new Float[length1][length2];
+	}		
+	@Override
 	public Float addition(Float value1, Float value2) {
 		if(value1==null || value2==null)
 			return null;

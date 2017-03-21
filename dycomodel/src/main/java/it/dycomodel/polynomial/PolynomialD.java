@@ -48,6 +48,14 @@ public class PolynomialD extends APolynomial<Double>{
 		return value.doubleValue();
 	}
 	@Override
+	public Double[] initArray(int length){
+		return new Double[length];
+	}	
+	@Override
+	public Double[][] initArray(int length1, int length2) {
+		return new Double[length1][length2];
+	}	
+	@Override
 	public Double addition(Double value1, Double value2) {
 		if(value1==null || value2==null)
 			return null;
@@ -98,6 +106,8 @@ public class PolynomialD extends APolynomial<Double>{
 			return true;
 		else return false;					
 	}
+
+
 
 
 }

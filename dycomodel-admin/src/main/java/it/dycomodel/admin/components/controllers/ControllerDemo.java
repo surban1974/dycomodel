@@ -40,8 +40,11 @@ import it.dycomodel.admin.components.beans.ViewChartConsumption;
 import it.dycomodel.admin.components.beans.ViewOrders;
 import it.dycomodel.admin.components.beans.ViewSliders;
 import it.dycomodel.approximation.ISetAdapter;
-import it.dycomodel.plugins.ApacheCommonMathLaguerre;
-import it.dycomodel.plugins.ApacheCommonMathPolynomialFitter;
+import it.dycomodel.plugins.ComputingLaguerre;
+import it.dycomodel.plugins.ComputingLaguerreComplex;
+import it.dycomodel.plugins.ComputingLinear;
+import it.dycomodel.plugins.ComputingPolynomialFitter;
+import it.dycomodel.plugins.ComputingCubicSpline;
 import it.dycomodel.polynomial.PolynomialD;
 import it.dycomodel.wrappers.ADateApproximator;
 import it.dycomodel.wrappers.ADateWrapper;
@@ -411,7 +414,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 //						put(new SimpleDateFormat("yyyyMMdd").parse("20170125"),3000d);
 //						put(new SimpleDateFormat("yyyyMMdd").parse("20170210"),15000d);
 //						put(new SimpleDateFormat("yyyyMMdd").parse("20170320"),15000d);
-//						put(new SimpleDateFormat("yyyyMMdd").parse("20170410"),15000d);
+//						put(new SimpleDateFormat("yyyyMMdd").parse("20170410"),1500d);
 //						put(new SimpleDateFormat("yyyyMMdd").parse("20170510"),15000d);
 //						put(new SimpleDateFormat("yyyyMMdd").parse("20171110"),15000d);
 					}}
@@ -455,18 +458,19 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 					new ArrayList<option_element>(){
 						private static final long serialVersionUID = 1L;
 						{	
-							add(new option_element("PL", "Polynomial Laguerre"));
-							add(new option_element("PLS", "Polynomial least squares"));
+							add(new option_element("PL", 	"Global - Polynomial Laguerre"));
+							add(new option_element("PLS", 	"Global - Polynomial least squares"));
+							add(new option_element("LIN", 	"Local - Linear method"));
+							add(new option_element("SPL", 	"Local - Cubic Spline method"));
 							
 						}}
 					);
-			setApproximationAlgorithm("PL");
+			setApproximationAlgorithm("SPL");
 			
 			setProxy(
 						new DateWrapperD()
 						.setLead(new PolynomialD().setConstant(0, getLeadDays()))
-						.setComputingPlugin(new ApacheCommonMathLaguerre())
-//						.setComputingPlugin(new ApacheCommonMathPolynomialFitter())
+						.setComputingPlugin(new ComputingCubicSpline())
 						.init(consumption, secureStock)
 					);
 				
@@ -475,11 +479,11 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 						.init()
 					);
 			
-			setDayFinishDate(180);
+			setDayFinishDate(300);
 			
 			if(getProxy()!=null && getProxy().getComputingPlugin()!=null){
-				if(getProxy().getComputingPlugin() instanceof ApacheCommonMathPolynomialFitter)
-					this.leastSqDegree = ((ApacheCommonMathPolynomialFitter)(getProxy().getComputingPlugin())).getDegree();
+				if(getProxy().getComputingPlugin() instanceof ComputingPolynomialFitter)
+					this.leastSqDegree = ((ComputingPolynomialFitter)(getProxy().getComputingPlugin())).getDegree();
 			}				
 	
 		}catch(Exception e){
@@ -957,19 +961,31 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			if(getProxy()!=null){
 				if(this.approximationAlgorithm.equals("PL")){
 					getProxy()
-					.setComputingPlugin(new ApacheCommonMathLaguerre())
+					.setComputingPlugin(new ComputingLaguerre())
 					.init(consumption, secureStock);
-					
+				}else  if(this.approximationAlgorithm.equals("PLC")){
+					getProxy()
+					.setComputingPlugin(new ComputingLaguerreComplex())
+					.init(consumption, secureStock);
 				}else if(this.approximationAlgorithm.equals("PLS")){
 					getProxy()
-					.setComputingPlugin(new ApacheCommonMathPolynomialFitter())
+					.setComputingPlugin(new ComputingPolynomialFitter())
 					.init(consumption, secureStock);
 					
 					if(getProxy()!=null && getProxy().getComputingPlugin()!=null){
-						if(getProxy().getComputingPlugin() instanceof ApacheCommonMathPolynomialFitter)
-							this.leastSqDegree = ((ApacheCommonMathPolynomialFitter)(getProxy().getComputingPlugin())).getDegree();
+						if(getProxy().getComputingPlugin() instanceof ComputingPolynomialFitter)
+							this.leastSqDegree = ((ComputingPolynomialFitter)(getProxy().getComputingPlugin())).getDegree();
 					}	
+				}else  if(this.approximationAlgorithm.equals("LIN")){
+					getProxy()
+					.setComputingPlugin(new ComputingLinear())
+					.init(consumption, secureStock);
+				}else  if(this.approximationAlgorithm.equals("SPL")){
+					getProxy()
+					.setComputingPlugin(new ComputingCubicSpline())
+					.init(consumption, secureStock);
 				}
+				
 				this.redrawcharts=true;
 				this.redraworders=true;
 			}
@@ -1005,8 +1021,8 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 	public int getLeastSqDegree() {
 		if(getProxy()!=null && getProxy().getComputingPlugin()!=null){
-			if(getProxy().getComputingPlugin() instanceof ApacheCommonMathPolynomialFitter)
-				return ((ApacheCommonMathPolynomialFitter)(getProxy().getComputingPlugin())).getDegree();
+			if(getProxy().getComputingPlugin() instanceof ComputingPolynomialFitter)
+				return ((ComputingPolynomialFitter)(getProxy().getComputingPlugin())).getDegree();
 		}
 		return leastSqDegree;
 	}
@@ -1016,7 +1032,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		if(this.leastSqDegree != leastSqDegree){
 			this.leastSqDegree = leastSqDegree;
 			getProxy()
-			.setComputingPlugin(new ApacheCommonMathPolynomialFitter().setDegree(this.leastSqDegree))
+			.setComputingPlugin(new ComputingPolynomialFitter().setDegree(this.leastSqDegree))
 			.init(consumption, secureStock);
 			this.redrawcharts=true;
 			this.redraworders=true;

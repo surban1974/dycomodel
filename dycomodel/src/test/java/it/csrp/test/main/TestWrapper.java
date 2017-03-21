@@ -7,7 +7,8 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import it.dycomodel.plugins.ApacheCommonMathLaguerre;
+
+import it.dycomodel.plugins.ComputingCubicSpline;
 import it.dycomodel.polynomial.PolynomialD;
 import it.dycomodel.wrappers.ADateWrapper;
 import it.dycomodel.wrappers.DateWrapperD;
@@ -70,7 +71,7 @@ public class TestWrapper {
 		
 		
 		ADateWrapper<Double> wrapper = new DateWrapperD()
-				.setComputingPlugin(new ApacheCommonMathLaguerre())
+				.setComputingPlugin(new ComputingCubicSpline())
 				.init(speedM, secureM)
 				.setLead(new PolynomialD().setConstant(0, 15d));
 				;
@@ -83,10 +84,10 @@ public class TestWrapper {
 		
 
 		
-		SortedMap<Date, Double> fixed = wrapper.getPoints(1000d, 20000d, new SimpleDateFormat("yyyyMMdd").parse("20160120"), new SimpleDateFormat("yyyyMMdd").parse("20161220"), null);
+		SortedMap<Date, Double> fixed = wrapper.getPoints(1000d, 20000d, new SimpleDateFormat("yyyyMMdd").parse("20160120"), new SimpleDateFormat("yyyyMMdd").parse("20161220"), null, 1d);
 		System.out.println(fixed);	
 		
-		SortedMap<Date, Double> fixedD = wrapper.getPoints(1000d, fixedDates, new SimpleDateFormat("yyyyMMdd").parse("20160120"), new SimpleDateFormat("yyyyMMdd").parse("20161220"), processedOrders, true);
+		SortedMap<Date, Double> fixedD = wrapper.getPoints(1000d, fixedDates, new SimpleDateFormat("yyyyMMdd").parse("20160120"), new SimpleDateFormat("yyyyMMdd").parse("20161220"), processedOrders, true, 1d);
 		System.out.println(fixedD);
 		
 //					IEquation<Double> equation = 

@@ -75,7 +75,6 @@ public class ViewChartAverage implements Serializable{
 			SortedMap<Date, Double[]> points = new TreeMap<Date, Double[]>();
 			
 			while(demoC.getTime().before(demoF.getTime())){
-				
 				double consumption = controller.getProxy().computeSpeedConsumptionInPoint(demoC.getTime());
 				double stock = controller.getProxy().computeSecureStockInPoint(demoC.getTime());
 				if(!controller.isViewFullApproximation() && consumption<0)

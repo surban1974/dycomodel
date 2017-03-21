@@ -22,8 +22,35 @@ public abstract class APolynomial<T extends Number> implements Serializable{
 	public abstract T floorPart(T value1);
 	public abstract T fractionalPart(T value1);
 	public abstract boolean equal(T value1, T value2);
-	
+	public abstract T[] initArray(int length);	
+	public abstract T[][] initArray(int length1, int length2);
 	public abstract T convertValue(Number value);
+	public double[] copyTodoubleArray(T[] array){
+		if(array==null)
+			return new double[0];
+		double[] result = new double[array.length];
+		for(int i=0;i<array.length;i++)
+			result[i] = array[i].doubleValue();
+		return result;
+	}
+	public T[] copyToTArray(double[] array){
+		if(array==null)
+			return initArray(0);
+		T[] result = initArray(array.length);
+		for(int i=0;i<array.length;i++)
+			result[i] = convertValue(array[i]);
+		return result;
+	}	
+	public T[][] copyToTArray(double[][] array){
+		if(array==null || array.length==0)
+			return initArray(0,0);
+		T[][] result = initArray(array.length,array[0].length);
+		for(int i=0;i<array.length;i++){
+			for(int j=0;j<array[i].length;j++)		
+				result[i][j] = convertValue(array[i][j]);
+		}
+		return result;
+	}		
 	
 	public APolynomial<T> init(APolynomial<T> arg){
 		if(arg==null || arg.getConstants()==null)

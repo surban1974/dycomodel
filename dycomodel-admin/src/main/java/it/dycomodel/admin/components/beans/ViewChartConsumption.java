@@ -39,8 +39,10 @@ public class ViewChartConsumption implements Serializable{
 			
 			if(controller.getCalculatemode()==1){
 				Date point = controller.getProxy().getFirstPoint(controller.getQuantity(), controller.getStartDate(), finishChartDate, controller.getProcessedOrders());
-				point = controller.getProxy().computeLead(point);
-				allProcessedOrders.put(point,0d);
+				if(point!=null){
+					point = controller.getProxy().computeLead(point);
+					allProcessedOrders.put(point,0d);
+				}
 				controller.setComputedOrders(allProcessedOrders);
 			}
 			
