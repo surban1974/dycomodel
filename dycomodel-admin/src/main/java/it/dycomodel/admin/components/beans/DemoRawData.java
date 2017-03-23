@@ -2,6 +2,8 @@ package it.dycomodel.admin.components.beans;
 
 
 import java.io.Serializable;
+import java.util.Date;
+import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
@@ -11,9 +13,9 @@ public class DemoRawData implements Serializable{
 	private static final long serialVersionUID = 1L;
 
 	public static SortedMap<Long, Double> prepareDemoRawData(int year){
-		TreeMap<Long, Double> result = new TreeMap<Long, Double>();
+		TreeMap<Long, Double> result1 = new TreeMap<Long, Double>();
 		try{
-
+			TreeMap<Long, Double> result = new TreeMap<Long, Double>();
 			for(int i=0;i<2;i++){
 				result.put(util_format.stringToData((year+i)+"-1-4", "yyyy-MM-dd").getTime(), 224d);
 				result.put(util_format.stringToData((year+i)+"-1-5", "yyyy-MM-dd").getTime(), 25d);
@@ -227,11 +229,15 @@ public class DemoRawData implements Serializable{
 				result.put(util_format.stringToData((year+i)+"-12-28", "yyyy-MM-dd").getTime(), 44d);
 				result.put(util_format.stringToData((year+i)+"-12-29", "yyyy-MM-dd").getTime(), 29d);
 			}
-
+			Date current = new Date();
+			for(Map.Entry<Long, Double> entry: result.entrySet()){
+				if(entry.getKey().longValue()<current.getTime())
+					result1.put(entry.getKey(),entry.getValue());
+			}
 		}catch(Exception e){
 			
 		}
-		return result;
+		return result1;
 	}
 	
 }

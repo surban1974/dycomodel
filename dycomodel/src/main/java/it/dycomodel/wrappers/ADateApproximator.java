@@ -20,8 +20,9 @@ public class ADateApproximator implements Serializable{
 	
 	private int type;
 	private ISetAdapter stockAdapter;
+	private Date startApproximationDate;
+	private Date finishApproximationDate;
 	private Date startDate;
-	private Date finishDate;
 	private SortedMap<Date, Double> consumption;
 	private SortedMap<Date, Double> stock;
 	private IApproximation approximation;
@@ -31,7 +32,25 @@ public class ADateApproximator implements Serializable{
 		if(type==APPROXIMATION_MEAN){
 			try{
 				approximation = new ApproximationMean().init();
-				consumption = approximation.approximateByMonth(rawdata, startDate, finishDate);
+				consumption = approximation.approximateByMonth(rawdata, startApproximationDate, finishApproximationDate);
+				stock = stockAdapter.adapt(consumption);
+			}catch(Exception e){				
+			}
+		} else if(type==APPROXIMATION_MEANQ25){
+			try{
+				approximation = new ApproximationMean().init();
+				consumption = approximation
+						.setPercentile(0.25, startDate)
+						.approximateByMonth(rawdata, startApproximationDate, finishApproximationDate);
+				stock = stockAdapter.adapt(consumption);
+			}catch(Exception e){				
+			}
+		}else if(type==APPROXIMATION_MEANQ75){
+			try{
+				approximation = new ApproximationMean().init();
+				consumption = approximation
+						.setPercentile(0.75, startDate)
+						.approximateByMonth(rawdata, startApproximationDate, finishApproximationDate);
 				stock = stockAdapter.adapt(consumption);
 			}catch(Exception e){				
 			}
@@ -57,21 +76,21 @@ public class ADateApproximator implements Serializable{
 		return this;
 	}
 
-	public Date getStartDate() {
-		return startDate;
+	public Date getStartApproximationDate() {
+		return startApproximationDate;
 	}
 
-	public ADateApproximator setStartDate(Date startDate) {
-		this.startDate = startDate;
+	public ADateApproximator setStartApproximationDate(Date startApproximationDate) {
+		this.startApproximationDate = startApproximationDate;
 		return this;
 	}
 
-	public Date getFinishDate() {
-		return finishDate;
+	public Date getFinishApproximationDate() {
+		return finishApproximationDate;
 	}
 
-	public ADateApproximator setFinishDate(Date finishDate) {
-		this.finishDate = finishDate;
+	public ADateApproximator setFinishApproximationDate(Date finishApproximationDate) {
+		this.finishApproximationDate = finishApproximationDate;
 		return this;
 	}
 
@@ -112,5 +131,15 @@ public class ADateApproximator implements Serializable{
 	public IApproximation getApproximation() {
 		return approximation;
 	}
+
+	public Date getStartDate() {
+		return startDate;
+	}
+
+	public ADateApproximator setStartDate(Date startDate) {
+		this.startDate = startDate;
+		return this;
+	}
+
 
 }

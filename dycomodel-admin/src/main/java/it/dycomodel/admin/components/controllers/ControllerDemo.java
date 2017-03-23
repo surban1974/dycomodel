@@ -375,8 +375,9 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			
 			setApproximator(
 					new ADateApproximator()
-					.setStartDate(startAC.getTime())
-					.setFinishDate(finishAC.getTime())
+					.setStartApproximationDate(startAC.getTime())
+					.setFinishApproximationDate(finishAC.getTime())
+					.setStartDate(getStartDate())
 					.setType(ADateApproximator.APPROXIMATION_MEAN)
 					.setStockAdapter(setAdapter)
 					.approximation(getRawdata())
@@ -479,7 +480,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 						.init()
 					);
 			
-			setDayFinishDate(300);
+			setDayFinishDate(240);
 			
 			if(getProxy()!=null && getProxy().getComputingPlugin()!=null){
 				if(getProxy().getComputingPlugin() instanceof ComputingPolynomialFitter)
@@ -882,13 +883,14 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	public void setApproximationType(int approximationType) {
 		if(this.approximationType!=approximationType){
 			this.approximationType = approximationType;
-			if(this.approximationType!=1)
+			if(this.approximationType==4)
 				this.approximationType=1;
-/*			
+			
 			if(getApproximator()!=null){				
 				getApproximator()
 				.setType(this.approximationType)
-				.approximation(getRawdata());			
+				.approximation(getRawdata());	
+				
 				setConsumption(getApproximator().getForecastedConsumption(1));
 				setSecureStock(getApproximator().getForecastedStock(1));
 				if(getProxy()!=null){
@@ -902,7 +904,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 					
 				}
 			}
-*/
+
 		}
 		
 	}
