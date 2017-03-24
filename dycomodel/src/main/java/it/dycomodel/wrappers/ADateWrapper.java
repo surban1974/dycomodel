@@ -94,7 +94,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 	
 		
 	
-	public Date forecastPointWithLead(Date date){
+	public Date forecastPointWithLead(Date date, Date limitDate){
 		APolynomial<T> adapter = initAdapter();
 		if(date==null)
 			return null;
@@ -102,10 +102,16 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 			return date;
 		
 		double solved = 0;
-		if(initialDeltaDate!=null)
+		double limit = 0;
+		if(initialDeltaDate!=null){
 			solved = Double.valueOf((date.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
-		else
+			limit = Double.valueOf((limitDate.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
+		}else{
 			solved = Double.valueOf((date.getTime()) / (1000 * 60 * 60 * 24));
+			limit = Double.valueOf((limitDate.getTime()) / (1000 * 60 * 60 * 24));
+		}
+		if(limit<solved)
+			limit=solved+365;
 		
 		APolynomial<T> computedEquation = 
 				equation.initPolynomial()
@@ -121,7 +127,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		try{
 			
 			double[] roots = adapter.copyTodoubleArray(
-						computingPlugin.getPolynomialRoots(computedEquation,null,adapter.convertValue(solved),adapter.convertValue(365), adapter)
+						computingPlugin.getPolynomialRoots(computedEquation,null,adapter.convertValue(solved),adapter.convertValue(limit), adapter)
 					);
 			if(roots.length>0)
 				solvedPoint = roots[0];
@@ -185,29 +191,29 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 			else		
 				point = new Date(Long.valueOf((long)solved*(1000 * 60 * 60 * 24)));
 			
-			controlQuantity = getProcessedOrdersQuantity(initialQuantity,processedOrders,startDate,point);
+			controlQuantity = getProcessedOrdersQuantity(initialQuantity,processedOrders,startDate,point, finishDate);
 			
 		}
 		return point;
 
 	}
 	
-	protected T getProcessedOrdersQuantity(T initialQuantity, SortedMap<Date, T> processedOrders, Date startDate, Date pointDate){
+	protected T getProcessedOrdersQuantity(T initialQuantity, SortedMap<Date, T> processedOrders, Date startDate, Date pointDate, Date finishDate){
 		if(startDate==null || pointDate==null || processedOrders==null || processedOrders.size()==0)
 			return initialQuantity;
 		APolynomial<T> calc = equation.initPolynomial();
 		
 		T quantity = initialQuantity;
 		for(Map.Entry<Date, T> entry : processedOrders.entrySet()) {
-			Date withLead = forecastPointWithLead(entry.getKey());
+			Date withLead = forecastPointWithLead(entry.getKey(), finishDate);
 			if(withLead.after(startDate) && withLead.before(pointDate))
 				quantity = calc.addition(quantity, convertValue(entry.getValue()));
 		}
 		return quantity;
 	}
 	
-	public T computeConsumptionInPoint(T initialQuantity, SortedMap<Date, T> processedOrders, Date startDate, Date point){
-		T processedInitialQuantity = getProcessedOrdersQuantity(initialQuantity, processedOrders, startDate, point);
+	public T computeConsumptionInPoint(T initialQuantity, SortedMap<Date, T> processedOrders, Date startDate, Date point, Date finishDate){
+		T processedInitialQuantity = getProcessedOrdersQuantity(initialQuantity, processedOrders, startDate, point, finishDate);
 		
 		Double startPeriod = null;
 		Double finishPeriod = null;
@@ -221,6 +227,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 				startPeriod = Double.valueOf((startDate.getTime()) / (1000 * 60 * 60 * 24));
 			if(point!=null)
 				finishPeriod = Double.valueOf((point.getTime()) / (1000 * 60 * 60 * 24));			
+
 		}
 		
 /*		
@@ -305,7 +312,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		result.put(computeLead(current), roundWithGranulation(fixedQuantity, granulation));
 		
 		while(current!=null && current.before(finishDate)){
-			T diff = equation.initPolynomial().addition(fixedQuantity, computeConsumptionInPoint(initialQuantity, result, startDate, current));
+			T diff = equation.initPolynomial().addition(fixedQuantity, computeConsumptionInPoint(initialQuantity, result, startDate, current, finishDate));
 			Date point = getFirstPoint(diff, current, finishDate, processedOrders);
 			if(point==null || point.compareTo(current)<=0)
 				return result;
@@ -337,8 +344,8 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 			
 			if(d.after(startDate) && (k0Date==null || k0Date.before(finishDate))){
 				if(k0Date==null){
-					k0Date = forecastPointWithLead(d);
-					T diff = computeConsumptionInPoint(initialQuantity, result, startDate, k0Date);
+					k0Date = forecastPointWithLead(d,finishDate);
+					T diff = computeConsumptionInPoint(initialQuantity, result, startDate, k0Date, finishDate);
 					APolynomial<T> calc = equation.initPolynomial();
 
 					Double finishPeriod = null;
@@ -384,8 +391,8 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 						
 					}
 				}else{
-					k1Date = forecastPointWithLead(d);
-					T diff = computeConsumptionInPoint(initialQuantity, result, startDate, k1Date);
+					k1Date = forecastPointWithLead(d,finishDate);
+					T diff = computeConsumptionInPoint(initialQuantity, result, startDate, k1Date, finishDate);
 					APolynomial<T> calc = equation.initPolynomial();
 
 					Double finishPeriod = null;

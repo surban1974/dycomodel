@@ -69,7 +69,7 @@ public class ViewChartConsumption implements Serializable{
 			SortedMap<String, Double[]> pointsS = new TreeMap<String, Double[]>();
 			if(allProcessedOrders!=null && allProcessedOrders.size()>0){
 				for(Map.Entry<Date, Double> entry :  allProcessedOrders.entrySet()){
-					double consumption = controller.getProxy().computeConsumptionInPoint(controller.getQuantity(), allProcessedOrders,  controller.getStartDate(), controller.normalizeDate(entry.getKey()));
+					double consumption = controller.getProxy().computeConsumptionInPoint(controller.getQuantity(), allProcessedOrders,  controller.getStartDate(), controller.normalizeDate(entry.getKey()), finishChartDate);
 					double stock = controller.getProxy().computeSecureStockInPoint(controller.normalizeDate(entry.getKey()));
 					points.put(controller.normalizeDate(entry.getKey()), new Double[]{
 							new BigDecimal(consumption).setScale(2, RoundingMode.HALF_UP).doubleValue(),
@@ -91,7 +91,7 @@ public class ViewChartConsumption implements Serializable{
 			
 			
 			while(demoC.getTime().before(finishChartDate)){
-				double consumption = controller.getProxy().computeConsumptionInPoint(controller.getQuantity(), allProcessedOrders,  controller.getStartDate(), demoC.getTime());
+				double consumption = controller.getProxy().computeConsumptionInPoint(controller.getQuantity(), allProcessedOrders,  controller.getStartDate(), demoC.getTime(), finishChartDate);
 				double stock = controller.getProxy().computeSecureStockInPoint(demoC.getTime());
 				Double[] reorder = pointsS.get(util_format.dataToString(demoC.getTime(), "yyyyMMdd"));
 				if(reorder==null){
