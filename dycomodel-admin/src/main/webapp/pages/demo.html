@@ -125,7 +125,7 @@
 						<div id="tuning_div" style="padding:0px;" ng-if="view.model.redrawslider==false">
 						<table  cellspacing="0" cellpadding="0" >
 							<tr>
-								<td style="min-width:{{view.model.viewFullApproximation==true ? 71 : 108}}px;width:{{view.model.viewFullApproximation==true ? 65 : 108}}px;" data-ng-repeat="consumption in view.model.sliders.consumption" ng-if="view.model.tunemode==1">
+								<td style="min-width:{{view.model.viewFullApproximation==true ? 64 : 108}}px;max-width:{{view.model.viewFullApproximation==true ? 64 : 108}}px;" data-ng-repeat="consumption in view.model.sliders.consumption" ng-if="view.model.tunemode==1">
 									<md-slider-container flex>
 										<md-input-container>
 											<input flex type="number" ng-model="consumption.value" aria-label="consumption" aria-controls="consumption-slider" >
@@ -141,7 +141,7 @@
 								</td>
 							</tr>
 							<tr >
-								<td style="min-width:{{view.model.viewFullApproximation==true ? 71 : 108}}px;width:{{view.model.viewFullApproximation==true ? 65 : 108}}px;" data-ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.tunemode == 2">
+								<td style="min-width:{{view.model.viewFullApproximation==true ? 64 : 108}}px;max-width:{{view.model.viewFullApproximation==true ? 64 : 108}}px;" data-ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.tunemode == 2">
 									<md-slider-container flex>
 										<md-input-container>
 											<input flex type="number" ng-model="stock.value" aria-label="stock" aria-controls="stock-slider" >

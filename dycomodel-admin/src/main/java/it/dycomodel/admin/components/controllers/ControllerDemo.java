@@ -480,7 +480,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 						.init()
 					);
 			
-			setDayFinishDate(300);
+			setDayFinishDate(365);
 			
 			if(getProxy()!=null && getProxy().getComputingPlugin()!=null){
 				if(getProxy().getComputingPlugin() instanceof ComputingPolynomialFitter)

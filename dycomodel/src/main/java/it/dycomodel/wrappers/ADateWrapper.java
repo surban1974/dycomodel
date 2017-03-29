@@ -303,21 +303,25 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		}
 		if(finishDate==null)
 			finishDate=new Date(startDate.getTime()+365 * 1000 * 60 * 60 * 24);
+		else
+			finishDate=new Date(finishDate.getTime()+30 * 1000 * 60 * 60 * 24);
 		
 		SortedMap<Date, T> result = new TreeMap<Date, T>();
 		result.putAll(processedOrders);
 		Date current = getFirstPoint(initialQuantity, startDate, finishDate, processedOrders);
-		if(current==null || current.compareTo(startDate)<=0)
+		Date leadCurrent = computeLead(current);
+		if(current==null )
 			return result;
-		result.put(computeLead(current), roundWithGranulation(fixedQuantity, granulation));
+		result.put(leadCurrent, roundWithGranulation(fixedQuantity, granulation));
 		
-		while(current!=null && current.before(finishDate)){
+		while(current!=null && leadCurrent.before(finishDate)){
 			T diff = equation.initPolynomial().addition(fixedQuantity, computeConsumptionInPoint(initialQuantity, result, startDate, current, finishDate));
 			Date point = getFirstPoint(diff, current, finishDate, processedOrders);
 			if(point==null || point.compareTo(current)<=0)
 				return result;
 			current=point;
-			result.put(computeLead(current), roundWithGranulation(fixedQuantity, granulation));
+			leadCurrent = computeLead(current);
+			result.put(leadCurrent, roundWithGranulation(fixedQuantity, granulation));
 		}
 		return result;
 	}
