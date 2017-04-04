@@ -67,8 +67,9 @@
 										<md-input-container class="md-block">
 											<label>Average Daily Secure Stock</label>
 											<input type="number" step="1" name="dayStockDelta" ng-model="view.model.dayStockDelta" min="0" max="30"/>
+											<md-progress-linear class="md-primary" md-mode="indeterminate" ng-if="view.model.redraworders==true"/>
 	          							</md-input-container>
-
+										
   									</md-toolbar>
 								</section>
 							</div>
@@ -92,7 +93,7 @@
 							<div flex layout-padding>
 								<md-list>
 							  		<md-list-item class="md-2-line" ng-repeat="consumption in view.model.sliders.consumption">
-										<md-checkbox ng-model="consumption.done"></md-checkbox>
+										<md-checkbox ng-model="consumption.enabled"></md-checkbox>
 										<div class="md-list-item-text">
 										    <h3>{{consumption.desc}}</h3>
 										   	<p>{{consumption.value}}</p>
@@ -102,14 +103,14 @@
 							</div>
 							<div flex layout-padding>
 								<md-list >
-							  		<md-list-item class="md-2-line" ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.redraworders==false">
-										<md-checkbox ng-model="stock.done"></md-checkbox>
+							  		<md-list-item class="md-2-line" ng-repeat="stock in view.model.sliders.stock" >
+										<md-checkbox ng-model="stock.enabled"></md-checkbox>
 										<div class="md-list-item-text">
 											<h3>{{stock.desc}}</h3>
 										    <p>{{stock.value}}</p>
 										</div>
 									</md-list-item>
-									<md-progress-linear class="md-primary" md-mode="indeterminate" ng-if="view.model.redraworders==true"/>
+									
 								</md-list>
 
 							</div>
@@ -126,7 +127,7 @@
 						<table  cellspacing="0" cellpadding="0" >
 							<tr>
 								<td style="min-width:{{view.model.viewFullApproximation==true ? 64 : 108}}px;max-width:{{view.model.viewFullApproximation==true ? 64 : 108}}px;" data-ng-repeat="consumption in view.model.sliders.consumption" ng-if="view.model.tunemode==1">
-									<md-slider-container flex>
+									<md-slider-container flex ng-disabled="consumption.enabled == false">
 										<md-input-container>
 											<input flex type="number" ng-model="consumption.value" aria-label="consumption" aria-controls="consumption-slider" >
 										</md-input-container>
@@ -142,7 +143,7 @@
 							</tr>
 							<tr >
 								<td style="min-width:{{view.model.viewFullApproximation==true ? 64 : 108}}px;max-width:{{view.model.viewFullApproximation==true ? 64 : 108}}px;" data-ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.tunemode == 2">
-									<md-slider-container flex>
+									<md-slider-container flex ng-disabled="stock.enabled == false">
 										<md-input-container>
 											<input flex type="number" ng-model="stock.value" aria-label="stock" aria-controls="stock-slider" >
 										</md-input-container>
@@ -562,9 +563,10 @@
 			    	            method : 'GET',
 			    	            url : 'demo-json'
 			    		    }).success(function(data, status, headers, config) {
-//			    		    	getScope().view.init(data);
-								if(data.model.sliders)
-			    		    		self.model.sliders = data.model.sliders;
+								if(data.model.sliders){
+									json2model(self.model.sliders,data.model.sliders);
+//			    		    		self.model.sliders = data.model.sliders;
+								}
 			    		    });
 			    		}
 					}
@@ -575,9 +577,10 @@
 			    	            method : 'GET',
 			    	            url : 'demo-json'
 			    		    }).success(function(data, status, headers, config) {
-//			    		    	getScope().view.init(data);
-								if(data.model.sliders)
-			    		    		self.model.sliders = data.model.sliders;
+								if(data.model.sliders){
+									json2model(self.model.sliders,data.model.sliders);
+//			    		    		self.model.sliders = data.model.sliders;
+								}
 								self.model.redrawslider=false;
 			    		    }).error(function(data, status, headers, config) {
 			    		    	self.model.redrawslider=false;
@@ -594,7 +597,6 @@
 				                method : 'GET',
 				                url : 'demo-chartavr'
 				    	    }).success(function(data, status, headers, config) {
-//				    	        google.charts.load('current', {'packages':['corechart']});
 				    	        google.charts.setOnLoadCallback(function() {drawChartAverage(data);});
 								$timeout(
 										function(){
@@ -612,16 +614,16 @@
 				                method : 'GET',
 				                url : 'demo-chartcons'
 				    	    }).success(function(data, status, headers, config) {
-//				    	        google.charts.load('current', {'packages':['corechart']});
 				    	        google.charts.setOnLoadCallback(function() {drawChartConsumption(data);});
 
 				    	        $http({
 				    	            method : 'GET',
 				    	            url : 'demo-json'
 				    		    }).success(function(data, status, headers, config) {
-//				    		    	getScope().view.init(data);
-									if(data.model.orders)
-				    		    		self.model.orders = data.model.orders;
+									if(data.model.orders){
+										json2model(self.model.orders,data.model.orders);
+//				    		    		self.model.orders = data.model.orders;
+									}
 
 									$timeout(
 											function(){

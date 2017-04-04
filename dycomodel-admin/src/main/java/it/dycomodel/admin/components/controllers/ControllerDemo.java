@@ -38,6 +38,7 @@ import it.dycomodel.admin.components.beans.DemoRawData;
 import it.dycomodel.admin.components.beans.ViewChartAverage;
 import it.dycomodel.admin.components.beans.ViewChartConsumption;
 import it.dycomodel.admin.components.beans.ViewOrders;
+import it.dycomodel.admin.components.beans.ViewSlider;
 import it.dycomodel.admin.components.beans.ViewSliders;
 import it.dycomodel.approximation.ISetAdapter;
 import it.dycomodel.plugins.ComputingLaguerre;
@@ -57,7 +58,7 @@ import it.dycomodel.wrappers.DateWrapperD;
 @Action (
 	path="demo",
 	name="model",
-	memoryInSession="true",
+//	memoryInSession="true",
 	entity=@Entity(
 		property="allway:public"
 	),
@@ -472,12 +473,12 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 						new DateWrapperD()
 						.setLead(new PolynomialD().setConstant(0, getLeadDays()))
 						.setComputingPlugin(new ComputingCubicSpline())
-						.init(consumption, secureStock)
+						.init(getConsumption(), getSecureStock())
 					);
 				
 			setSliders(
 						new ViewSliders(this)
-						.init()
+						.init(false)
 					);
 			
 			setDayFinishDate(365);
@@ -515,7 +516,18 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	}
 
 
-
+	public SortedMap<Date, Double> getEnabledConsumption() {
+		if(getSliders()!=null && getSliders().getConsumption()!=null && getSliders().getConsumption().size()>0){
+			SortedMap<Date, Double> enabledConsumption = new TreeMap<Date, Double>();
+			enabledConsumption.putAll(consumption);
+			for(ViewSlider consSlider: getSliders().getConsumption()){
+				if(!consSlider.isEnabled())
+					enabledConsumption.remove(consSlider.getPoint());
+			}
+			return enabledConsumption;
+		}
+		return consumption;
+	}
 
 
 	public void setConsumption(SortedMap<Date, Double> consumption) {
@@ -530,7 +542,18 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		return secureStock;
 	}
 
-
+	public SortedMap<Date, Double> getEnabledSecureStock() {
+		if(getSliders()!=null && getSliders().getStock()!=null && getSliders().getStock().size()>0){
+			SortedMap<Date, Double> enabledStock = new TreeMap<Date, Double>();
+			enabledStock.putAll(secureStock);
+			for(ViewSlider consSlider: getSliders().getStock()){
+				if(!consSlider.isEnabled())
+					enabledStock.remove(consSlider.getPoint());
+			}
+			return enabledStock;
+		}
+		return secureStock;
+	}
 
 
 
@@ -841,8 +864,8 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 				setSecureStock(getApproximator().getForecastedStock(1));
 				if(getProxy()!=null){
 					try{
-						getProxy().init(getConsumption(), getSecureStock());
-						getSliders().init();
+						getProxy().init(getEnabledConsumption(), getEnabledSecureStock());
+						getSliders().init(true);
 						redraworders=true;
 					}catch(Exception e){
 						
@@ -895,8 +918,8 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 				setSecureStock(getApproximator().getForecastedStock(1));
 				if(getProxy()!=null){
 					try{
-						getProxy().init(getConsumption(), getSecureStock());
-						getSliders().init();
+						getProxy().init(getEnabledConsumption(), getEnabledSecureStock());
+						getSliders().init(true);
 						redraworders=true;
 					}catch(Exception e){
 						
@@ -963,16 +986,16 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			if(getProxy()!=null){
 				if(this.approximationAlgorithm.equals("PL")){
 					getProxy()
-					.setComputingPlugin(new ComputingLaguerre())
-					.init(consumption, secureStock);
+						.setComputingPlugin(new ComputingLaguerre())
+						.init(getEnabledConsumption(), getEnabledSecureStock());
 				}else  if(this.approximationAlgorithm.equals("PLC")){
 					getProxy()
-					.setComputingPlugin(new ComputingLaguerreComplex())
-					.init(consumption, secureStock);
+						.setComputingPlugin(new ComputingLaguerreComplex())
+						.init(getEnabledConsumption(), getEnabledSecureStock());
 				}else if(this.approximationAlgorithm.equals("PLS")){
 					getProxy()
-					.setComputingPlugin(new ComputingPolynomialFitter())
-					.init(consumption, secureStock);
+						.setComputingPlugin(new ComputingPolynomialFitter())
+						.init(getEnabledConsumption(), getEnabledSecureStock());
 					
 					if(getProxy()!=null && getProxy().getComputingPlugin()!=null){
 						if(getProxy().getComputingPlugin() instanceof ComputingPolynomialFitter)
@@ -980,12 +1003,12 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 					}	
 				}else  if(this.approximationAlgorithm.equals("LIN")){
 					getProxy()
-					.setComputingPlugin(new ComputingLinear())
-					.init(consumption, secureStock);
-				}else  if(this.approximationAlgorithm.equals("SPL")){
+						.setComputingPlugin(new ComputingLinear())
+						.init(getEnabledConsumption(), getEnabledSecureStock());
+				}else if(this.approximationAlgorithm.equals("SPL")){
 					getProxy()
-					.setComputingPlugin(new ComputingCubicSpline())
-					.init(consumption, secureStock);
+						.setComputingPlugin(new ComputingCubicSpline())
+						.init(getEnabledConsumption(), getEnabledSecureStock());
 				}
 				
 				this.redrawcharts=true;
@@ -1005,7 +1028,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		if(this.viewFullApproximation!=viewFullApproximation){
 			this.viewFullApproximation = viewFullApproximation;
 			this.redrawcharts=true;
-			getSliders().init();
+			getSliders().init(true);
 			redrawslider=true;
 		}
 	}
@@ -1034,8 +1057,8 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		if(this.leastSqDegree != leastSqDegree){
 			this.leastSqDegree = leastSqDegree;
 			getProxy()
-			.setComputingPlugin(new ComputingPolynomialFitter().setDegree(this.leastSqDegree))
-			.init(consumption, secureStock);
+				.setComputingPlugin(new ComputingPolynomialFitter().setDegree(this.leastSqDegree))
+				.init(getEnabledConsumption(), getEnabledSecureStock());
 			this.redrawcharts=true;
 			this.redraworders=true;
 		}

@@ -6,6 +6,8 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.SortedMap;
+import java.util.TreeMap;
 
 import it.classhidra.serialize.Serialized;
 import it.dycomodel.admin.components.controllers.ControllerDemo;
@@ -29,7 +31,15 @@ public class ViewSliders implements Serializable{
 		this.controller = controller;
 	}
 	
-	public ViewSliders init(){ 
+	public ViewSliders init(boolean maintainDisabled){ 
+		SortedMap<Date, Double> consumptionDisabled = new TreeMap<Date, Double>();
+		if(maintainDisabled && getConsumption()!=null){			
+			for(ViewSlider consSlider: getConsumption()){
+				if(!consSlider.isEnabled())
+					consumptionDisabled.put(consSlider.getPoint(), consSlider.getValue());
+			}
+		}
+		
 		this.initialising=true;
 
 		maxC = 0;
@@ -51,7 +61,10 @@ public class ViewSliders implements Serializable{
 			consumption = new ArrayList<ViewSlider>();
 			for(Map.Entry<Date, Double> entry : controller.getConsumption().entrySet()){
 				if(entry.getKey().compareTo(demoC.getTime())>=0 && entry.getKey().compareTo(demoF.getTime())<=0){
-					consumption.add(new ViewSlider(this, "C", entry.getKey(), entry.getValue()));
+					ViewSlider consSlider = new ViewSlider(this, "C", entry.getKey(), entry.getValue());
+					if(maintainDisabled && consumptionDisabled.get(consSlider.getPoint())!=null)
+						consSlider.setEnabled(false);
+					consumption.add(consSlider);
 					if(maxC<entry.getValue())
 						maxC=entry.getValue();
 				}
@@ -60,8 +73,12 @@ public class ViewSliders implements Serializable{
 			stock = new ArrayList<ViewSlider>();
 
 			for(Map.Entry<Date, Double> entry : controller.getSecureStock().entrySet()){
-				if(entry.getKey().compareTo(demoC.getTime())>=0 && entry.getKey().compareTo(demoF.getTime())<=0)
-					stock.add(new ViewSlider(this, "S", entry.getKey(), entry.getValue()));
+				if(entry.getKey().compareTo(demoC.getTime())>=0 && entry.getKey().compareTo(demoF.getTime())<=0){
+					ViewSlider stockSlider = new ViewSlider(this, "S", entry.getKey(), entry.getValue());
+					if(maintainDisabled && consumptionDisabled.get(stockSlider.getPoint())!=null)
+						stockSlider.setEnabled(false);
+					stock.add(stockSlider);
+				}
 //				if(minS>entry.getValue())
 //					minS=entry.getValue();
 //				if(maxS<entry.getValue())
@@ -92,7 +109,8 @@ public class ViewSliders implements Serializable{
 						double stock = slider.getValue()*controller.getDayStockDelta();
 						for(ViewSlider stockSlider: getStock()){
 							if(stockSlider.getPoint().compareTo(slider.getPoint())==0){
-								stockSlider.setValue(stock);
+								stockSlider.setValueFromOwner(stock);
+								controller.getSecureStock().put(stockSlider.getPoint(),stockSlider.getValue());
 								break;
 							}
 								
@@ -103,7 +121,7 @@ public class ViewSliders implements Serializable{
 				if(slider.getType().equals("S"))
 					controller.getSecureStock().put(slider.getPoint(),slider.getValue());	
 				try{
-					controller.getProxy().init(controller.getConsumption(), controller.getSecureStock());
+					controller.getProxy().init(controller.getEnabledConsumption(), controller.getEnabledSecureStock());
 					controller.setRedrawcharts(true);
 				}catch(Exception e){
 					
@@ -111,6 +129,42 @@ public class ViewSliders implements Serializable{
 			}
 		}
 	}
+
+	public void enabled(ViewSlider slider){
+		if(!this.initialising){
+			if(slider!=null){
+
+				if(slider.getType().equals("C")){
+					for(ViewSlider stockSlider: getStock()){
+						if(stockSlider.getPoint().compareTo(slider.getPoint())==0){
+							stockSlider.setEnabledFromOwner(slider.isEnabled());
+							break;
+						}
+																			
+					}
+				}
+
+				if(slider.getType().equals("S")){
+					for(ViewSlider consSlider: getConsumption()){
+						if(consSlider.getPoint().compareTo(slider.getPoint())==0){
+							consSlider.setEnabledFromOwner(slider.isEnabled());
+							break;
+						}
+					}
+				}
+				
+				try{
+					
+					controller.getProxy().init(controller.getEnabledConsumption(), controller.getEnabledSecureStock());
+					controller.setRedrawcharts(true);
+					controller.setRedraworders(true);
+				}catch(Exception e){
+					
+				}
+			}
+		}
+	}
+	
 	
 	@Serialized
 	public List<ViewSlider> getConsumption() {

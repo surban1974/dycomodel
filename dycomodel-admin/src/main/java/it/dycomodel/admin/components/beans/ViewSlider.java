@@ -17,6 +17,7 @@ public class ViewSlider implements Serializable{
 	private Date point;
 	private String type;
 	private ViewSliders owner;
+	private boolean enabled=true;
 	
 	public ViewSlider(ViewSliders owner, String type, Date point, double value){
 		super();
@@ -37,6 +38,10 @@ public class ViewSlider implements Serializable{
 			this.owner.changed(this);
 		
 	}
+	public void setValueFromOwner(double value) {
+		this.value = value;
+	}	
+	
 	@Serialized(output=@Format(name="desc"))
 	public String getDescription() {
 		return description;
@@ -66,4 +71,19 @@ public class ViewSlider implements Serializable{
 	public void setType(String type) {
 		this.type = type;
 	}
+
+	@Serialized
+	public boolean isEnabled() {
+		return enabled;
+	}
+
+	public void setEnabled(boolean enabled) {
+		this.enabled = enabled;
+		if(this.owner!=null)
+			this.owner.enabled(this);
+
+	}
+	public void setEnabledFromOwner(boolean enabled) {
+		this.enabled = enabled;
+	}	
 }
