@@ -9,6 +9,7 @@ import java.util.TreeMap;
 import it.dycomodel.plugins.ComputingLaguerre;
 import it.dycomodel.plugins.IComputing;
 import it.dycomodel.polynomial.APolynomial;
+import it.dycomodel.utils.Normalizer;
 
 
 public abstract class AEquation<T extends Number> implements Serializable, IEquation<T>{
@@ -362,6 +363,60 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 
 	public SortedMap<T, IEquation<T>> getSegmentEquations() {
 		return segmentEquations;
+	}
+	
+	public String toXml(int level){
+		String result="";
+		result+=Normalizer.spaces(level)+"<equation>\n";
+		if(consumption!=null){
+			result+=Normalizer.spaces(level+1)+"<consumption>\n";
+			result+=consumption.toXml(level+2);
+			result+=Normalizer.spaces(level+1)+"</consumption>\n";
+		}
+		if(consumptionIntegral!=null){
+			result+=Normalizer.spaces(level+1)+"<consumptionIntegral>\n";
+			result+=consumptionIntegral.toXml(level+2);
+			result+=Normalizer.spaces(level+1)+"</consumptionIntegral>\n";
+		}		
+		if(secureStock!=null){
+			result+=Normalizer.spaces(level+1)+"<secureStock>\n";
+			result+=secureStock.toXml(level+2);
+			result+=Normalizer.spaces(level+1)+"</secureStock>\n";
+		}	
+		if(secureStockIntegral!=null){
+			result+=Normalizer.spaces(level+1)+"<secureStockIntegral>\n";
+			result+=secureStockIntegral.toXml(level+2);
+			result+=Normalizer.spaces(level+1)+"</secureStockIntegral>\n";
+		}
+		if(incompleteEquation!=null){
+			result+=Normalizer.spaces(level+1)+"<incompleteEquation>\n";
+			result+=incompleteEquation.toXml(level+2);
+			result+=Normalizer.spaces(level+1)+"</incompleteEquation>\n";
+		}
+		result+=Normalizer.spaces(level+1)+"<initialDelta>"+initialDelta+"</initialDelta>\n";
+		result+=Normalizer.spaces(level+1)+"<maxInterval>"+maxInterval+"</maxInterval>\n";
+		result+=Normalizer.spaces(level+1)+"<global>"+global+"</global>\n";
+		
+		if(adapter!=null){
+			result+=Normalizer.spaces(level+1)+"<adapter>\n";
+			result+=adapter.toXml(level+2);
+			result+=Normalizer.spaces(level+1)+"</adapter>\n";
+		}
+		if(computingPlugin!=null)
+			result+=Normalizer.spaces(level+1)+"<computingPlugin>"+computingPlugin.getClass().getName()+"</computingPlugin>\n";
+		if(segmentEquations!=null){
+			result+=Normalizer.spaces(level+1)+"<segments>\n";
+			for(Map.Entry<T, IEquation<T>> entry : segmentEquations.entrySet()){
+				result+=Normalizer.spaces(level+2)+"<segment>\n";
+				result+=Normalizer.spaces(level+3)+"<position>"+entry.getKey().doubleValue()+"</position>\n";
+				result+=entry.getValue().toXml(level+3);	
+				result+=Normalizer.spaces(level+2)+"</segment>\n";
+			}
+			
+			result+=Normalizer.spaces(level+1)+"</segments>\n";
+		}
+		result+=Normalizer.spaces(level)+"</equation>\n";
+		return result;
 	}
 
 

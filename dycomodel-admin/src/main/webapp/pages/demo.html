@@ -11,6 +11,9 @@
 
     <!-- Angular Material CSS -->
     <link rel="stylesheet" href="css/angular-material.min.css">
+    
+     <!-- Dropzone CSS -->
+    <link rel="stylesheet" href="css/dropzone.css">   
 
 
   </head>
@@ -22,6 +25,7 @@
     	<md-toolbar md-medium-tall >
 	   		<div class="md-toolbar-tools">
 		        <h2 flex md-truncate>DYNAMIC CONSUMPTION MODEL <font size="2"> Supported browsers: Google Chrome </font></h2>
+		        <img src="images/download.png" style="cursor: pointer;" onclick="location.replace('demo-model?');"/>
 	    	</div>
 		</md-toolbar>
 	  	<md-content>
@@ -33,6 +37,7 @@
 								<section >
 									<md-toolbar class="md-primary _md _md-toolbar-transitions">
 										<div class="md-toolbar-tools">
+											<img src="images/customer_infr_small.png"/>&nbsp;
 											<h2 flex md-truncate>Input chanel from Customer's infrastructure</h2>
 									    </div>
 									</md-toolbar>
@@ -43,6 +48,7 @@
 									<md-toolbar class="md-primary _md _md-toolbar-transitions">
 										<div class="md-toolbar-tools">
 											<h2 flex md-truncate>Consumption:<br> {{view.model.forecastingStartDate}} - {{view.model.forecastingFinishDate}}</h2>
+									   		<img src="images/download.png" style="cursor: pointer;" onclick="location.replace('demo-download?');"/>
 									    </div>
 									</md-toolbar>
 								</section>
@@ -76,9 +82,18 @@
 		        		</div>
 						<div layout="row">
 							<div flex layout-padding >
-								<div layout-align="center center" style="text-align: center">
-									<img src="images/customer_infr.png"/>
-								</div>
+
+
+								<div id="uploader" action="demo-upload?" class="dropzone needsclick dz-clickable">
+<div class="dz-message needsclick" style="font-size: small;">
+    You can drop files here or click to upload<br>
+    CSV file with 2 column: date and quantity<br>
+    Example of row: 22/04/2016,25.11<br><br><br>
+    <img src="images/draganddrop.png"/>
+  </div>									
+									
+								</div> 
+							
 							</div>
 							<div flex layout-padding >
 								<md-list >
@@ -295,6 +310,7 @@
 										<md-toolbar class="md-warn _md _md-toolbar-transitions">
 											<div class="md-toolbar-tools">
 												<h2 flex md-truncate>Procurement orders ready to send - {{view.model.orders.length}}</h2>
+												<img src="images/download.png" style="cursor: pointer;" onclick="location.replace('demo-orders?');"/>
 										    </div>
 										</md-toolbar>
 										<md-list flex layout-padding >
@@ -315,6 +331,7 @@
 										<md-toolbar class="md-primary _md _md-toolbar-transitions">
 											<div class="md-toolbar-tools">
 												<h2 flex md-truncate>Output chanel to Customer's infrastructure</h2>
+												&nbsp;<img src="images/customer_infr_small.png"/>
 										    </div>
 										</md-toolbar>
 										<div layout-align="center center" style="text-align: center">
@@ -347,14 +364,35 @@
 	<!--  Google charts -->
 	<script src="js/chart_loader.js"></script>
 
+	<!--  Dropzonejs -->
+	<script src="js/dropzone.js"></script>
 
 
 
 
 	<script>
 
-//    google.charts.load('current', {'packages':['corechart']});
-//    google.charts.setOnLoadCallback(function(){drawChart();});
+	function showException(e){
+		console.log(e);	
+	}
+	
+	Dropzone.options.uploader = {
+		    maxFilesize: "5",
+		    addRemoveLinks : true,
+		    init: function () {
+		    	this.on('success', function (file, response) {
+		            var _this = this;
+		            var model = JSON.parse(response);
+		            
+		            getScope().view.model.rawdata = model.rawdata;
+		            getScope().view.init(model);
+
+		        });
+		    	this.on('error', function (file, response) {
+//		            _this.removeAllFiles();
+		        });		    	
+		    }
+		};
 
 
 	function chartInLoad(id, inLoad){

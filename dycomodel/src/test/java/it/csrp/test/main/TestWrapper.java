@@ -79,7 +79,7 @@ public class TestWrapper {
 		Date result = wrapper.getFirstPoint(10000d, new SimpleDateFormat("yyyyMMdd").parse("20160120"), null, processedOrders);
 		System.out.println(result+ " - "+wrapper.computeLead(result));
 				
-		Date forecastedLead = wrapper.forecastPointWithLead(new SimpleDateFormat("yyyyMMdd").parse("20160201"))	;
+		Date forecastedLead = wrapper.forecastPointWithLead(new SimpleDateFormat("yyyyMMdd").parse("20160201"),new SimpleDateFormat("yyyyMMdd").parse("20180201"))	;
 		System.out.println(forecastedLead+ " - "+wrapper.computeLead(forecastedLead));
 		
 

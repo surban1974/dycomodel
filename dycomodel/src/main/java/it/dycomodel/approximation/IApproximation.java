@@ -15,6 +15,7 @@ public interface IApproximation extends Serializable{
 	SortedMap<Date, Double> approximateByWeek(SortedMap<Long, Double> rawdata, Date startApproximationDate, Date finishApproximationDate);
 	
 	Date getStartInterval();
+	
 	Date getFinishInterval();
 
 	IApproximation setPercentile(Double percentile, Date startDate);

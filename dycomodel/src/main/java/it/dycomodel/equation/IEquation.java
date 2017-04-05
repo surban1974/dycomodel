@@ -55,6 +55,8 @@ public interface IEquation<T extends Number> {
 	SortedMap<T, IEquation<T>> getSegmentEquations();
 	
 	boolean isGlobal();
+	
+	String toXml(int level);
 
 
 }

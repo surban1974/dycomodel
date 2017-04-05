@@ -3,10 +3,17 @@ package it.dycomodel.admin.components.controllers;
 
 
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +35,7 @@ import it.classhidra.annotation.elements.SessionDirective;
 import it.classhidra.core.controller.bsController;
 import it.classhidra.core.controller.i_action;
 import it.classhidra.core.controller.i_bean;
+import it.classhidra.core.controller.response_wrapper;
 import it.classhidra.core.tool.util.util_format;
 import it.classhidra.framework.web.beans.option_element;
 import it.classhidra.serialize.Format;
@@ -40,6 +48,7 @@ import it.dycomodel.admin.components.beans.ViewChartConsumption;
 import it.dycomodel.admin.components.beans.ViewOrders;
 import it.dycomodel.admin.components.beans.ViewSlider;
 import it.dycomodel.admin.components.beans.ViewSliders;
+import it.dycomodel.approximation.DefaultSetAdapter;
 import it.dycomodel.approximation.ISetAdapter;
 import it.dycomodel.plugins.ComputingLaguerre;
 import it.dycomodel.plugins.ComputingLaguerreComplex;
@@ -47,6 +56,7 @@ import it.dycomodel.plugins.ComputingLinear;
 import it.dycomodel.plugins.ComputingPolynomialFitter;
 import it.dycomodel.plugins.ComputingCubicSpline;
 import it.dycomodel.polynomial.PolynomialD;
+import it.dycomodel.utils.Normalizer;
 import it.dycomodel.wrappers.ADateApproximator;
 import it.dycomodel.wrappers.ADateWrapper;
 import it.dycomodel.wrappers.DateWrapperD;
@@ -185,16 +195,150 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	
 
 	@ActionCall(
-			name="test",
+			name="upload",
 			navigated="false",
-			Expose=@Expose(methods = {Expose.POST,Expose.GET},restmapping={@Rest(path="/demo/test/")})
+			Expose=@Expose(methods = {Expose.POST,Expose.GET},restmapping={@Rest(path="/demo/upload/")})
 			
 	)
-	public String test(){
+	public response_wrapper upload(HttpServletRequest request, HttpServletResponse response){
 
-		return "test";
-		
+		int indexFile=0;
+		boolean isFile=true;
+		String error=null;
+		SortedMap<Long, Double> newrawdata = new TreeMap<Long, Double>();
+		while(isFile){
+			HashMap<String, Object> file = (HashMap<String, Object>)get_bean().getParametersMP().get("file"+indexFile);
+			if(file!=null){
+				
+				byte[] content = (byte[])file.get("content");
+
+				
+				if(content!=null){
+					
+					InputStream is = null;
+			        BufferedReader bfReader = null;
+			        try {
+			            is = new ByteArrayInputStream(content);
+			            bfReader = new BufferedReader(new InputStreamReader(is));
+			            String temp = null;
+			            int row=0;
+			            while(error==null && (temp = bfReader.readLine()) != null){
+			                if(temp.trim().length()>0){
+			                	String[] parts = temp.split(",");
+			                	if(parts.length!=2)
+			                		error="File data format error - row "+row;
+			                	else{
+			                		try{
+			                			newrawdata.put(new SimpleDateFormat("dd/MM/yyyy").parse(parts[0].trim()).getTime(), Double.valueOf(parts[1].trim()));
+			                		}catch(Exception pe){
+			                			error="File data format error - row "+row;
+			                		}
+			                	}
+			                }
+			                row++;
+			            }
+			        } catch (IOException e) {
+			            error= e.toString();
+			        } finally {
+			            try{
+			                if(is != null) is.close();
+			            } catch (Exception ex){
+			                 
+			            }
+			        }
+					
+			        if(newrawdata.size()>0){
+			        	if(rawdata==null)
+			        		rawdata = newrawdata;
+			        	else{
+			        		rawdata.clear();
+			        		rawdata.putAll(newrawdata);
+			        	}
+			        	if(getApproximator()!=null){				
+							getApproximator()
+							.setType(this.approximationType)
+							.approximation(getRawdata());	
+							
+							setConsumption(getApproximator().getForecastedConsumption(1));
+							setSecureStock(getApproximator().getForecastedStock(1));
+							if(getProxy()!=null){
+								try{
+									getProxy().init(getEnabledConsumption(), getEnabledSecureStock());
+									getSliders().init(true);
+								}catch(Exception e){
+									
+								}
+								
+							}
+						}			        	
+			        }
+					
+				}else
+					error="Empty file";
+			}else
+				isFile=false;
+			indexFile++;
+		}
+		if(error!=null)
+			return new response_wrapper()
+					.setContent(error)
+					.setResponseStatus(Rest.MISSING_PARAMETERS_400);	
+		else
+			return new response_wrapper()
+					.setContent( modelAsJson(request, response))
+					.setResponseStatus(Rest.EXIST_200);	
+			
 	}	
+	
+	@ActionCall(
+			name="download",
+			navigated="false",
+			Expose=@Expose(methods = {Expose.POST,Expose.GET},restmapping={@Rest(path="/demo/download/")})
+			
+	)
+	public response_wrapper download(){
+		StringBuffer buffer = new StringBuffer();
+		for(Map.Entry<Long, Double> entry : rawdata.entrySet()) 
+			buffer.append(
+					new SimpleDateFormat("dd/MM/yyyy").format(new Date(entry.getKey()))+","+entry.getValue()+"\n"
+			);
+		return new response_wrapper()
+				.setContent(buffer.toString().getBytes())
+				.setContentType("application/csv")
+				.setContentName("data.csv");
+	}	
+	
+	@ActionCall(
+			name="model",
+			navigated="false",
+			Expose=@Expose(methods = {Expose.POST,Expose.GET},restmapping={@Rest(path="/demo/model/")})
+			
+	)
+	public response_wrapper model(){		
+		return new response_wrapper()
+				.setContent((getProxy()!=null)?getProxy().toXml(1,prepareInfo(1)).getBytes():new byte[0])
+				.setContentType("application/xml")
+				.setContentName("model.xml");
+	}	
+	
+	@ActionCall(
+			name="orders",
+			navigated="false",
+			Expose=@Expose(methods = {Expose.POST,Expose.GET},restmapping={@Rest(path="/demo/model/")})
+			
+	)
+	public response_wrapper orders(){		
+		StringBuffer buffer = new StringBuffer();
+		for(Map.Entry<Date, Double> entry : computedOrders.entrySet()) 
+			buffer.append(
+					new SimpleDateFormat("dd/MM/yyyy").format(entry.getKey())+","+entry.getValue()+"\n"
+			);
+		return new response_wrapper()
+				.setContent(buffer.toString().getBytes())
+				.setContentType("application/csv")
+				.setContentName("orders.csv");
+	}	
+	
 	
 	@ActionCall(
 			name="chartavr",
@@ -348,18 +492,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			setItemsForPack(1);
 			
 			
-			setAdapter = new ISetAdapter() {						
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public SortedMap<Date, Double> adapt(SortedMap<Date, Double> set1) {
-					SortedMap<Date, Double> result = new TreeMap<Date, Double>();
-					for(Map.Entry<Date, Double> entry : set1.entrySet()) {
-						result.put(entry.getKey(), entry.getValue()*getDayStockDelta());
-					}
-					return result;
-				}
-			};
+			setAdapter = new DefaultSetAdapter().setDayStockDelta(new Double(getDayStockDelta()));
 			
 			
 			Calendar startAC = Calendar.getInstance();
@@ -496,7 +629,79 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	}
 
 
+	private String prepareInfo(int level){
+		String result="";
+		result+=Normalizer.spaces(level)+"<baseinfo>\n";
+		if(approximator!=null)
+			result+=Normalizer.spaces(level+1)+"<approximator>"+approximator.getClass().getName()+"</approximator>\n";	
+		if(setAdapter!=null)
+			result+=Normalizer.spaces(level+1)+"<setAdapter>"+setAdapter.getClass().getName()+"</setAdapter>\n";	
+		result+=Normalizer.spaces(level+1)+"<approximationType>"+approximationType+"</approximationType>\n";
+	
 
+		if(approximationAlgorithm!=null)
+			result+=Normalizer.spaces(level+1)+"<approximationAlgorithm>"+approximationAlgorithm+"</approximationAlgorithm>\n";	
+		result+=Normalizer.spaces(level+1)+"<itemsForPack>"+itemsForPack+"</itemsForPack>\n";	
+		result+=Normalizer.spaces(level+1)+"<dayStockDelta>"+dayStockDelta+"</dayStockDelta>\n";
+		if(fixedPeriod!=null)
+			result+=Normalizer.spaces(level+1)+"<fixedPeriod>"+fixedPeriod+"</fixedPeriod>\n";	
+		
+		result+=Normalizer.spaces(level+1)+"<quantity>"+quantity+"</quantity>\n";
+		result+=Normalizer.spaces(level+1)+"<fixedQuantity>"+fixedQuantity+"</fixedQuantity>\n";
+		result+=Normalizer.spaces(level+1)+"<leadDays>"+leadDays+"</leadDays>\n";
+
+		
+		if(consumption!=null && consumption.size()>0){
+			SortedMap<Date, Double> consumptionDisabled = new TreeMap<Date, Double>();
+			if(sliders!=null && sliders.getConsumption()!=null){			
+				for(ViewSlider consSlider: sliders.getConsumption()){
+					if(!consSlider.isEnabled())
+						consumptionDisabled.put(consSlider.getPoint(), consSlider.getValue());
+				}
+			}
+			
+			result+=Normalizer.spaces(level+1)+"<consumptions>\n";
+			for(Map.Entry<Date, Double> entry : consumption.entrySet()){
+				result+=Normalizer.spaces(level+2)+"<consumption>\n";
+				result+=Normalizer.spaces(level+3)+"<point>"+new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(entry.getKey())+"</point>\n";
+				result+=Normalizer.spaces(level+3)+"<value>"+entry.getValue().toString()+"</value>\n";
+				if(consumptionDisabled.get(entry.getKey())!=null)
+					result+=Normalizer.spaces(level+3)+"<disabled>true</disabled>\n";				
+				result+=Normalizer.spaces(level+2)+"</consumption>\n";
+			}
+			
+			result+=Normalizer.spaces(level+1)+"</consumptions>\n";
+		}
+		
+		if(secureStock!=null && secureStock.size()>0){
+			SortedMap<Date, Double> secureStockDisabled = new TreeMap<Date, Double>();
+			if(sliders!=null && sliders.getStock()!=null){			
+				for(ViewSlider consSlider: sliders.getStock()){
+					if(!consSlider.isEnabled())
+						secureStockDisabled.put(consSlider.getPoint(), consSlider.getValue());
+				}
+			}
+			
+			result+=Normalizer.spaces(level+1)+"<secureStocks>\n";
+			for(Map.Entry<Date, Double> entry : secureStock.entrySet()){
+				result+=Normalizer.spaces(level+2)+"<secureStock>\n";
+				result+=Normalizer.spaces(level+3)+"<point>"+new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(entry.getKey())+"</point>\n";
+				result+=Normalizer.spaces(level+3)+"<value>"+entry.getValue().toString()+"</value>\n";
+				if(secureStockDisabled.get(entry.getKey())!=null)
+					result+=Normalizer.spaces(level+3)+"<disabled>true</disabled>\n";				
+				result+=Normalizer.spaces(level+2)+"</secureStock>\n";
+			}
+			
+			result+=Normalizer.spaces(level+1)+"</secureStocks>\n";
+		}
+
+		
+
+
+		
+		result+=Normalizer.spaces(level)+"</baseinfo>\n";
+		return result;
+	}
 
 
 	public ADateWrapper<Double> getProxy() {

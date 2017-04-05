@@ -5,6 +5,8 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import it.dycomodel.utils.Normalizer;
+
 public abstract class APolynomial<T extends Number> implements Serializable{
 	private static final long serialVersionUID = 1L;
 	protected List<T> constants;
@@ -150,6 +152,19 @@ public abstract class APolynomial<T extends Number> implements Serializable{
 				result+=" +"+new BigDecimal(constants.get(i).toString()).divide(new BigDecimal(1),6,BigDecimal.ROUND_HALF_UP)+"*x^"+i;
 			else if(roundConst<0)
 				result+=" "+new BigDecimal(constants.get(i).toString()).divide(new BigDecimal(1),6,BigDecimal.ROUND_HALF_UP)+"*x^"+i;
+		}
+		return result;
+	}
+	
+	public String toXml(int level){
+		String result="";
+		if(constants.size()==0)
+			result+=Normalizer.spaces(level)+"<polynomial provider=\""+this.getClass().getName()+"\"/>\n";
+		else{
+			result+=Normalizer.spaces(level)+"<polynomial provider=\""+this.getClass().getName()+"\">\n";
+			for(int i=0;i<constants.size();i++)
+				result+=Normalizer.spaces(level+1)+"<coefficient position=\""+i+"\">"+constants.get(i).toString()+"</coefficient>\n";		
+			result+=Normalizer.spaces(level)+"</polynomial>\n";
 		}
 		return result;
 	}

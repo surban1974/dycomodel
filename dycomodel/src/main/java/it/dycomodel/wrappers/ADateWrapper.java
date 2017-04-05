@@ -1,6 +1,7 @@
 package it.dycomodel.wrappers;
 
 import java.io.Serializable;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 import java.util.SortedMap;
@@ -12,6 +13,7 @@ import it.dycomodel.equation.IEquation;
 import it.dycomodel.exceptions.InputParameterException;
 import it.dycomodel.plugins.IComputing;
 import it.dycomodel.polynomial.APolynomial;
+import it.dycomodel.utils.Normalizer;
 
 public abstract class ADateWrapper<T extends Number> implements Serializable {
 
@@ -481,6 +483,29 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 	public ADateWrapper<T> setComputingPlugin(IComputing computingPlugin) {
 		this.computingPlugin = computingPlugin;
 		return this;
+	}
+	
+	public String toXml(int level, String info){
+		String result="<dycomodel>\n";
+		result+=Normalizer.spaces(level)+"<wrapper>\n";
+		if(initialDeltaDate!=null)
+			result+=Normalizer.spaces(level+1)+"<initialDeltaDate>"+new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(initialDeltaDate)+"</initialDeltaDate>\n";
+				
+		if(equation!=null)
+			result+=equation.toXml(level+1);
+		if(lead!=null){
+			result+=Normalizer.spaces(level+1)+"<lead>\n";
+			result+=lead.toXml(level+2);
+			result+=Normalizer.spaces(level+1)+"</lead>\n";
+		}		
+		if(computingPlugin!=null)
+			result+=Normalizer.spaces(level+1)+"<computingPlugin>"+computingPlugin.getClass().getName()+"</computingPlugin>\n";
+
+		result+=Normalizer.spaces(level)+"</wrapper>\n";
+		if(info!=null)
+			result+=info;
+		result+="</dycomodel>\n";
+		return result;
 	}
 
 }
