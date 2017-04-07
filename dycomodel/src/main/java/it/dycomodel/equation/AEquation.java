@@ -6,6 +6,9 @@ import java.util.Map;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import it.dycomodel.plugins.ComputingLaguerre;
 import it.dycomodel.plugins.IComputing;
 import it.dycomodel.polynomial.APolynomial;
@@ -367,7 +370,7 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 	
 	public String toXml(int level){
 		String result="";
-		result+=Normalizer.spaces(level)+"<equation>\n";
+		result+=Normalizer.spaces(level)+"<equation provider=\""+this.getClass().getName()+"\">\n";
 		if(consumption!=null){
 			result+=Normalizer.spaces(level+1)+"<consumption>\n";
 			result+=consumption.toXml(level+2);
@@ -419,5 +422,150 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 		return result;
 	}
 
+	@SuppressWarnings("unchecked")
+	public IEquation<T> init(Node node) throws Exception{
 
+		
+		
+		NodeList list = node.getChildNodes();
+		for(int i=0;i<list.getLength();i++){
+			Node child_node = list.item(i);
+			if(child_node.getNodeType()== Node.ELEMENT_NODE){				
+				if(child_node.getNodeName().equalsIgnoreCase("initialDeltaDate")){
+					try{
+						this.initialDelta = Double.valueOf(child_node.getFirstChild().getNodeValue());
+					}catch(Exception e){
+						e.printStackTrace();
+					}
+				}else if(child_node.getNodeName().equalsIgnoreCase("maxInterval")){
+					try{
+						this.maxInterval = Double.valueOf(child_node.getFirstChild().getNodeValue());
+					}catch(Exception e){
+						e.printStackTrace();
+					}
+				}else if(child_node.getNodeName().equalsIgnoreCase("global")){
+					try{
+						this.global = Boolean.valueOf(child_node.getFirstChild().getNodeValue());
+					}catch(Exception e){
+						e.printStackTrace();
+					}
+				}else if(child_node.getNodeName().equalsIgnoreCase("computingPlugin")){
+					try{
+						computingPlugin = Class.forName(child_node.getFirstChild().getNodeValue()).asSubclass(IComputing.class).newInstance();
+					}catch(Exception e){
+						e.printStackTrace();
+					}
+				}else if(child_node.getNodeName().equalsIgnoreCase("consumption")){
+					for(int j=0;j<child_node.getChildNodes().getLength();j++){
+						if(child_node.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
+							try{
+								consumption = Class.forName(child_node.getChildNodes().item(j).getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(APolynomial.class).newInstance();
+								consumption.init(child_node.getChildNodes().item(j));
+								break;
+							}catch(Exception e){		
+								e.printStackTrace();
+							}
+						}
+					}
+				}else if(child_node.getNodeName().equalsIgnoreCase("consumptionIntegral")){
+					for(int j=0;j<child_node.getChildNodes().getLength();j++){
+						if(child_node.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
+							try{
+								consumptionIntegral = Class.forName(child_node.getChildNodes().item(j).getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(APolynomial.class).newInstance();
+								consumptionIntegral.init(child_node.getChildNodes().item(j));
+								break;
+							}catch(Exception e){		
+								e.printStackTrace();
+							}
+						}
+					}
+				}else if(child_node.getNodeName().equalsIgnoreCase("secureStock")){
+					for(int j=0;j<child_node.getChildNodes().getLength();j++){
+						if(child_node.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
+							try{
+								secureStock = Class.forName(child_node.getChildNodes().item(j).getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(APolynomial.class).newInstance();
+								secureStock.init(child_node.getChildNodes().item(j));
+								break;
+							}catch(Exception e){		
+								e.printStackTrace();
+							}
+						}
+					}
+				}else if(child_node.getNodeName().equalsIgnoreCase("secureStockIntegral")){
+					for(int j=0;j<child_node.getChildNodes().getLength();j++){
+						if(child_node.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
+							try{
+								secureStockIntegral = Class.forName(child_node.getChildNodes().item(j).getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(APolynomial.class).newInstance();
+								secureStockIntegral.init(child_node.getChildNodes().item(j));
+								break;
+							}catch(Exception e){		
+								e.printStackTrace();
+							}
+						}
+					}
+				}else if(child_node.getNodeName().equalsIgnoreCase("incompleteEquation")){
+					for(int j=0;j<child_node.getChildNodes().getLength();j++){
+						if(child_node.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
+							try{
+								incompleteEquation = Class.forName(child_node.getChildNodes().item(j).getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(APolynomial.class).newInstance();
+								incompleteEquation.init(child_node.getChildNodes().item(j));
+								break;
+							}catch(Exception e){		
+								e.printStackTrace();
+							}
+						}
+					}
+				}else if(child_node.getNodeName().equalsIgnoreCase("adapter")){
+					for(int j=0;j<child_node.getChildNodes().getLength();j++){
+						if(child_node.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
+							try{
+								adapter = Class.forName(child_node.getChildNodes().item(j).getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(APolynomial.class).newInstance();
+								adapter.init(child_node.getChildNodes().item(j));
+								break;
+							}catch(Exception e){		
+								e.printStackTrace();
+							}
+						}
+					}
+				}else if(child_node.getNodeName().equalsIgnoreCase("segments")){
+					segmentEquations = new TreeMap<T, IEquation<T>>();
+					
+					NodeList segmentslist = child_node.getChildNodes();
+					for(int j=0;j<segmentslist.getLength();j++){
+						Node segmentschild_node = segmentslist.item(j);
+						if(segmentschild_node.getNodeType()== Node.ELEMENT_NODE){
+							if(segmentschild_node.getNodeName().equalsIgnoreCase("segment")){
+								NodeList segmentlist = segmentschild_node.getChildNodes();
+								T currentPosition = null;
+								for(int k=0;k<segmentlist.getLength();k++){
+									Node segmentchild_node = segmentlist.item(k);
+									if(segmentchild_node.getNodeType()== Node.ELEMENT_NODE){										
+										if(segmentchild_node.getNodeName().equalsIgnoreCase("position")){
+											try{
+												currentPosition = adapter.convertValue(Double.valueOf(segmentchild_node.getFirstChild().getNodeValue()));
+											}catch(Exception e){
+												e.printStackTrace();
+											}
+										}else if(segmentchild_node.getNodeName().equalsIgnoreCase("equation")){
+											try{
+												if(currentPosition!=null){
+													IEquation<T> equation = Class.forName(segmentchild_node.getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(IEquation.class).newInstance();
+													equation.init(segmentchild_node);
+													segmentEquations.put(currentPosition, equation);
+													currentPosition = null;
+												}
+											}catch(Exception e){
+												e.printStackTrace();
+											}
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}		
+		return this;
+	}
 }

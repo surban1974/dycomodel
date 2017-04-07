@@ -8,11 +8,15 @@ import java.util.SortedMap;
 import java.util.SortedSet;
 import java.util.TreeMap;
 
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import it.dycomodel.equation.AEquation;
 import it.dycomodel.equation.IEquation;
 import it.dycomodel.exceptions.InputParameterException;
 import it.dycomodel.plugins.IComputing;
 import it.dycomodel.polynomial.APolynomial;
+
 import it.dycomodel.utils.Normalizer;
 
 public abstract class ADateWrapper<T extends Number> implements Serializable {
@@ -487,7 +491,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 	
 	public String toXml(int level, String info){
 		String result="<dycomodel>\n";
-		result+=Normalizer.spaces(level)+"<wrapper>\n";
+		result+=Normalizer.spaces(level)+"<wrapper provider=\""+this.getClass().getName()+"\">\n";
 		if(initialDeltaDate!=null)
 			result+=Normalizer.spaces(level+1)+"<initialDeltaDate>"+new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(initialDeltaDate)+"</initialDeltaDate>\n";
 				
@@ -506,6 +510,56 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 			result+=info;
 		result+="</dycomodel>\n";
 		return result;
+	}
+	
+
+	@SuppressWarnings("unchecked")
+	public ADateWrapper<T> init(Node node) throws Exception{
+		
+		NodeList list = node.getChildNodes();
+		for(int i=0;i<list.getLength();i++){
+			Node child_node = list.item(i);
+			if(child_node.getNodeType()== Node.ELEMENT_NODE){
+				
+				
+				if(child_node.getNodeName().equalsIgnoreCase("initialDeltaDate")){
+					try{
+						this.initialDeltaDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(child_node.getFirstChild().getNodeValue());
+					}catch(Exception e){
+						e.printStackTrace();
+					}
+				}else if(child_node.getNodeName().equalsIgnoreCase("computingPlugin")){
+					try{
+						computingPlugin = Class.forName(child_node.getFirstChild().getNodeValue()).asSubclass(IComputing.class).newInstance();
+					}catch(Exception e){
+						e.printStackTrace();
+					}
+				}else if(child_node.getNodeName().equalsIgnoreCase("lead")){
+					for(int j=0;j<child_node.getChildNodes().getLength();j++){
+						if(child_node.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
+							try{
+								lead = Class.forName(child_node.getChildNodes().item(j).getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(APolynomial.class).newInstance();
+								lead.init(child_node.getChildNodes().item(j));
+								break;
+							}catch(Exception e){		
+								e.printStackTrace();
+							}
+						}
+					}
+				}else if(child_node.getNodeName().equalsIgnoreCase("equation")){
+					try{
+						equation = Class.forName(child_node.getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(IEquation.class).newInstance();
+						equation.init(child_node);
+					}catch(Exception e){
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+		
+	
+		
+		return this;
 	}
 
 }

@@ -38,24 +38,33 @@ public class ViewChartConsumption implements Serializable{
 				finishChartDate = controller.getSecureStock().lastKey();
 			
 			if(controller.getCalculatemode()==1){
-				Date point = controller.getProxy().getFirstPoint(controller.getQuantity(), controller.getStartDate(), finishChartDate, controller.getProcessedOrders());
-				if(point!=null){
-					point = controller.getProxy().computeLead(point);
-					allProcessedOrders.put(point,0d);
+				try{
+					Date point = controller.getProxy().getFirstPoint(controller.getQuantity(), controller.getStartDate(), finishChartDate, controller.getProcessedOrders());
+					if(point!=null){
+						point = controller.getProxy().computeLead(point);
+						allProcessedOrders.put(point,0d);
+					}
+					controller.setComputedOrders(allProcessedOrders);
+				}catch(Exception e){					
 				}
-				controller.setComputedOrders(allProcessedOrders);
 			}
 			
 			if(controller.getCalculatemode()==2){
-				SortedMap<Date, Double> newOrders = controller.getProxy().getPoints(controller.getQuantity(), controller.getFixedQuantity(), controller.getStartDate(), finishChartDate, controller.getProcessedOrders(), (double)controller.getItemsForPack());
-				allProcessedOrders.putAll(newOrders);	
-				controller.setComputedOrders(newOrders);
+				try{
+					SortedMap<Date, Double> newOrders = controller.getProxy().getPoints(controller.getQuantity(), controller.getFixedQuantity(), controller.getStartDate(), finishChartDate, controller.getProcessedOrders(), (double)controller.getItemsForPack());
+					allProcessedOrders.putAll(newOrders);	
+					controller.setComputedOrders(newOrders);
+				}catch(Exception e){					
+				}
 			}
 			
 			if(controller.getCalculatemode()==3){
-				SortedMap<Date, Double> newOrders = controller.getProxy().getPoints(controller.getQuantity(), controller.getFixedFeatureOrders(),controller.getStartDate(), finishChartDate, controller.getProcessedOrders(), true, (double)controller.getItemsForPack());
-				allProcessedOrders.putAll(newOrders);
-				controller.setComputedOrders(newOrders);
+				try{
+					SortedMap<Date, Double> newOrders = controller.getProxy().getPoints(controller.getQuantity(), controller.getFixedFeatureOrders(),controller.getStartDate(), finishChartDate, controller.getProcessedOrders(), true, (double)controller.getItemsForPack());
+					allProcessedOrders.putAll(newOrders);
+					controller.setComputedOrders(newOrders);
+				}catch(Exception e){					
+				}
 			}			
 		
 			

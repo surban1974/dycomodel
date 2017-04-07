@@ -25,6 +25,10 @@ import java.util.TreeSet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import it.classhidra.annotation.elements.Action;
 import it.classhidra.annotation.elements.ActionCall;
 import it.classhidra.annotation.elements.Entity;
@@ -50,11 +54,11 @@ import it.dycomodel.admin.components.beans.ViewSlider;
 import it.dycomodel.admin.components.beans.ViewSliders;
 import it.dycomodel.approximation.DefaultSetAdapter;
 import it.dycomodel.approximation.ISetAdapter;
+import it.dycomodel.plugins.ComputingCubicSpline;
 import it.dycomodel.plugins.ComputingLaguerre;
 import it.dycomodel.plugins.ComputingLaguerreComplex;
 import it.dycomodel.plugins.ComputingLinear;
 import it.dycomodel.plugins.ComputingPolynomialFitter;
-import it.dycomodel.plugins.ComputingCubicSpline;
 import it.dycomodel.polynomial.PolynomialD;
 import it.dycomodel.utils.Normalizer;
 import it.dycomodel.wrappers.ADateApproximator;
@@ -105,7 +109,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 	private SortedMap<Date, Double> computedOrders;
 	
-	@Serialized(output=@Format(format="dd/MM/yyyy"))
+	@Serialized(output=@Format(format="dd/MM/yyyy"), input=@Format(format="dd/MM/yyyy"))
 	private Date startDate;
 	
 	@Serialized(output=@Format(format="dd/MM/yyyy"))
@@ -188,6 +192,9 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	
 	@Serialized
 	private boolean viewFullApproximation;	
+	
+	@Serialized
+	private String uploadType;	
 
 	public ControllerDemo(){
 		super();
@@ -207,6 +214,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		String error=null;
 		SortedMap<Long, Double> newrawdata = new TreeMap<Long, Double>();
 		while(isFile){
+			@SuppressWarnings("unchecked")
 			HashMap<String, Object> file = (HashMap<String, Object>)get_bean().getParametersMP().get("file"+indexFile);
 			if(file!=null){
 				
@@ -283,12 +291,166 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			return new response_wrapper()
 					.setContent(error)
 					.setResponseStatus(Rest.MISSING_PARAMETERS_400);	
-		else
+		else{
+			setInfo("Consumption data was loaded successfully ");
+			String json = modelAsJson(request, response);
+			setInfo("");
 			return new response_wrapper()
-					.setContent( modelAsJson(request, response))
+					.setContent(json)
 					.setResponseStatus(Rest.EXIST_200);	
+		}
 			
 	}	
+	
+	@ActionCall(
+			name="uploadinventory",
+			navigated="false",
+			Expose=@Expose(methods = {Expose.POST,Expose.GET},restmapping={@Rest(path="/demo/upload/")})
+			
+	)
+	public response_wrapper uploadinventory(HttpServletRequest request, HttpServletResponse response){
+
+		int indexFile=0;
+		boolean isFile=true;
+		String error=null;
+		SortedMap<Date, Double> inventory = new TreeMap<Date, Double>();
+		while(isFile){
+			@SuppressWarnings("unchecked")
+			HashMap<String, Object> file = (HashMap<String, Object>)get_bean().getParametersMP().get("file"+indexFile);
+			if(file!=null){
+				
+				byte[] content = (byte[])file.get("content");
+
+				
+				if(content!=null){
+					
+					InputStream is = null;
+			        BufferedReader bfReader = null;
+			        try {
+			            is = new ByteArrayInputStream(content);
+			            bfReader = new BufferedReader(new InputStreamReader(is));
+			            String temp = null;
+			            int row=0;
+			            while(error==null && (temp = bfReader.readLine()) != null){
+			                if(temp.trim().length()>0){
+			                	String[] parts = temp.split(",");
+			                	if(parts.length!=2)
+			                		error="File data format error - row "+row;
+			                	else{
+			                		try{
+			                			inventory.put(new SimpleDateFormat("dd/MM/yyyy").parse(parts[0].trim()), Double.valueOf(parts[1].trim()));
+			                		}catch(Exception pe){
+			                			error="File data format error - row "+row;
+			                		}
+			                	}
+			                }
+			                row++;
+			            }
+			        } catch (IOException e) {
+			            error= e.toString();
+			        } finally {
+			            try{
+			                if(is != null) is.close();
+			            } catch (Exception ex){
+			                 
+			            }
+			        }
+					
+			        if(inventory.size()>0){
+			        	Double last = inventory.get(inventory.lastKey());
+			        	setQuantity(last);
+			        	setStartDate(inventory.lastKey());
+			        }
+					
+				}else
+					error="Empty file";
+			}else
+				isFile=false;
+			indexFile++;
+		}
+		if(error!=null)
+			return new response_wrapper()
+					.setContent(error)
+					.setResponseStatus(Rest.MISSING_PARAMETERS_400);	
+		else{
+			setInfo("Inventory data was loaded successfully ");
+			String json = modelAsJson(request, response);
+			setInfo("");
+			return new response_wrapper()
+					.setContent(json)
+					.setResponseStatus(Rest.EXIST_200);	
+		}
+			
+	}	
+	
+	
+	@ActionCall(
+			name="uploadmodel",
+			navigated="false",
+			Expose=@Expose(methods = {Expose.POST,Expose.GET},restmapping={@Rest(path="/demo/upload/")})
+			
+	)
+	public response_wrapper uploadmodel(HttpServletRequest request, HttpServletResponse response){
+		
+		int indexFile=0;
+		boolean isFile=true;
+		String error=null;
+		while(isFile){
+			@SuppressWarnings("unchecked")
+			HashMap<String, Object> file = (HashMap<String, Object>)get_bean().getParametersMP().get("file"+indexFile);
+			if(file!=null){
+				
+				byte[] content = (byte[])file.get("content");
+				
+				if(content!=null){
+					try{
+						Document documentXML = Normalizer.readXMLData(content);
+						if(documentXML!=null){
+							Node node = null;
+							try{
+								int first=0;
+								while(node==null && first < documentXML.getChildNodes().getLength()){
+									if(documentXML.getChildNodes().item(first).getNodeType()== Node.ELEMENT_NODE)
+										node = documentXML.getChildNodes().item(first);
+									first++;
+								}
+							}catch(Exception e){}
+
+							if(node!=null && node.getNodeName().equals("dycomodel")){
+								if(this.init(node)){
+									error = "Load error: incorrect/incomplete data";
+								}else{
+									getSliders().init(true);
+									setRedrawcharts(true);
+									setRedraworders(true);
+								}
+							}
+
+
+						}
+					}catch(Exception e){
+						
+					}
+					
+				}else
+					error="Empty file";
+			}else
+				isFile=false;
+			indexFile++;
+		}
+		if(error!=null)
+			return new response_wrapper()
+					.setContent(error)
+					.setResponseStatus(Rest.MISSING_PARAMETERS_400);	
+		else{
+			setInfo("Consumption model was loaded successfully ");
+			String json = modelAsJson(request, response);
+			setInfo("");
+			return new response_wrapper()
+					.setContent(json)
+					.setResponseStatus(Rest.EXIST_200);	
+		}		
+	}
 	
 	@ActionCall(
 			name="download",
@@ -423,6 +585,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		byte[] datas = (byte[])request.getAttribute(bsController.CONST_RECOVERED_REQUEST_CONTENT);
 		if(datas!=null){
 			String json = new String(datas);
+			@SuppressWarnings("unchecked")
 			Map<String,Object> mapped = new JsonReader2Map().mapping(null, json, null);
 			List<String> parameters = null;
 			if(mapped!=null && mapped.size()>0){
@@ -431,7 +594,19 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 				if(redraworders)
 					mapped.put("model.redraworders", new Boolean(true));
 				if(redrawslider)
-					mapped.put("model.redrawslider", new Boolean(true));				
+					mapped.put("model.redrawslider", new Boolean(true));	
+				if(getInfo()!=null && getInfo().trim().length()>0)
+					mapped.put("model.info", getInfo());
+
+				if(getWarning()!=null && getWarning().trim().length()>0)
+					mapped.put("model.warning", getWarning());
+			
+				if(getError()!=null && getError().trim().length()>0)
+					mapped.put("model.error", getError());
+	
+				if(getSuccess()!=null && getSuccess().trim().length()>0)
+					mapped.put("model.success", getSuccess());
+			
 				
 				parameters = new ArrayList<String>();
 				Iterator<String> it = mapped.keySet().iterator();
@@ -445,6 +620,10 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 					parameters);
 			redrawcharts=false;
 			redraworders=false;
+			setInfo("");
+			setWarning("");
+			setError("");
+			setSuccess("");
 			return output;
 					
 		}else{
@@ -479,7 +658,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	public void reimposta() {
 		super.reimposta();
 		try{
-			
+			setUploadType("C");
 			setStartDate(normalizeDate(new Date()));
 			setFinishDate(demoFromStartDate(12));
 			setStartAvrDate(getStartDate());
@@ -628,6 +807,198 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		
 	}
 
+	private boolean init(Node node) throws Exception{
+		
+		ControllerDemo copy = new ControllerDemo();
+		boolean error = false;
+		NodeList list = node.getChildNodes();
+		for(int i=0;i<list.getLength();i++){
+			Node child_node = list.item(i);
+			if(child_node.getNodeType()== Node.ELEMENT_NODE){
+				if(child_node.getNodeName().equalsIgnoreCase("wrapper")){
+					try{
+						@SuppressWarnings("unchecked")
+						ADateWrapper<Double> newProxy = Class.forName(child_node.getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(ADateWrapper.class).newInstance();
+						newProxy.init(child_node);
+						copy.setProxy(newProxy);
+					}catch(Exception e){
+						e.printStackTrace();
+						error = true;
+					}
+				}else if(child_node.getNodeName().equalsIgnoreCase("baseinfo")){					
+					NodeList listchild = child_node.getChildNodes();
+					for(int j=0;j<listchild.getLength();j++){
+						Node child_node1 = listchild.item(j);
+						if(child_node1.getNodeType()== Node.ELEMENT_NODE){
+							if(child_node1.getNodeName().equalsIgnoreCase("approximator")){
+								try{
+									copy.setApproximator(Class.forName(child_node1.getFirstChild().getNodeValue()).asSubclass(ADateApproximator.class).newInstance());
+								}catch(Exception e){
+									e.printStackTrace();
+									error = true;
+								}
+							}else if(child_node1.getNodeName().equalsIgnoreCase("setAdapter")){
+								try{
+									copy.setSetAdapter(Class.forName(child_node1.getFirstChild().getNodeValue()).asSubclass(ISetAdapter.class).newInstance());
+								}catch(Exception e){
+									e.printStackTrace();
+									error = true;
+								}
+							}else if(child_node1.getNodeName().equalsIgnoreCase("approximationType")){
+								try{
+									copy.setApproximationType(Integer.valueOf(child_node1.getFirstChild().getNodeValue()));
+								}catch(Exception e){
+									e.printStackTrace();
+									error = true;
+								}
+							}else if(child_node1.getNodeName().equalsIgnoreCase("approximationAlgorithm")){
+								try{
+									copy.setApproximationAlgorithm(child_node1.getFirstChild().getNodeValue());
+								}catch(Exception e){
+									e.printStackTrace();
+									error = true;
+								}
+							}else if(child_node1.getNodeName().equalsIgnoreCase("itemsForPack")){
+								try{
+									copy.setItemsForPack(Integer.valueOf(child_node1.getFirstChild().getNodeValue()));
+								}catch(Exception e){
+									e.printStackTrace();
+									error = true;
+								}
+							}else if(child_node1.getNodeName().equalsIgnoreCase("dayStockDelta")){
+								try{
+									copy.setDayStockDelta(Integer.valueOf(child_node1.getFirstChild().getNodeValue()));
+								}catch(Exception e){
+									e.printStackTrace();
+									error = true;
+								}
+							}else if(child_node1.getNodeName().equalsIgnoreCase("fixedPeriod")){
+								try{
+									copy.setFixedPeriod(child_node1.getFirstChild().getNodeValue());
+								}catch(Exception e){
+									e.printStackTrace();
+									error = true;
+								}
+							}else if(child_node1.getNodeName().equalsIgnoreCase("quantity")){
+								try{
+									copy.setQuantity(Double.valueOf(child_node1.getFirstChild().getNodeValue()));
+								}catch(Exception e){
+									e.printStackTrace();
+									error = true;
+								}
+							}else if(child_node1.getNodeName().equalsIgnoreCase("fixedQuantity")){
+								try{
+									copy.setFixedQuantity(Double.valueOf(child_node1.getFirstChild().getNodeValue()));
+								}catch(Exception e){
+									e.printStackTrace();
+									error = true;
+								}
+							}else if(child_node1.getNodeName().equalsIgnoreCase("leadDays")){
+								try{
+									copy.setLeadDays(Double.valueOf(child_node1.getFirstChild().getNodeValue()));
+								}catch(Exception e){
+									e.printStackTrace();
+									error = true;
+								}
+							}else if(child_node1.getNodeName().equalsIgnoreCase("consumptions")){ 
+								copy.setConsumption(new TreeMap<Date,Double>());
+								NodeList list2 = child_node1.getChildNodes();
+								for(int k=0;k<list2.getLength();k++){
+									Node child_node2 = list2.item(k);
+									if(child_node2.getNodeType()== Node.ELEMENT_NODE){
+										if(child_node2.getNodeName().equalsIgnoreCase("consumption")){
+											NodeList list3 = child_node2.getChildNodes();
+											Date currentPosition = null;
+											for(int l=0;l<list3.getLength();l++){
+												Node child_node3 = list3.item(l);
+												if(child_node3.getNodeType()== Node.ELEMENT_NODE){													
+													if(child_node3.getNodeName().equalsIgnoreCase("point")){
+														try{
+															currentPosition = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(child_node3.getFirstChild().getNodeValue());
+														}catch(Exception e){
+															e.printStackTrace();
+														}
+													}else if(child_node3.getNodeName().equalsIgnoreCase("value")){
+														try{
+															if(currentPosition!=null){
+																copy.getConsumption().put(
+																		currentPosition,
+																		Double.valueOf(child_node3.getFirstChild().getNodeValue())
+																	);
+																currentPosition = null;
+															}
+														}catch(Exception e){
+															e.printStackTrace();
+														}
+													}
+												}
+											}
+										}
+									}								
+								}
+							}else if(child_node1.getNodeName().equalsIgnoreCase("secureStocks")){ 
+								copy.setSecureStock(new TreeMap<Date,Double>());
+								NodeList list2 = child_node1.getChildNodes();
+								for(int k=0;k<list2.getLength();k++){
+									Node child_node2 = list2.item(k);
+									if(child_node2.getNodeType()== Node.ELEMENT_NODE){
+										if(child_node2.getNodeName().equalsIgnoreCase("secureStock")){
+											NodeList list3 = child_node2.getChildNodes();
+											Date currentPosition = null;
+											for(int l=0;l<list3.getLength();l++){
+												Node child_node3 = list3.item(l);
+												if(child_node3.getNodeType()== Node.ELEMENT_NODE){													
+													if(child_node3.getNodeName().equalsIgnoreCase("point")){
+														try{
+															currentPosition = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(child_node3.getFirstChild().getNodeValue());
+														}catch(Exception e){
+															e.printStackTrace();
+														}
+													}else if(child_node3.getNodeName().equalsIgnoreCase("value")){
+														try{
+															if(currentPosition!=null){
+																copy.getSecureStock().put(
+																		currentPosition,
+																		Double.valueOf(child_node3.getFirstChild().getNodeValue())
+																	);
+																currentPosition = null;
+															}
+														}catch(Exception e){
+															e.printStackTrace();
+														}
+													}
+												}
+											}
+										}
+									}								
+								}
+							}
+
+						}
+					}
+				}
+
+			}
+		}
+		
+		if(!error){
+			consumption = copy.getConsumption();
+			secureStock = copy.getSecureStock();
+			proxy = copy.getProxy();
+			approximator = copy.getApproximator();
+			setAdapter = copy.getSetAdapter();
+			approximationType = copy.getApproximationType();
+			approximationAlgorithm = copy.getApproximationAlgorithm();
+			itemsForPack = copy.getItemsForPack();
+			dayStockDelta = copy.getDayStockDelta();
+			fixedPeriod = copy.getFixedPeriod();
+			quantity = copy.getQuantity();
+			fixedQuantity = copy.getFixedQuantity();
+			leadDays = copy.getLeadDays();
+
+		}
+		return error;
+	}
 
 	private String prepareInfo(int level){
 		String result="";
@@ -808,10 +1179,17 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 
 
-
+//	public void setStartDate(Date startDate) {
+//		this.startDate = startDate;
+//	}
 
 	public void setStartDate(Date startDate) {
-		this.startDate = startDate;
+		if(startDate!=null && this.startDate!=null && this.startDate.compareTo(startDate)!=0){
+			this.startDate = startDate;		
+			setFinishDate(demoFromStartDate(12));
+			this.redrawcharts=true;
+		}else
+			this.startDate = startDate;		
 	}
 
 
@@ -994,6 +1372,8 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 	public void setFixedPeriod(String fixedPeriod) {
 		this.fixedPeriod = fixedPeriod;
+		if(getFixedFeatureOrders()==null)
+			return;
 		getFixedFeatureOrders().clear();
 		
 		Calendar current = Calendar.getInstance();
@@ -1111,8 +1491,10 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	public void setApproximationType(int approximationType) {
 		if(this.approximationType!=approximationType){
 			this.approximationType = approximationType;
-			if(this.approximationType==4)
+			if(this.approximationType==4){
 				this.approximationType=1;
+				setWarning("Neural Network forecasting isn't avialable for the demo version.");
+			}
 			
 			if(getApproximator()!=null){				
 				getApproximator()
@@ -1268,6 +1650,26 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			this.redraworders=true;
 		}
 		
+	}
+
+
+	public String getUploadType() {
+		return uploadType;
+	}
+
+
+	public void setUploadType(String uploadType) {
+		this.uploadType = uploadType;
+	}
+
+
+	public ISetAdapter getSetAdapter() {
+		return setAdapter;
+	}
+
+
+	public void setSetAdapter(ISetAdapter setAdapter) {
+		this.setAdapter = setAdapter;
 	}
 
 

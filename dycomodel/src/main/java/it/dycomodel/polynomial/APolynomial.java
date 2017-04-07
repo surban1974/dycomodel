@@ -5,6 +5,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+
 import it.dycomodel.utils.Normalizer;
 
 public abstract class APolynomial<T extends Number> implements Serializable{
@@ -167,6 +170,28 @@ public abstract class APolynomial<T extends Number> implements Serializable{
 			result+=Normalizer.spaces(level)+"</polynomial>\n";
 		}
 		return result;
+	}
+	
+	public APolynomial<T> init(Node node){
+		NodeList list = node.getChildNodes();
+		for(int i=0;i<list.getLength();i++){
+			Node child_node = list.item(i);
+			if(child_node.getNodeType()== Node.ELEMENT_NODE){
+				if(child_node.getNodeName().equalsIgnoreCase("coefficient")){
+					try{
+						
+						setConstant(
+								Integer.valueOf(child_node.getAttributes().getNamedItem("position").getNodeValue()),
+								convertValue(Double.valueOf(child_node.getFirstChild().getNodeValue()))								
+						);
+					}catch(Exception e){
+						e.printStackTrace();
+					}
+				}
+				
+			}
+		}
+		return this;
 	}
 	
 }

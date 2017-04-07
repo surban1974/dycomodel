@@ -24,7 +24,7 @@
 	<div layout="column" layout-fill id="demo" ng-app="demoApp" ng-controller="demoCtrl as mc">
     	<md-toolbar md-medium-tall >
 	   		<div class="md-toolbar-tools">
-		        <h2 flex md-truncate>DYNAMIC CONSUMPTION MODEL <font size="2"> Supported browsers: Google Chrome </font></h2>
+		        <h2 flex md-truncate>DYNAMIC CONSUMPTION MODEL <font size="2">[Supported browsers: Google Chrome, Firefox]</font></h2>
 		        <img src="images/download.png" style="cursor: pointer;" onclick="location.replace('demo-model?');"/>
 	    	</div>
 		</md-toolbar>
@@ -38,7 +38,7 @@
 									<md-toolbar class="md-primary _md _md-toolbar-transitions">
 										<div class="md-toolbar-tools">
 											<img src="images/customer_infr_small.png"/>&nbsp;
-											<h2 flex md-truncate>Input chanel from Customer's infrastructure</h2>
+											<h5 flex md-truncate>Input chanel from Customer's infrastructure</h5>
 									    </div>
 									</md-toolbar>
 								</section>
@@ -47,7 +47,8 @@
 								<section >
 									<md-toolbar class="md-primary _md _md-toolbar-transitions">
 										<div class="md-toolbar-tools">
-											<h2 flex md-truncate>Consumption:<br> {{view.model.forecastingStartDate}} - {{view.model.forecastingFinishDate}}</h2>
+											<h5 flex md-truncate>Consumption&nbsp;</h5>
+											<h5 flex md-truncate>{{view.model.forecastingStartDate}}  {{view.model.forecastingFinishDate}}</h5>
 									   		<img src="images/download.png" style="cursor: pointer;" onclick="location.replace('demo-download?');"/>
 									    </div>
 									</md-toolbar>
@@ -83,17 +84,44 @@
 						<div layout="row">
 							<div flex layout-padding >
 
-
-								<div id="uploader" action="demo-upload?" class="dropzone needsclick dz-clickable">
-<div class="dz-message needsclick" style="font-size: small;">
-    You can drop files here or click to upload<br>
-    CSV file with 2 column: date and quantity<br>
-    Example of row: 22/04/2016,25.11<br><br><br>
-    <img src="images/draganddrop.png"/>
-  </div>									
+								<section>
+									<div id="uploader" action="demo-upload?" class="dropzone needsclick dz-clickable" ng-show="view.model.uploadType == 'C'">
+										<div class="dz-message needsclick" style="font-size: small;">
+										    <i>You can drop files here or click to upload<br>
+										   	<b>Consumption CSV file</b> with 2 column: date and quantity<br>
+										    Example of row: 22/04/2016,25.11<br><br><br></i>
+										    <img src="images/draganddrop.png"/>
+										  </div>									
+										
+									</div> 
+ 									
+									<div id="uploadermodel" action="demo-uploadmodel?" class="dropzone needsclick dz-clickable" ng-show="view.model.uploadType == 'M'">
+										<div class="dz-message needsclick" style="font-size: small;">
+										    <i>You can drop files here or click to upload<br>
+										    <b>Dynamic Model XML file</b><br><br><br><br><br></i>
+										    <img src="images/draganddrop.png"/>
+										  </div>									
+										
+									</div> 	
 									
-								</div> 
-							
+									<div id="uploaderinventory" action="demo-uploadinventory?" class="dropzone needsclick dz-clickable" ng-show="view.model.uploadType == 'I'">
+										<div class="dz-message needsclick" style="font-size: small;">
+										    <i>You can drop files here or click to upload<br>
+										   	<b>Inventory CSV file</b> with 2 column: date and quantity<br>
+										    Example of row: 22/03/2017,1021.40<br><br><br></i>
+										    <img src="images/draganddrop.png"/>
+										  </div>									
+										
+									</div>										
+									
+									<div flex layout-padding>
+										<md-radio-group ng-model="view.model.uploadType" layout="row">
+											<md-radio-button value="C" class="md-primary">Consum.</md-radio-button>
+											<md-radio-button value="M" class="md-accent">Model</md-radio-button>
+											<md-radio-button value="I" class="md-accent">Invent.</md-radio-button>
+										</md-radio-group>
+									</div>						
+								</section>
 							</div>
 							<div flex layout-padding >
 								<md-list >
@@ -222,20 +250,16 @@
 										<md-radio-button value="3" class="md-accent"> Fixed Dates </md-radio-button>
 									</md-radio-group>
 								</div>
-								<div flex>
-									<section >
-										<md-toolbar class="md-primary _md _md-toolbar-transitions" style="background-color:transparent; color: black;">
-											<md-input-container class="md-block">
-												<label>Initial Quantity</label>
-												<input type="number" step="100" name="quantity" ng-model="view.model.quantity" min="0" max="100000"/>
-											</md-input-container>
-	  									</md-toolbar>
-									</section>
+								<div flex layout="row">
+									<md-input-container class="md-block">
+										<label>Initial Date</label>
+										<input  name="startDate" ng-model="view.model.startDate" />
+									</md-input-container>	
+									<md-input-container class="md-block">
+										<label>Initial Quantity</label>
+										<input type="number" step="100" name="quantity" ng-model="view.model.quantity" min="0" max="100000"/>
+									</md-input-container>
 
-								</div>
-								<div flex>
-									<section >
-										<md-toolbar class="md-primary _md _md-toolbar-transitions" style="background-color:transparent; color: black;">
 											<md-input-container class="md-block" ng-if="view.model.calculatemode==2">
 												<label>Fixed Quantity</label>
 												<input type="number" step="100" name="quantity" ng-model="view.model.fixedQuantity" min="0" max="100000"/>
@@ -248,8 +272,7 @@
 									            	</md-option>
 									         	</md-select>
 			          						</md-input-container>
-	  									</md-toolbar>
-									</section>
+
 								</div>
 				   			</div>
 							<div flex >
@@ -309,7 +332,7 @@
 									<section >
 										<md-toolbar class="md-warn _md _md-toolbar-transitions">
 											<div class="md-toolbar-tools">
-												<h2 flex md-truncate>Procurement orders ready to send - {{view.model.orders.length}}</h2>
+												<h5 flex md-truncate>Procurement orders ready to send - {{view.model.orders.length}}</h5>
 												<img src="images/download.png" style="cursor: pointer;" onclick="location.replace('demo-orders?');"/>
 										    </div>
 										</md-toolbar>
@@ -330,7 +353,7 @@
 									<section >
 										<md-toolbar class="md-primary _md _md-toolbar-transitions">
 											<div class="md-toolbar-tools">
-												<h2 flex md-truncate>Output chanel to Customer's infrastructure</h2>
+												<h5 flex md-truncate>Output chanel to Customer's infrastructure</h5>
 												&nbsp;<img src="images/customer_infr_small.png"/>
 										    </div>
 										</md-toolbar>
@@ -373,10 +396,43 @@
 	<script>
 
 	function showException(e){
-		console.log(e);	
+		getScope().showPopup(null,'System error', e.toString());
 	}
 	
 	Dropzone.options.uploader = {
+		    maxFilesize: "5",
+		    addRemoveLinks : true,
+		    init: function () {
+		    	this.on('success', function (file, response) {
+		            var model = JSON.parse(response);
+		            
+		            getScope().view.model.rawdata = model.rawdata;
+		            getScope().view.init(model);
+
+		        });
+		    	this.on('error', function (file, response) {
+		    		getScope().showPopup(null,'Error',response);
+		        });		    	
+		    }
+		};
+	
+	Dropzone.options.uploaderinventory = {
+		    maxFilesize: "5",
+		    addRemoveLinks : true,
+		    init: function () {
+		    	this.on('success', function (file, response) {
+		            var model = JSON.parse(response);
+		            
+		            getScope().view.model.rawdata = model.rawdata;
+		            getScope().view.init(model);
+
+		        });
+		    	this.on('error', function (file, response) {
+		    		getScope().showPopup(null,'Error',response);
+		        });		    	
+		    }
+		};	
+	Dropzone.options.uploadermodel = {
 		    maxFilesize: "5",
 		    addRemoveLinks : true,
 		    init: function () {
@@ -389,10 +445,10 @@
 
 		        });
 		    	this.on('error', function (file, response) {
-//		            _this.removeAllFiles();
+		    		getScope().showPopup(null,'Error',response);
 		        });		    	
 		    }
-		};
+		};	
 
 
 	function chartInLoad(id, inLoad){
@@ -411,7 +467,7 @@
 						function(){
 							getScope().view.model.chartsInProgress=false;
 						},
-						100
+						50
 				);
 			}
 		}catch(e){
@@ -510,6 +566,8 @@
 		approximationAlgorithm: '',
 		leastSqDegree: 0,
 		viewFullApproximation: false,
+		uploadType: 'C',
+		startDate: '',
 
 		error : '',
 		warning : '',
@@ -523,28 +581,21 @@
 
 		message : function(){
 			if(this.error && this.error!=''){
-				new clpopup({
-					type: 'danger',
-					message: this.error
-				}).open();
+
+				getScope().showPopup(null,'Error',this.error);
+				this.error = '';				
 			}
 			if(this.success && this.success!=''){
-				new clpopup({
-					type: 'success',
-					message: this.success
-				}).open();
+				getScope().showPopup(null,'Success',this.success);
+				this.success = '';					
 			}
 			if(this.info && this.info!=''){
-				new clpopup({
-					type: 'info',
-					message: this.info
-				}).open();
+				getScope().showPopup(null,'Info',this.info);
+				this.info = '';				
 			}
 			if(this.warning && this.warning!=''){
-				new clpopup({
-					type: 'warning',
-					message: this.warning
-				}).open();
+				getScope().showPopup(null,'Warning',this.warning);
+				this.warning = '';
 			}
 		}
 
@@ -564,6 +615,20 @@
 			}
 			self.initialisation = false;
 		}
+		
+		self.initMessage = function(parsed){
+			self.initialisation = true;
+			try{
+				self.model.info = parsed.model.info;
+				self.model.error = parsed.model.error;
+				self.model.warning = parsed.model.warning;
+				self.model.success = parsed.model.success;
+				self.message();
+			}catch(e){
+				showException(e);
+			}
+			self.initialisation = false;
+		}		
 
 		self.post = function($http,newValue){
 			if(!self.initialisation){
@@ -584,6 +649,7 @@
 			if(!self.initialisation){
 				$http.post('demo-diff', JSON.stringify(newValue)).
 			    success(function(data, status, headers, config) {
+			    	self.initMessage(data);
 			    	if(data.model.redrawcharts)
 			    		self.model.redrawcharts = data.model.redrawcharts;
 			    	if(data.model.redraworders)
@@ -734,7 +800,7 @@
 
 	}]);
 
-	app.controller('demoCtrl', function($scope, $http, $browser, $timeout, Browsertype) {
+	app.controller('demoCtrl', function($scope, $http, $browser, $timeout, $mdDialog, Browsertype) {
 
 		$scope.view = new ViewModel(ServerModel);
 
@@ -742,6 +808,20 @@
 			$scope.view.model.page_tab = 0;
 		}
 
+		$scope.showPopup = function(ev, title, message) {
+		    $mdDialog.show(
+		      $mdDialog.alert()
+		        .parent(angular.element(document.querySelector('#popupContainer')))
+		        .clickOutsideToClose(true)
+		        .title(title)
+		        .textContent(message)
+		        .ariaLabel('Alert Dialog')
+		        .ok('Close')
+		        .targetEvent(ev)
+		    );
+		};
+	  
+		
 		$scope.selectTabProcessing = function() {
 
 			$scope.view.model.page_tab = 2;

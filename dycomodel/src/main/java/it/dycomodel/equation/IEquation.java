@@ -3,6 +3,8 @@ package it.dycomodel.equation;
 
 import java.util.SortedMap;
 
+import org.w3c.dom.Node;
+
 import it.dycomodel.plugins.IComputing;
 import it.dycomodel.polynomial.APolynomial;
 
@@ -57,6 +59,8 @@ public interface IEquation<T extends Number> {
 	boolean isGlobal();
 	
 	String toXml(int level);
+	
+	IEquation<T> init(Node node)throws Exception;
 
 
 }

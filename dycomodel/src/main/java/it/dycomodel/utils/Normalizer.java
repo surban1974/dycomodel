@@ -62,7 +62,13 @@ public static Document readXMLData(String dataXML) throws Exception{
 		dbf.setValidating(false);
 	return  dbf.newDocumentBuilder().parse(xmlSrcStream);
 }
-	
+public static Document readXMLData(byte[] dataXML) throws Exception{
+	if(dataXML==null) return null;
+	ByteArrayInputStream xmlSrcStream = new	ByteArrayInputStream(dataXML);
+	DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
+		dbf.setValidating(false);
+	return  dbf.newDocumentBuilder().parse(xmlSrcStream);
+}	
 public static String removeNonUtf8CompliantCharacters( final String inString ) {
 	if (null == inString ) return null;
 	byte[] byteArr = inString.getBytes();
