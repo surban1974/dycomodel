@@ -33,6 +33,7 @@ import it.classhidra.annotation.elements.Action;
 import it.classhidra.annotation.elements.ActionCall;
 import it.classhidra.annotation.elements.Entity;
 import it.classhidra.annotation.elements.Expose;
+import it.classhidra.annotation.elements.Parameter;
 import it.classhidra.annotation.elements.Redirect;
 import it.classhidra.annotation.elements.Rest;
 import it.classhidra.annotation.elements.SessionDirective;
@@ -429,7 +430,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 						}
 					}catch(Exception e){
-						
+						error = "System error "+e.toString();
 					}
 					
 				}else
@@ -532,8 +533,96 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		
 	}	
 	
-	
+	@ActionCall(
+			name="editconsumption",
+			navigated="false",
+			Redirect=@Redirect(contentType="application/json"),
+			Expose=@Expose(method = Expose.GET)
+			)
+	public String editconsumption_get(@Parameter(name="value") String desc){	
+		if(getSliders()!=null && getSliders().getConsumption()!=null){
+			for(ViewSlider slider:getSliders().getConsumption()){
+				if(slider.getDescription().equals(desc)){
+					return JsonWriter.object2json(
+							slider,
+							"slider");
+				}
+			}
+		}
+		return "";
+	}	
 
+	@ActionCall(
+			name="editconsumption",
+			navigated="false",
+			Redirect=@Redirect(contentType="application/json"),
+			Expose=@Expose(method = Expose.PUT)
+			)
+	public String editconsumption_update(@Parameter(name="value") ViewSlider value){	
+		if(getSliders()!=null && getSliders().getConsumption()!=null){
+			for(ViewSlider slider:getSliders().getConsumption()){
+				if(slider.getDescription().equals(value.getDescription())){
+					Date oldPoint = slider.getPoint();
+					slider.setPointL(value.getPointL());
+					slider.setValue(value.getValue());
+					slider.setDescription(util_format.dataToString(slider.getPoint(), "MMM yyyy"));
+					getSliders().changedD(slider, oldPoint);
+					getSliders().init(true);
+					return JsonWriter.object2json(
+							getSliders(),
+							"sliders");
+				}
+			}
+		}
+		return "";
+	}
+	
+	@ActionCall(
+			name="editconsumption",
+			navigated="false",
+			Redirect=@Redirect(contentType="application/json"),
+			Expose=@Expose(method = Expose.POST)
+			)
+	public String editconsumption_insert(@Parameter(name="value") ViewSlider value){
+		
+		getConsumption().put(value.getPoint(),value.getValue());
+		getSecureStock().put(value.getPoint(),value.getValue()*getDayStockDelta());
+		getSliders().init(true);
+		try{
+		getProxy().init(getEnabledConsumption(), getEnabledSecureStock());
+		}catch(Exception e){
+			
+		}
+		setRedrawcharts(true);
+					return JsonWriter.object2json(
+							getSliders(),
+							"sliders");
+
+	}	
+	
+	@ActionCall(
+			name="editconsumption",
+			navigated="false",
+			Redirect=@Redirect(contentType="application/json"),
+			Expose=@Expose(method = Expose.DELETE)
+			)
+	public String editconsumption_delete(@Parameter(name="value") ViewSlider value){	
+		if(getSliders()!=null && getSliders().getConsumption()!=null){
+			for(ViewSlider slider:getSliders().getConsumption()){
+				if(slider.getDescription().equals(value.getDescription())){
+					Date oldPoint = slider.getPoint();
+					getSliders().removeD(slider, oldPoint);
+					getSliders().init(true);
+					return JsonWriter.object2json(
+							getSliders(),
+							"sliders");
+				}
+			}
+		}
+		return "";
+	}	
+	
+	
 	@ActionCall(
 			name="json2",
 			navigated="false",
@@ -651,6 +740,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		demoC.set(Calendar.HOUR_OF_DAY,0);
 		demoC.set(Calendar.MINUTE,0);
 		demoC.set(Calendar.SECOND,0);
+		demoC.set(Calendar.MILLISECOND,0);
 		return demoC.getTime();
 	}	
 
@@ -830,7 +920,21 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 					for(int j=0;j<listchild.getLength();j++){
 						Node child_node1 = listchild.item(j);
 						if(child_node1.getNodeType()== Node.ELEMENT_NODE){
-							if(child_node1.getNodeName().equalsIgnoreCase("approximator")){
+							if(child_node1.getNodeName().equalsIgnoreCase("startAvrDate")){
+								try{
+									copy.setStartAvrDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(child_node1.getFirstChild().getNodeValue()));
+								}catch(Exception e){
+									e.printStackTrace();
+									error = true;
+								}
+							}else if(child_node1.getNodeName().equalsIgnoreCase("finishAvrDate")){
+								try{
+									copy.setFinishAvrDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(child_node1.getFirstChild().getNodeValue()));
+								}catch(Exception e){
+									e.printStackTrace();
+									error = true;
+								}
+							}else if(child_node1.getNodeName().equalsIgnoreCase("approximator")){
 								try{
 									copy.setApproximator(Class.forName(child_node1.getFirstChild().getNodeValue()).asSubclass(ADateApproximator.class).newInstance());
 								}catch(Exception e){
@@ -846,14 +950,14 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("approximationType")){
 								try{
-									copy.setApproximationType(Integer.valueOf(child_node1.getFirstChild().getNodeValue()));
+									copy.setApproximationTypeOnly(Integer.valueOf(child_node1.getFirstChild().getNodeValue()));
 								}catch(Exception e){
 									e.printStackTrace();
 									error = true;
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("approximationAlgorithm")){
 								try{
-									copy.setApproximationAlgorithm(child_node1.getFirstChild().getNodeValue());
+									copy.setApproximationAlgorithmOnly(child_node1.getFirstChild().getNodeValue());
 								}catch(Exception e){
 									e.printStackTrace();
 									error = true;
@@ -867,14 +971,14 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("dayStockDelta")){
 								try{
-									copy.setDayStockDelta(Integer.valueOf(child_node1.getFirstChild().getNodeValue()));
+									copy.setDayStockDeltaOnly(Integer.valueOf(child_node1.getFirstChild().getNodeValue()));
 								}catch(Exception e){
 									e.printStackTrace();
 									error = true;
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("fixedPeriod")){
 								try{
-									copy.setFixedPeriod(child_node1.getFirstChild().getNodeValue());
+									copy.setFixedPeriodOnly(child_node1.getFirstChild().getNodeValue());
 								}catch(Exception e){
 									e.printStackTrace();
 									error = true;
@@ -986,15 +1090,44 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			secureStock = copy.getSecureStock();
 			proxy = copy.getProxy();
 			approximator = copy.getApproximator();
+			dayStockDelta = copy.getDayStockDelta();
 			setAdapter = copy.getSetAdapter();
+				setAdapter.setDayStockDelta(Double.valueOf(dayStockDelta));
+				approximator.setStockAdapter(setAdapter);				
+				
 			approximationType = copy.getApproximationType();
+				approximator.setType(approximationType);
+				
+			if(getStartAvrDate()!=null && getFinishAvrDate()!=null){
+				Calendar startAC = Calendar.getInstance();
+					startAC.setTime(getStartAvrDate());
+					startAC.set(Calendar.DAY_OF_MONTH,1);
+					startAC.set(Calendar.MONTH,startAC.get(Calendar.MONTH)-3);
+					startAC.set(Calendar.YEAR,startAC.get(Calendar.YEAR));
+				Calendar finishAC = Calendar.getInstance();
+					finishAC.setTime(getFinishAvrDate());
+					finishAC.set(Calendar.DAY_OF_MONTH,finishAC.getActualMaximum(Calendar.DAY_OF_MONTH));
+					finishAC.set(Calendar.MONTH,finishAC.get(Calendar.MONTH)+3);	
+					
+				approximator.setStartApproximationDate(startAC.getTime());
+				approximator.setFinishApproximationDate(finishAC.getTime());
+				approximator.setStartDate(getStartAvrDate());
+			}
+			
+
+				
 			approximationAlgorithm = copy.getApproximationAlgorithm();
 			itemsForPack = copy.getItemsForPack();
-			dayStockDelta = copy.getDayStockDelta();
+			
 			fixedPeriod = copy.getFixedPeriod();
 			quantity = copy.getQuantity();
 			fixedQuantity = copy.getFixedQuantity();
 			leadDays = copy.getLeadDays();
+			
+			
+		
+
+
 
 		}
 		return error;
@@ -1003,6 +1136,11 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	private String prepareInfo(int level){
 		String result="";
 		result+=Normalizer.spaces(level)+"<baseinfo>\n";
+		if(startAvrDate!=null)
+			result+=Normalizer.spaces(level+1)+"<startAvrDate>"+new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(startAvrDate)+"</startAvrDate>\n";	
+		if(finishAvrDate!=null)
+			result+=Normalizer.spaces(level+1)+"<finishAvrDate>"+new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").format(finishAvrDate)+"</finishAvrDate>\n";	
+
 		if(approximator!=null)
 			result+=Normalizer.spaces(level+1)+"<approximator>"+approximator.getClass().getName()+"</approximator>\n";	
 		if(setAdapter!=null)
@@ -1346,7 +1484,9 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		return leadDays;
 	}
 
-
+	public void setLeadDaysOnly(double leadDays) {
+		this.leadDays = leadDays;
+	}
 	public void setLeadDays(double leadDays) {
 		this.leadDays = leadDays;
 		if(getProxy()!=null)
@@ -1369,7 +1509,9 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		return fixedPeriod;
 	}
 
-
+	public void setFixedPeriodOnly(String fixedPeriod) {
+		this.fixedPeriod = fixedPeriod;
+	}
 	public void setFixedPeriod(String fixedPeriod) {
 		this.fixedPeriod = fixedPeriod;
 		if(getFixedFeatureOrders()==null)
@@ -1439,14 +1581,16 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		return dayStockDelta;
 	}
 
-
+	public void setDayStockDeltaOnly(long dayStockDelta) {
+		this.dayStockDelta = dayStockDelta;
+	}
 	public void setDayStockDelta(long dayStockDelta) {
 		if(this.dayStockDelta!=dayStockDelta){
 			this.dayStockDelta = dayStockDelta;
-			if(getApproximator()!=null){				
-				getApproximator().approximation(getRawdata());			
-				setConsumption(getApproximator().getForecastedConsumption(1));
-				setSecureStock(getApproximator().getForecastedStock(1));
+			if(getApproximator()!=null){	
+				setSecureStock(
+						getApproximator().getStockAdapter().setDayStockDelta(Double.valueOf(this.dayStockDelta)).adapt(getConsumption())
+				);
 				if(getProxy()!=null){
 					try{
 						getProxy().init(getEnabledConsumption(), getEnabledSecureStock());
@@ -1487,7 +1631,9 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		return approximationType;
 	}
 
-
+	public void setApproximationTypeOnly(int approximationType) {
+		this.approximationType = approximationType;
+	}
 	public void setApproximationType(int approximationType) {
 		if(this.approximationType!=approximationType){
 			this.approximationType = approximationType;
@@ -1500,6 +1646,9 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 				getApproximator()
 				.setType(this.approximationType)
 				.approximation(getRawdata());	
+				
+				forecastingStartDate = getApproximator().getApproximation().getStartInterval();
+				forecastingFinishDate = getApproximator().getApproximation().getFinishInterval();
 				
 				setConsumption(getApproximator().getForecastedConsumption(1));
 				setSecureStock(getApproximator().getForecastedStock(1));
@@ -1567,6 +1716,9 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	}
 
 
+	public void setApproximationAlgorithmOnly(String approximationAlgorithm){
+		this.approximationAlgorithm = approximationAlgorithm;
+	}
 	public void setApproximationAlgorithm(String approximationAlgorithm) throws Exception{
 		if(this.approximationAlgorithm==null || !this.approximationAlgorithm.equals(approximationAlgorithm)){
 			this.approximationAlgorithm = approximationAlgorithm;

@@ -19,6 +19,10 @@ public class ViewSlider implements Serializable{
 	private ViewSliders owner;
 	private boolean enabled=true;
 	
+	public ViewSlider(){
+		super();
+	}
+	
 	public ViewSlider(ViewSliders owner, String type, Date point, double value){
 		super();
 		this.type = type;
@@ -28,10 +32,11 @@ public class ViewSlider implements Serializable{
 		this.description = util_format.dataToString(point, "MMM yyyy");
 	}
 	
-	@Serialized(output=@Format(name="value"))
+	@Serialized
 	public double getValue() {
 		return value;
 	}
+	@Serialized
 	public void setValue(double value) {
 		this.value = value;
 		if(this.owner!=null)
@@ -46,15 +51,20 @@ public class ViewSlider implements Serializable{
 	public String getDescription() {
 		return description;
 	}
+	
+	@Serialized(input=@Format(name="desc"))
 	public void setDescription(String description) {
 		this.description = description;
 	}
+	
+
 	public Date getPoint() {
 		return point;
 	}
-	public void setPoint(Date point) {
+	public void setPointOnly(Date point) {
 		this.point = point;
 	}
+
 
 	public ViewSliders getOwner() {
 		return owner;
@@ -85,5 +95,18 @@ public class ViewSlider implements Serializable{
 	}
 	public void setEnabledFromOwner(boolean enabled) {
 		this.enabled = enabled;
+	}	
+	
+	@Serialized
+	public long getPointL(){
+		if(point!=null)
+			return point.getTime();
+		else
+			return new Date().getTime();
+	}
+	
+	@Serialized
+	public void setPointL(long pointL){
+		point=new Date(pointL);
 	}	
 }

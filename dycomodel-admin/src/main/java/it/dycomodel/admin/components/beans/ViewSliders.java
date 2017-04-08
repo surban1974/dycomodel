@@ -129,6 +129,74 @@ public class ViewSliders implements Serializable{
 			}
 		}
 	}
+	
+	public void changedD(ViewSlider slider, Date oldPoint){
+		if(!this.initialising){
+			if(slider!=null){
+				if(slider.getType().equals("C")){
+					controller.getConsumption().remove(oldPoint);
+					controller.getConsumption().put(slider.getPoint(),slider.getValue());
+					if(controller.getDayStockDelta()>0){
+						double stock = slider.getValue()*controller.getDayStockDelta();
+						for(ViewSlider stockSlider: getStock()){
+							if(stockSlider.getPoint().compareTo(oldPoint)==0){
+								stockSlider.setValueFromOwner(stock);
+								stockSlider.setPointOnly(slider.getPoint());
+								controller.getSecureStock().remove(oldPoint);
+								controller.getSecureStock().put(slider.getPoint(),stockSlider.getValue());
+								break;
+							}
+								
+						}
+						
+					}
+				}
+				if(slider.getType().equals("S")){
+					controller.getSecureStock().remove(oldPoint);
+					controller.getSecureStock().put(slider.getPoint(),slider.getValue());	
+				}
+				try{
+					controller.getProxy().init(controller.getEnabledConsumption(), controller.getEnabledSecureStock());
+					controller.setRedrawcharts(true);
+				}catch(Exception e){
+					
+				}
+			}
+		}
+	}
+	
+	public void removeD(ViewSlider slider, Date oldPoint){
+		if(!this.initialising){
+			if(slider!=null){
+				getConsumption().remove(slider);
+				if(slider.getType().equals("C")){
+					controller.getConsumption().remove(oldPoint);
+					if(controller.getDayStockDelta()>0){
+						for(ViewSlider stockSlider: getStock()){
+							if(stockSlider.getPoint().compareTo(oldPoint)==0){
+								controller.getSecureStock().remove(oldPoint);
+								getStock().remove(stockSlider);
+								break;
+							}
+								
+						}
+						
+					}
+				}
+				if(slider.getType().equals("S")){
+					controller.getSecureStock().remove(oldPoint);
+				}
+				try{
+					controller.getProxy().init(controller.getEnabledConsumption(), controller.getEnabledSecureStock());
+					controller.setRedrawcharts(true);
+				}catch(Exception e){
+					
+				}
+			}
+		}
+	}
+	
+	
 
 	public void enabled(ViewSlider slider){
 		if(!this.initialising){

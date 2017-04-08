@@ -38,7 +38,7 @@
 									<md-toolbar class="md-primary _md _md-toolbar-transitions">
 										<div class="md-toolbar-tools">
 											<img src="images/customer_infr_small.png"/>&nbsp;
-											<h5 flex md-truncate>Input chanel from Customer's infrastructure</h5>
+											<h5 flex >Input chanel from Customer's infrastructure</h5>
 									    </div>
 									</md-toolbar>
 								</section>
@@ -47,8 +47,8 @@
 								<section >
 									<md-toolbar class="md-primary _md _md-toolbar-transitions">
 										<div class="md-toolbar-tools">
-											<h5 flex md-truncate>Consumption&nbsp;</h5>
-											<h5 flex md-truncate>{{view.model.forecastingStartDate}}  {{view.model.forecastingFinishDate}}</h5>
+											<h5 flex >Prior Consumption&nbsp;</h5>
+											<h5 flex >{{view.model.forecastingStartDate}}  {{view.model.forecastingFinishDate}}</h5>
 									   		<img src="images/download.png" style="cursor: pointer;" onclick="location.replace('demo-download?');"/>
 									    </div>
 									</md-toolbar>
@@ -56,7 +56,6 @@
 							</div>
 							<div flex layout-padding>
 								<section >
-									<md-toolbar class="md-primary _md _md-toolbar-transitions" style="background-color:transparent; color: black;">
 										<md-input-container class="md-block">
 								         	<label>Average forecasted consumption</label>
 								          	<md-select ng-model="view.model.approximationType">
@@ -65,19 +64,19 @@
 								            	</md-option>
 								         	</md-select>
 		          						</md-input-container>
-  									</md-toolbar>
+
 								</section>
+
 							</div>
 							<div flex layout-padding>
 								<section >
-									<md-toolbar class="md-primary _md _md-toolbar-transitions" style="background-color:transparent; color: black;">
 										<md-input-container class="md-block">
 											<label>Average Daily Secure Stock</label>
 											<input type="number" step="1" name="dayStockDelta" ng-model="view.model.dayStockDelta" min="0" max="30"/>
 											<md-progress-linear class="md-primary" md-mode="indeterminate" ng-if="view.model.redraworders==true"/>
 	          							</md-input-container>
 										
-  									</md-toolbar>
+
 								</section>
 							</div>
 		        		</div>
@@ -134,15 +133,24 @@
 								</md-list>
 							</div>
 							<div flex layout-padding>
+							
 								<md-list>
 							  		<md-list-item class="md-2-line" ng-repeat="consumption in view.model.sliders.consumption">
+          								<md-icon md-svg-src="images/svg/ic_edit_black_18px.svg" ng-click="editConsumption($event, consumption.desc)" aria-label="edit" class="md-secondary md-hue-3" style="color: white;"></md-icon>
+							  		
 										<md-checkbox ng-model="consumption.enabled"></md-checkbox>
 										<div class="md-list-item-text">
 										    <h3>{{consumption.desc}}</h3>
 										   	<p>{{consumption.value}}</p>
 									 	</div>
+									 	
+									 	
 									</md-list-item>
+									<md-button class="md-raised md-primary" ng-click="newConsumption($event)">
+					       				New consumption point
+					      			</md-button>									
 								</md-list>
+
 							</div>
 							<div flex layout-padding>
 								<md-list >
@@ -169,7 +177,7 @@
 						<div id="tuning_div" style="padding:0px;" ng-if="view.model.redrawslider==false">
 						<table  cellspacing="0" cellpadding="0" >
 							<tr>
-								<td style="min-width:{{view.model.viewFullApproximation==true ? 64 : 108}}px;max-width:{{view.model.viewFullApproximation==true ? 64 : 108}}px;" data-ng-repeat="consumption in view.model.sliders.consumption" ng-if="view.model.tunemode==1">
+								<td style="min-width:{{view.model.viewFullApproximation==true ? 67 : 108}}px;max-width:{{view.model.viewFullApproximation==true ? 67 : 108}}px;" data-ng-repeat="consumption in view.model.sliders.consumption" ng-if="view.model.tunemode==1">
 									<md-slider-container flex ng-disabled="consumption.enabled == false">
 										<md-input-container>
 											<input flex type="number" ng-model="consumption.value" aria-label="consumption" aria-controls="consumption-slider" >
@@ -185,7 +193,7 @@
 								</td>
 							</tr>
 							<tr >
-								<td style="min-width:{{view.model.viewFullApproximation==true ? 64 : 108}}px;max-width:{{view.model.viewFullApproximation==true ? 64 : 108}}px;" data-ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.tunemode == 2">
+								<td style="min-width:{{view.model.viewFullApproximation==true ? 67 : 108}}px;max-width:{{view.model.viewFullApproximation==true ? 67 : 108}}px;" data-ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.tunemode == 2">
 									<md-slider-container flex ng-disabled="stock.enabled == false">
 										<md-input-container>
 											<input flex type="number" ng-model="stock.value" aria-label="stock" aria-controls="stock-slider" >
@@ -194,7 +202,7 @@
 												      id="stock-slider"
 												      aria-label="stock" class="md-accent"
 												       md-vertical md-range></md-slider>
-									      <h5>{{stock.desc}}</h5>
+										<h5>{{stock.desc}}</h5>
 									</md-slider-container>
 								</td>
 							</tr>
@@ -332,7 +340,7 @@
 									<section >
 										<md-toolbar class="md-warn _md _md-toolbar-transitions">
 											<div class="md-toolbar-tools">
-												<h5 flex md-truncate>Procurement orders ready to send - {{view.model.orders.length}}</h5>
+												<h5 flex >Procurement orders ready to send - {{view.model.orders.length}}</h5>
 												<img src="images/download.png" style="cursor: pointer;" onclick="location.replace('demo-orders?');"/>
 										    </div>
 										</md-toolbar>
@@ -353,7 +361,7 @@
 									<section >
 										<md-toolbar class="md-primary _md _md-toolbar-transitions">
 											<div class="md-toolbar-tools">
-												<h5 flex md-truncate>Output chanel to Customer's infrastructure</h5>
+												<h5 flex >Output chanel to Customer's infrastructure</h5>
 												&nbsp;<img src="images/customer_infr_small.png"/>
 										    </div>
 										</md-toolbar>
@@ -369,14 +377,68 @@
 		      	</md-tab>
 		   	</md-tabs>
 		</md-content>
+		
+		<div style="visibility: hidden" >
+	    	<div class="md-dialog-container" id="panelEditConsumption">
+				<md-dialog aria-label="Edit Consumption">
+				  <form ng-cloak>
+				    <md-toolbar>
+				      <div class="md-toolbar-tools">
+				        <h2>Edit Forecasted Consumption Values</h2>
+				        <span flex></span>
+				        <md-button class="md-icon-button" ng-click="closeEditConsumption($event)">
+				          <md-icon md-svg-src="images/svg/ic_close_white_24px.svg" aria-label="Close dialog"></md-icon>
+				        </md-button>
+				      </div>
+				    </md-toolbar>
+				
+				    <md-dialog-content>
+				      	<div class="md-dialog-content" layout="row">
+				      				<md-checkbox ng-model="view.model.editor.consumption.enabled"></md-checkbox>
+				      				&nbsp;
+				          			<md-input-container class="md-block">
+					      				<label>Average date</label>
+					      				<md-datepicker ng-model="view.model.editor.consumption.point" md-placeholder="Enter date"></md-datepicker>
+					    			</md-input-container>
+					    			&nbsp;
+									<md-input-container class="md-block">
+										<label>Quantity</label>
+										<input type="number" step="100" name="quantity" ng-model="view.model.editor.consumption.value" min="0" max="100000"/>
+									</md-input-container>
+									
+									
+				      
+				      	</div>
+				    </md-dialog-content>
+				
+				    <md-dialog-actions layout="row">
+
+				      <span flex></span>
+				      <md-button class="md-raised md-warn" ng-click="removeEditConsumption($event)" ng-if="view.model.editor.consumption.desc!='new'">
+				       Remove
+				      </md-button>
+				      <md-button class="md-raised md-primary" ng-click="updateEditConsumption($event)" ng-if="view.model.editor.consumption.desc!='new'">
+				       Update
+				      </md-button>
+				      <md-button class="md-raised md-primary" ng-click="insertEditConsumption($event)" ng-if="view.model.editor.consumption.desc=='new'">
+				       Insert
+				      </md-button>				      
+				    </md-dialog-actions>
+				  </form>
+				</md-dialog>
+	    	</div>
+	  	</div>
 	</div>
+	
+	
+
 
 
 	<!--  Angular 1.5 JavaScript -->
 	<script src='js/angular.min.js'></script>
 	<script src='js/angular-animate.min.js'></script>
 	<script src='js/angular-aria.min.js'></script>
-	<script src='js/angular-material.min.js'></script>
+  	<script src="js/angular-material.min.js"></script>
 
 	<!--  ClassHidra Ajax JavaScript -->
 	<script src='js/clAjax.js'></script>
@@ -404,10 +466,11 @@
 		    addRemoveLinks : true,
 		    init: function () {
 		    	this.on('success', function (file, response) {
-		            var model = JSON.parse(response);
+		            var json = JSON.parse(response);
 		            
-		            getScope().view.model.rawdata = model.rawdata;
-		            getScope().view.init(model);
+		            getScope().view.model.rawdata = json.model.rawdata;
+		            getScope().view.init(json);
+		            getScope().view.message();
 
 		        });
 		    	this.on('error', function (file, response) {
@@ -421,10 +484,9 @@
 		    addRemoveLinks : true,
 		    init: function () {
 		    	this.on('success', function (file, response) {
-		            var model = JSON.parse(response);
-		            
-		            getScope().view.model.rawdata = model.rawdata;
-		            getScope().view.init(model);
+		            var json = JSON.parse(response);
+		            getScope().view.init(json);
+		            getScope().view.message();
 
 		        });
 		    	this.on('error', function (file, response) {
@@ -437,11 +499,9 @@
 		    addRemoveLinks : true,
 		    init: function () {
 		    	this.on('success', function (file, response) {
-		            var _this = this;
-		            var model = JSON.parse(response);
-		            
-		            getScope().view.model.rawdata = model.rawdata;
-		            getScope().view.init(model);
+		            var json = JSON.parse(response);
+		            getScope().view.init(json);
+		            getScope().view.message();
 
 		        });
 		    	this.on('error', function (file, response) {
@@ -536,255 +596,22 @@
     }
 
 
-
-	var ServerModel = {
-		rawdata : [],
-		sliders : [],
-		orders : [],
-		selectFixedPeriod: [],
-		selectApproximationType: [],
-		selectApproximationAlgorithm: [],
-		approximationType: 1,
-		fixedPeriod: '',
-		proxy: {},
-		chartsInProgress: false,
-		redrawcharts: false,
-		redraworders: false,
-		redrawslider: false,
-		tunemode: 1,
-		calculatemode: 1,
-		dayFinishDate: 0,
-		chartConsumptionDayInterval: 1,
-		page_tab: 1,
-		quantity: 0.0,
-		fixedQuantity: 0.0,
-		leadDays: 15,
-		itemsForPack: 1,
-		dayStockDelta: 0,
-		forecastingStartDate: '',
-		forecastingFinishDate: '',
-		approximationAlgorithm: '',
-		leastSqDegree: 0,
-		viewFullApproximation: false,
-		uploadType: 'C',
-		startDate: '',
-
-		error : '',
-		warning : '',
-		info : '',
-		success: '',
-
-		init: function(model){
-			json2model(this,model);
-		},
-
-
-		message : function(){
-			if(this.error && this.error!=''){
-
-				getScope().showPopup(null,'Error',this.error);
-				this.error = '';				
-			}
-			if(this.success && this.success!=''){
-				getScope().showPopup(null,'Success',this.success);
-				this.success = '';					
-			}
-			if(this.info && this.info!=''){
-				getScope().showPopup(null,'Info',this.info);
-				this.info = '';				
-			}
-			if(this.warning && this.warning!=''){
-				getScope().showPopup(null,'Warning',this.warning);
-				this.warning = '';
-			}
-		}
-
-	}
-
-	var ViewModel = function(serverModel) {
-		var self = this;
-		self.initialisation = true;
-		self.model = serverModel;
-
-		self.init = function(parsed){
-			self.initialisation = true;
-			try{
-				self.model.init(parsed.model);
-			}catch(e){
-				showException(e);
-			}
-			self.initialisation = false;
-		}
-		
-		self.initMessage = function(parsed){
-			self.initialisation = true;
-			try{
-				self.model.info = parsed.model.info;
-				self.model.error = parsed.model.error;
-				self.model.warning = parsed.model.warning;
-				self.model.success = parsed.model.success;
-				self.message();
-			}catch(e){
-				showException(e);
-			}
-			self.initialisation = false;
-		}		
-
-		self.post = function($http,newValue){
-			if(!self.initialisation){
-
-				$http.post('demo-json', JSON.stringify(newValue)).
-			    success(function(data, status, headers, config) {
-			    	self.init(data);
-			      }).
-			      error(function(data, status, headers, config) {
-			    	  console.log(data);
-			      });
-
-
-			}
-		}
-
-		self.postDirty = function($http,$timeout,newValue){
-			if(!self.initialisation){
-				$http.post('demo-diff', JSON.stringify(newValue)).
-			    success(function(data, status, headers, config) {
-			    	self.initMessage(data);
-			    	if(data.model.redrawcharts)
-			    		self.model.redrawcharts = data.model.redrawcharts;
-			    	if(data.model.redraworders)
-			    		self.model.redraworders = data.model.redraworders;
-			    	if(data.model.redrawslider)
-			    		self.model.redrawslider = data.model.redrawslider;
-			    	if(self.model.approximationType=='4')
-			    		self.model.approximationType='1';
-
-//			    	self.init(data);
-					if(self.model.redraworders==true){
-//						self.model.redraworders=false;
-			    		if(self.model.page_tab==0){
-			    			$http({
-			    	            method : 'GET',
-			    	            url : 'demo-json'
-			    		    }).success(function(data, status, headers, config) {
-								if(data.model.sliders){
-									json2model(self.model.sliders,data.model.sliders);
-//			    		    		self.model.sliders = data.model.sliders;
-								}
-			    		    });
-			    		}
-					}
-					if(self.model.redrawslider==true){
-
-			    		if(self.model.page_tab==1){
-			    			$http({
-			    	            method : 'GET',
-			    	            url : 'demo-json'
-			    		    }).success(function(data, status, headers, config) {
-								if(data.model.sliders){
-									json2model(self.model.sliders,data.model.sliders);
-//			    		    		self.model.sliders = data.model.sliders;
-								}
-								self.model.redrawslider=false;
-			    		    }).error(function(data, status, headers, config) {
-			    		    	self.model.redrawslider=false;
-				    	    });
-			    		}
-
-					}
-			    	if(self.model.redrawcharts==true){
-			    		self.model.redrawcharts=false;
-
-			    		if(self.model.page_tab==1){
-			    			chartInLoad("chartavr_div",true);
-				    		$http({
-				                method : 'GET',
-				                url : 'demo-chartavr'
-				    	    }).success(function(data, status, headers, config) {
-				    	        google.charts.setOnLoadCallback(function() {drawChartAverage(data);});
-								$timeout(
-										function(){
-											self.model.redraworders=false;
-										},
-										500
-								);
-				    	    }).error(function(data, status, headers, config) {
-				    	    	chartInLoad("chartavr_div",false);
-				    	    });
-			    		}
-			    		if(self.model.page_tab==2){
-			    			chartInLoad("chartcons_div",true);
-				    		$http({
-				                method : 'GET',
-				                url : 'demo-chartcons'
-				    	    }).success(function(data, status, headers, config) {
-				    	        google.charts.setOnLoadCallback(function() {drawChartConsumption(data);});
-
-				    	        $http({
-				    	            method : 'GET',
-				    	            url : 'demo-json'
-				    		    }).success(function(data, status, headers, config) {
-									if(data.model.orders){
-										json2model(self.model.orders,data.model.orders);
-//				    		    		self.model.orders = data.model.orders;
-									}
-
-									$timeout(
-											function(){
-												self.model.redraworders=false;
-											},
-											500
-									);
-				    		    });
-				    	    }).error(function(data, status, headers, config) {
-				    	    	chartInLoad("chartcons_div",false);
-				    	    	self.model.redraworders=false;
-				    	    });
-			    		}
-
-			    	}else{
-			    		if(self.model.redraworders==true){
-			    			$http({
-			    	            method : 'GET',
-			    	            url : 'demo-json'
-			    		    }).success(function(data, status, headers, config) {
-//			    		    	getScope().view.init(data);
-								if(data.model.orders)
-			    		    		self.model.orders = data.model.orders;
-								$timeout(
-										function(){
-											self.model.redraworders=false;
-										},
-										500
-								);
-				    	    }).error(function(data, status, headers, config) {
-				    	    	self.model.redraworders=false;
-				    	    });
-			    		}
-			    	}
-			      }).
-			      error(function(data, status, headers, config) {
-			    	  console.log(data);
-			      });
-			}
-		}
-
-		self.getDirty = function(oldModel){
-			var result = [];
-			dirtyModelElements(self,oldModel,result);
-			return result;
-		}
-
-		self.message = function(){
-			self.model.message();
-		}
-	}
-
 	function getScope(){
 		return angular.element(document.getElementById("demo")).scope();
 	}
 
 	var app = angular.module('demoApp', ['ngMaterial']);
+	
+	app.config(function($mdDateLocaleProvider) {
+	    $mdDateLocaleProvider.formatDate = function(date) {
+	        var day = date.getDate();
+	        var monthIndex = date.getMonth();
+	        var year = date.getFullYear();
+
+	        return day + '/' + (monthIndex + 1) + '/' + year;
+
+	      };
+	 });
 
 	app.service('Browsertype', ['$window', function($window) {
 		this.type = function() {
@@ -802,7 +629,221 @@
 
 	app.controller('demoCtrl', function($scope, $http, $browser, $timeout, $mdDialog, Browsertype) {
 
-		$scope.view = new ViewModel(ServerModel);
+		$scope.view = Object.create(GenericViewModel)
+		.extend({
+			initMessage : function(parsed){
+				var self = this;
+				self.initialisation = true;
+				try{
+					self.model.info = parsed.model.info;
+					self.model.error = parsed.model.error;
+					self.model.warning = parsed.model.warning;
+					self.model.success = parsed.model.success;
+					self.message();
+				}catch(e){
+					showException(e);
+				}
+				self.initialisation = false;
+			},
+			post : function($http,newValue){
+				var self = this;
+				if(!self.initialisation){
+
+					$http.post('demo-json', JSON.stringify(newValue)).
+				    success(function(data, status, headers, config) {
+				    	self.init(data);
+				      }).
+				      error(function(data, status, headers, config) {
+				    	  console.log(data);
+				      });
+
+
+				}
+			},
+			postDirty : function($http,$timeout,newValue){
+				var self = this;
+				if(!self.initialisation){
+					$http.post('demo-diff', JSON.stringify(newValue)).
+				    success(function(data, status, headers, config) {
+				    	self.initMessage(data);
+				    	if(data.model.redrawcharts)
+				    		self.model.redrawcharts = data.model.redrawcharts;
+				    	if(data.model.redraworders)
+				    		self.model.redraworders = data.model.redraworders;
+				    	if(data.model.redrawslider)
+				    		self.model.redrawslider = data.model.redrawslider;
+				    	if(self.model.approximationType=='4')
+				    		self.model.approximationType='1';
+
+
+						if(self.model.redraworders==true){
+				    		if(self.model.page_tab==0){
+				    			$http({
+				    	            method : 'GET',
+				    	            url : 'demo-json'
+				    		    }).success(function(data, status, headers, config) {
+									if(data.model.sliders)
+										json2model(self.model.sliders,data.model.sliders);
+									
+				    		    });
+				    		}
+						}
+						if(self.model.redrawslider==true){
+
+				    		if(self.model.page_tab==1){
+				    			$http({
+				    	            method : 'GET',
+				    	            url : 'demo-json'
+				    		    }).success(function(data, status, headers, config) {
+									if(data.model.sliders)
+										json2model(self.model.sliders,data.model.sliders);
+									
+									self.model.redrawslider=false;
+				    		    }).error(function(data, status, headers, config) {
+				    		    	self.model.redrawslider=false;
+					    	    });
+				    		}
+
+						}
+				    	if(self.model.redrawcharts==true){
+				    		self.model.redrawcharts=false;
+
+				    		if(self.model.page_tab==1){
+				    			chartInLoad("chartavr_div",true);
+					    		$http({
+					                method : 'GET',
+					                url : 'demo-chartavr'
+					    	    }).success(function(data, status, headers, config) {
+					    	        google.charts.setOnLoadCallback(function() {drawChartAverage(data);});
+									$timeout(
+											function(){
+												self.model.redraworders=false;
+											},
+											500
+									);
+					    	    }).error(function(data, status, headers, config) {
+					    	    	chartInLoad("chartavr_div",false);
+					    	    });
+				    		}
+				    		if(self.model.page_tab==2){
+				    			chartInLoad("chartcons_div",true);
+					    		$http({
+					                method : 'GET',
+					                url : 'demo-chartcons'
+					    	    }).success(function(data, status, headers, config) {
+					    	        google.charts.setOnLoadCallback(function() {drawChartConsumption(data);});
+
+					    	        $http({
+					    	            method : 'GET',
+					    	            url : 'demo-json'
+					    		    }).success(function(data, status, headers, config) {
+										if(data.model.orders)
+											json2model(self.model.orders,data.model.orders);
+										$timeout(
+												function(){
+													self.model.redraworders=false;
+												},
+												500
+										);
+					    		    });
+					    	    }).error(function(data, status, headers, config) {
+					    	    	chartInLoad("chartcons_div",false);
+					    	    	self.model.redraworders=false;
+					    	    });
+				    		}
+
+				    	}else{
+				    		if(self.model.redraworders==true){
+				    			$http({
+				    	            method : 'GET',
+				    	            url : 'demo-json'
+				    		    }).success(function(data, status, headers, config) {
+									if(data.model.orders)
+										json2model(self.model.orders,data.model.orders);
+									$timeout(
+											function(){
+												self.model.redraworders=false;
+											},
+											500
+									);
+					    	    }).error(function(data, status, headers, config) {
+					    	    	self.model.redraworders=false;
+					    	    });
+				    		}
+				    	}
+				      }).
+				      error(function(data, status, headers, config) {
+				    	  console.log(data);
+				      });
+				}
+			}
+			
+		})
+		.set(
+				Object.create(GenericServerModel)
+				.extend({
+					rawdata : [],
+					sliders : [],
+					orders : [],
+					selectFixedPeriod: [],
+					selectApproximationType: [],
+					selectApproximationAlgorithm: [],
+					approximationType: 1,
+					fixedPeriod: '',
+					proxy: {},
+					chartsInProgress: false,
+					redrawcharts: false,
+					redraworders: false,
+					redrawslider: false,
+					tunemode: 1,
+					calculatemode: 1,
+					dayFinishDate: 0,
+					chartConsumptionDayInterval: 1,
+					page_tab: 1,
+					quantity: 0.0,
+					fixedQuantity: 0.0,
+					leadDays: 15,
+					itemsForPack: 1,
+					dayStockDelta: 0,
+					forecastingStartDate: '',
+					forecastingFinishDate: '',
+					approximationAlgorithm: '',
+					leastSqDegree: 0,
+					viewFullApproximation: false,
+					uploadType: 'C',
+					startDate: '',
+					editor: {
+						consumption: {
+				        	value:0.1,
+				            desc:'?',
+				            enabled:true,
+				            point: new Date(),
+				            pointL: new Date().getTime()
+						}
+					},
+
+
+					message : function(){
+						if(this.error && this.error!=''){
+
+							getScope().showPopup(null,'Error',this.error);
+							this.error = '';				
+						}
+						if(this.success && this.success!=''){
+							getScope().showPopup(null,'Success',this.success);
+							this.success = '';					
+						}
+						if(this.info && this.info!=''){
+							getScope().showPopup(null,'Info',this.info);
+							this.info = '';				
+						}
+						if(this.warning && this.warning!=''){
+							getScope().showPopup(null,'Warning',this.warning);
+							this.warning = '';
+						}
+					}
+				})
+		);
 
 		$scope.selectTabApproximation = function() {
 			$scope.view.model.page_tab = 0;
@@ -820,6 +861,109 @@
 		        .targetEvent(ev)
 		    );
 		};
+		
+		$scope.editConsumption = function(ev, desc) {
+			var key = {value: desc};
+			$http.get('demo-editconsumption?value='+desc).
+		    success(function(data, status, headers, config) {
+		    	getScope().view.model.editor.consumption.desc = data.slider.desc;
+		    	getScope().view.model.editor.consumption.enabled = data.slider.enabled;
+		    	getScope().view.model.editor.consumption.value = data.slider.value;
+		    	getScope().view.model.editor.consumption.pointL = data.slider.pointL;
+		    	getScope().view.model.editor.consumption.point = new Date(getScope().view.model.editor.consumption.pointL);
+				$mdDialog.show({
+				      contentElement: '#panelEditConsumption',
+				      parent: angular.element(document.body),
+				      ariaLabel: 'Edit Consumption',
+				      targetEvent: ev,
+				      clickOutsideToClose: true
+				    });
+
+		      }).
+		      error(function(data, status, headers, config) {
+		    	  console.log(data);
+		      });
+		}
+		
+		$scope.newConsumption = function(ev) {
+		    	getScope().view.model.editor.consumption.desc = 'new';
+		    	getScope().view.model.editor.consumption.enabled = true;
+		    	getScope().view.model.editor.consumption.value = 0;		    	
+		    	getScope().view.model.editor.consumption.point = new Date();
+		    	getScope().view.model.editor.consumption.pointL = new Date().getTime();
+				$mdDialog.show({
+				      contentElement: '#panelEditConsumption',
+				      parent: angular.element(document.body),
+				      ariaLabel: 'Edit Consumption',
+				      targetEvent: ev,
+				      clickOutsideToClose: true
+				    });
+		}		
+		
+		$scope.closeEditConsumption = function(ev) {
+			 $mdDialog.cancel();
+		}
+		
+		$scope.updateEditConsumption = function(ev) {
+			getScope().view.model.editor.consumption.pointL = getScope().view.model.editor.consumption.point.getTime();
+			var key = {value: getScope().view.model.editor.consumption};
+			$http.put('demo-editconsumption', JSON.stringify(key)).
+		    success(function(data, status, headers, config) {
+		    	if(data!='')
+		    		json2model(getScope().view.model.sliders,data.sliders);
+		    	$mdDialog.cancel();
+
+		      }).
+		      error(function(data, status, headers, config) {
+		    	  console.log(data);
+		      });
+			 $mdDialog.cancel();
+		}		
+		
+		$scope.insertEditConsumption = function(ev) {
+			getScope().view.model.editor.consumption.pointL = getScope().view.model.editor.consumption.point.getTime();
+			var key = {value: getScope().view.model.editor.consumption};
+			$http.post('demo-editconsumption', JSON.stringify(key)).
+		    success(function(data, status, headers, config) {
+		    	if(data!='')
+		    		json2model(getScope().view.model.sliders,data.sliders);
+		    	$mdDialog.cancel();
+
+		      }).
+		      error(function(data, status, headers, config) {
+		    	  console.log(data);
+		      });
+			 $mdDialog.cancel();
+		}			
+
+		$scope.removeEditConsumption = function(ev) {
+			getScope().view.model.editor.consumption.pointL = getScope().view.model.editor.consumption.point.getTime();
+			var key = {value: getScope().view.model.editor.consumption};
+			$http({
+			    method: 'DELETE',
+			    url: 'demo-editconsumption',
+			    data: {
+			    	value: getScope().view.model.editor.consumption
+			    },
+			    headers: {
+			        'Content-type': 'application/json;charset=utf-8'
+			    }
+			}).
+
+		    success(function(data, status, headers, config) {
+		    	if(data!='')
+		    		json2model(getScope().view.model.sliders,data.sliders);
+		    	$mdDialog.cancel();
+
+		      }).
+		      error(function(data, status, headers, config) {
+		    	  console.log(data);
+		      });
+			 $mdDialog.cancel();
+		}		
+		
+
+
 	  
 		
 		$scope.selectTabProcessing = function() {
@@ -829,13 +973,11 @@
                 method : 'GET',
                 url : 'demo-chartcons'
     	    }).success(function(data, status, headers, config) {
-//    	        google.charts.load('current', {'packages':['corechart']});
     	        google.charts.setOnLoadCallback(function() {drawChartConsumption(data);});
     	        $http({
     	            method : 'GET',
     	            url : 'demo-json'
     		    }).success(function(data, status, headers, config) {
-//    		    	getScope().view.init(data);
 					if(data.model.orders)
 						getScope().view.model.orders = data.model.orders;
     		    });
@@ -848,7 +990,6 @@
                 method : 'GET',
                 url : 'demo-chartavr'
     	    }).success(function(data, status, headers, config) {
-//    	        google.charts.load('current', {'packages':['corechart']});
     	        google.charts.setOnLoadCallback(function() {drawChartAverage(data);});
     	    });
 		}
@@ -866,11 +1007,11 @@
 	    			if(property &&
 		    				(
 		    					property.indexOf('$$')>=0 ||
-		    					property=='error' ||
-		    					property=='info' ||
-		    					property=='warning'||
-		    					property=='success' ||
-		    					property=='redrawcharts'
+		    					property=='model.error' ||
+		    					property=='model.info' ||
+		    					property=='model.warning'||
+		    					property=='model.success' ||
+		    					property=='model.editor'
 		    				)
 		    			)
 		    				return true;
