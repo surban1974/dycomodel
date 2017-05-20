@@ -24,13 +24,16 @@
 	<div layout="column" layout-fill id="demo" ng-app="demoApp" ng-controller="demoCtrl as mc">
     	<md-toolbar md-medium-tall >
 	   		<div class="md-toolbar-tools">
-		        <h2 flex md-truncate>DYNAMIC CONSUMPTION MODEL <font size="2">[Supported browsers: Google Chrome, Firefox]</font></h2>
+	   			<a target="_newTab" href="https://1drv.ms/p/s!AqaY_8KwOtsMoDteYG3v426kXx2e">
+	   				<img src="images/presentation.png" style="cursor: pointer;" />
+	   			</a>
+		        <h2 flex md-truncate>&nbsp;DYNAMIC CONSUMPTION MODEL <font size="2">[Supported browsers: Google Chrome, Firefox]</font></h2>
 		        <img src="images/download.png" style="cursor: pointer;" onclick="location.replace('demo-model?');"/>
 	    	</div>
 		</md-toolbar>
 	  	<md-content>
 			<md-tabs md-dynamic-height md-border-bottom md-stretch-tabs>
-		    	<md-tab label="STEP 1 - Forecasting" md-on-select="selectTabApproximation()" md-active="view.model.page_tab == 0">
+		    	<md-tab label="STEP 1 - Forecasting & Prediction" md-on-select="selectTabApproximation()" md-active="view.model.page_tab == 0">
 		        	<md-content class="md-padding_">
 		        		<div layout="row">
 		        			<div flex layout-padding >
@@ -168,7 +171,7 @@
 						</div>
 		        	</md-content>
 				</md-tab>
-		      	<md-tab label="STEP 2 - Correction & Prediction" md-on-select="selectTabForecasting()" md-active="view.model.page_tab == 1">
+		      	<md-tab label="STEP 2 - Correction & Model Adjustment" md-on-select="selectTabForecasting()" md-active="view.model.page_tab == 1">
 			    	<md-content class="md-padding">
 			        	<div id="chartavr_div" style="width: 1250px; height: 200px;"></div>
 			        	<div style="width: 1250px; height: 5px;" >
@@ -738,7 +741,7 @@
 					    	            url : 'demo-json'
 					    		    }).success(function(data, status, headers, config) {
 										if(data.model.orders)
-											json2model(self.model.orders,data.model.orders);
+											self.model.orders=data.model.orders;
 										$timeout(
 												function(){
 													self.model.redraworders=false;
@@ -759,7 +762,7 @@
 				    	            url : 'demo-json'
 				    		    }).success(function(data, status, headers, config) {
 									if(data.model.orders)
-										json2model(self.model.orders,data.model.orders);
+										self.model.orders=data.model.orders;
 									$timeout(
 											function(){
 												self.model.redraworders=false;

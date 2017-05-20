@@ -11,7 +11,6 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import it.dycomodel.polynomial.APolynomial;
 import it.dycomodel.polynomial.PolynomialD;
 
 
@@ -94,11 +93,9 @@ public class ApproximationMean implements IApproximation {
 			if(aggr.get(code)!=null){
 				Double meanValue = 0d;
 				if(percPolynomial==null || (percPolynomial!=null && startC.before(startPercentile))){
-					int counter = 0;
-					for(Double current:aggr.get(code)){
+					for(Double current:aggr.get(code))
 						meanValue+=(current);
-						counter++;
-					}
+					
 					meanValue=meanValue/startC.getActualMaximum(Calendar.DAY_OF_MONTH);
 				}else{
 					Double currentShift = percPolynomial.compute((double)startC.getTimeInMillis());
