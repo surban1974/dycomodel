@@ -707,7 +707,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 					this.get_bean(),
 					modelName,
 					parameters);
-			redrawcharts=false;
+			setRedrawcharts(false);
 			redraworders=false;
 			setInfo("");
 			setWarning("");
@@ -721,7 +721,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 							this.get_bean(),
 							modelName
 							);
-			redrawcharts=false;
+			setRedrawcharts(false);
 			redraworders=false;
 			return output;
 		}
@@ -1325,7 +1325,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		if(startDate!=null && this.startDate!=null && this.startDate.compareTo(startDate)!=0){
 			this.startDate = startDate;		
 			setFinishDate(demoFromStartDate(12));
-			this.redrawcharts=true;
+			setRedrawcharts(true);
 		}else
 			this.startDate = startDate;		
 	}
@@ -1409,7 +1409,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 							getStartDate().getTime()+this.dayFinishDate*1000 * 60 * 60 * 24
 							)
 				);
-		this.redrawcharts=true;
+		setRedrawcharts(true);
 
 	}
 
@@ -1421,7 +1421,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 	public void setCalculatemode(int calculatemode) {
 		this.calculatemode = calculatemode;
-		this.redrawcharts=true;
+		setRedrawcharts(true);
 	}
 
 
@@ -1432,7 +1432,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 	public void setChartConsumptionDayInterval(int chartConsumptionDayInterval) {
 		this.chartConsumptionDayInterval = chartConsumptionDayInterval;
-		this.redrawcharts=true;
+		setRedrawcharts(true);
 	}
 
 
@@ -1443,7 +1443,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 	public void setQuantity(double quantity) {
 		this.quantity = quantity;
-		this.redrawcharts=true;
+		setRedrawcharts(true);
 	}
 
 
@@ -1465,7 +1465,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 	public void setFixedQuantity(double fixedQuantity) {
 		this.fixedQuantity = fixedQuantity;
-		this.redrawcharts=true;
+		setRedrawcharts(true);
 	}
 
 	@Serialized
@@ -1491,7 +1491,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		this.leadDays = leadDays;
 		if(getProxy()!=null)
 			getProxy().setLead(new PolynomialD().setConstant(0, this.leadDays));
-		this.redrawcharts=true;
+		setRedrawcharts(true);
 	}
 
 
@@ -1563,7 +1563,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		}
 		
 		
-		this.redrawcharts=true;
+		setRedrawcharts(true);
 	}
 
 
@@ -1676,7 +1676,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 	public void setItemsForPack(int itemsForPack) {
 		this.itemsForPack = itemsForPack;
-		this.redrawcharts=true;
+		setRedrawcharts(true);
 		this.redraworders=true;
 	}
 
@@ -1750,7 +1750,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 						.init(getEnabledConsumption(), getEnabledSecureStock());
 				}
 				
-				this.redrawcharts=true;
+				setRedrawcharts(true);
 				this.redraworders=true;
 			}
 		}
@@ -1766,9 +1766,9 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	public void setViewFullApproximation(boolean viewFullApproximation) {
 		if(this.viewFullApproximation!=viewFullApproximation){
 			this.viewFullApproximation = viewFullApproximation;
-			this.redrawcharts=true;
+//			this.redrawcharts=true;
 			getSliders().init(true);
-			redrawslider=true;
+			this.redrawslider=true;
 		}
 	}
 
@@ -1798,7 +1798,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			getProxy()
 				.setComputingPlugin(new ComputingPolynomialFitter().setDegree(this.leastSqDegree))
 				.init(getEnabledConsumption(), getEnabledSecureStock());
-			this.redrawcharts=true;
+			setRedrawcharts(true);
 			this.redraworders=true;
 		}
 		
