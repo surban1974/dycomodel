@@ -19,7 +19,7 @@ public class ComputingCubicSpline extends ApacheCommonMath implements IComputing
 			
 			final double[][] functions =  cubicSplineInterpolation(adapter.copyTodoubleArray(x), adapter.copyTodoubleArray(y));
 			
-			SortedMap<T, T[]> segments = new TreeMap<T, T[]>();
+			SortedMap<T, T[]> segments = new TreeMap<>();
 			for(int i=0;i<x.length;i++)
 				if(i<functions.length)
 					segments.put(x[i], adapter.copyToTArray(functions[i]));
@@ -41,7 +41,10 @@ public class ComputingCubicSpline extends ApacheCommonMath implements IComputing
 				m[i][j]=0; 
 		}
 		for (int functionNr = 0; functionNr < x.length-1; functionNr++, row += 2) {
-			double p0x = x[functionNr], p0y = y[functionNr], p1x = x[functionNr+1], p1y = y[functionNr+1] ;
+			double p0x = x[functionNr];
+			double p0y = y[functionNr];
+			double p1x = x[functionNr+1];
+			double p1y = y[functionNr+1] ;
 			m[row][functionNr*4+0] = Math.pow(p0x, 3);
 			m[row][functionNr*4+1] = Math.pow(p0x, 2); 
 			m[row][functionNr*4+2] = Math.pow(p0x, 1); 

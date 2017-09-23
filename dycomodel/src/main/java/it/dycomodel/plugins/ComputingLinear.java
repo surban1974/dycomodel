@@ -15,7 +15,7 @@ public class ComputingLinear extends ApacheCommonMath implements IComputing {
 		try{
 			if(x.length<2)
 				return null;
-			SortedMap<T, T[]> segments = new TreeMap<T, T[]>();
+			SortedMap<T, T[]> segments = new TreeMap<>();
 			for(int i=1;i<x.length;i++){
 				double x1=x[i-1].doubleValue();
 				double x2=x[i].doubleValue();

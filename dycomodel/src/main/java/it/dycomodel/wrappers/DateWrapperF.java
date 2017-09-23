@@ -10,7 +10,7 @@ public class DateWrapperF extends ADateWrapper<Float> {
 
 	@Override
 	public IEquation<Float> initEquation() {
-		return new EquationF();
+		return new EquationF().setLogger(logger);
 	}
 	@Override
 	public Float convertValue(Number value){
@@ -18,7 +18,7 @@ public class DateWrapperF extends ADateWrapper<Float> {
 	}
 	@Override
 	protected APolynomial<Float> initAdapter() {
-		return new PolynomialF();
+		return new PolynomialF().setLogger(logger);
 	}
 
 }

@@ -99,12 +99,13 @@ public class PolynomialF extends APolynomial<Float>{
 	}
 
 	@Override
-	public boolean equal(Float value1, Float value2) {
+	public boolean identic(Float value1, Float value2) {
 		if(value1==null || value2==null)
 			return false;
 		else if(value1.floatValue()==value2.floatValue())
 			return true;
-		else return false;					
+		else 
+			return false;					
 	}
 	
 

@@ -41,6 +41,8 @@ import it.classhidra.core.controller.bsController;
 import it.classhidra.core.controller.i_action;
 import it.classhidra.core.controller.i_bean;
 import it.classhidra.core.controller.response_wrapper;
+import it.classhidra.core.tool.exception.bsException;
+import it.classhidra.core.tool.exception.message;
 import it.classhidra.core.tool.util.util_format;
 import it.classhidra.framework.web.beans.option_element;
 import it.classhidra.serialize.Format;
@@ -61,6 +63,7 @@ import it.dycomodel.plugins.ComputingLaguerreComplex;
 import it.dycomodel.plugins.ComputingLinear;
 import it.dycomodel.plugins.ComputingPolynomialFitter;
 import it.dycomodel.polynomial.PolynomialD;
+import it.dycomodel.utils.ILogger;
 import it.dycomodel.utils.Normalizer;
 import it.dycomodel.wrappers.ADateApproximator;
 import it.dycomodel.wrappers.ADateWrapper;
@@ -73,7 +76,6 @@ import it.dycomodel.wrappers.DateWrapperD;
 @Action (
 	path="demo",
 	name="model",
-//	memoryInSession="true",
 	entity=@Entity(
 		property="allway:public"
 	),
@@ -196,6 +198,42 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	
 	@Serialized
 	private String uploadType;	
+	
+	private final transient ILogger logger = new ILogger() {
+
+		private static final long serialVersionUID = 1L;
+
+		@Override
+		public void addThrowable(Throwable t) {
+			if(t!=null)
+				new bsException(t);			
+		}
+		
+		@Override
+		public void addString(String s, String type) {
+			if(s!=null && type!=null)
+				new bsException(s, type);			
+		}
+		
+		@Override
+		public void addParametrized(String s, String type, Map<String, String> parameters) {
+			HashMap<String, String> hParameters = null;
+			if(parameters!=null)
+				hParameters = new HashMap<>(parameters);
+			if(s!=null && type!=null)
+				new bsException(message.decodeParameters(s,hParameters), type);
+		}
+		
+		@Override
+		public void addMessage(String id, String type, Map<String, String> parameters) {
+			HashMap<String, String> hParameters = null;
+			if(parameters!=null)
+				hParameters = new HashMap<>(parameters);
+			if(id!=null && type!=null)
+				bsController.writeLabel(get_bean().getCurrent_auth().get_language(), id, id, hParameters);
+			
+		}
+	};
 
 	public ControllerDemo(){
 		super();
@@ -224,10 +262,9 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 				
 				if(content!=null){
 					
-					InputStream is = null;
+
 			        BufferedReader bfReader = null;
-			        try {
-			            is = new ByteArrayInputStream(content);
+			        try (InputStream is = new ByteArrayInputStream(content);){
 			            bfReader = new BufferedReader(new InputStreamReader(is));
 			            String temp = null;
 			            int row=0;
@@ -248,13 +285,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			            }
 			        } catch (IOException e) {
 			            error= e.toString();
-			        } finally {
-			            try{
-			                if(is != null) is.close();
-			            } catch (Exception ex){
-			                 
-			            }
-			        }
+			        } 
 					
 			        if(newrawdata.size()>0){
 			        	if(rawdata==null)
@@ -778,6 +809,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			
 			setApproximator(
 					new ADateApproximator()
+					.setLogger(logger)
 					.setStartApproximationDate(startAC.getTime())
 					.setFinishApproximationDate(finishAC.getTime())
 					.setStartDate(getStartDate())
@@ -873,6 +905,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			
 			setProxy(
 						new DateWrapperD()
+						.setLogger(logger)
 						.setLead(new PolynomialD().setConstant(0, getLeadDays()))
 						.setComputingPlugin(new ComputingCubicSpline())
 						.init(getConsumption(), getSecureStock())
@@ -908,11 +941,11 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 				if(child_node.getNodeName().equalsIgnoreCase("wrapper")){
 					try{
 						@SuppressWarnings("unchecked")
-						ADateWrapper<Double> newProxy = Class.forName(child_node.getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(ADateWrapper.class).newInstance();
+						ADateWrapper<Double> newProxy = Class.forName(child_node.getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(ADateWrapper.class).newInstance().setLogger(logger);
 						newProxy.init(child_node);
 						copy.setProxy(newProxy);
 					}catch(Exception e){
-						e.printStackTrace();
+						logger.addThrowable(e);
 						error = true;
 					}
 				}else if(child_node.getNodeName().equalsIgnoreCase("baseinfo")){					
@@ -924,84 +957,84 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 								try{
 									copy.setStartAvrDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(child_node1.getFirstChild().getNodeValue()));
 								}catch(Exception e){
-									e.printStackTrace();
+									logger.addThrowable(e);
 									error = true;
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("finishAvrDate")){
 								try{
 									copy.setFinishAvrDate(new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(child_node1.getFirstChild().getNodeValue()));
 								}catch(Exception e){
-									e.printStackTrace();
+									logger.addThrowable(e);
 									error = true;
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("approximator")){
 								try{
-									copy.setApproximator(Class.forName(child_node1.getFirstChild().getNodeValue()).asSubclass(ADateApproximator.class).newInstance());
+									copy.setApproximator(Class.forName(child_node1.getFirstChild().getNodeValue()).asSubclass(ADateApproximator.class).newInstance().setLogger(logger));
 								}catch(Exception e){
-									e.printStackTrace();
+									logger.addThrowable(e);
 									error = true;
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("setAdapter")){
 								try{
 									copy.setSetAdapter(Class.forName(child_node1.getFirstChild().getNodeValue()).asSubclass(ISetAdapter.class).newInstance());
 								}catch(Exception e){
-									e.printStackTrace();
+									logger.addThrowable(e);									
 									error = true;
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("approximationType")){
 								try{
 									copy.setApproximationTypeOnly(Integer.valueOf(child_node1.getFirstChild().getNodeValue()));
 								}catch(Exception e){
-									e.printStackTrace();
+									logger.addThrowable(e);
 									error = true;
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("approximationAlgorithm")){
 								try{
 									copy.setApproximationAlgorithmOnly(child_node1.getFirstChild().getNodeValue());
 								}catch(Exception e){
-									e.printStackTrace();
+									logger.addThrowable(e);
 									error = true;
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("itemsForPack")){
 								try{
 									copy.setItemsForPack(Integer.valueOf(child_node1.getFirstChild().getNodeValue()));
 								}catch(Exception e){
-									e.printStackTrace();
+									logger.addThrowable(e);
 									error = true;
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("dayStockDelta")){
 								try{
 									copy.setDayStockDeltaOnly(Integer.valueOf(child_node1.getFirstChild().getNodeValue()));
 								}catch(Exception e){
-									e.printStackTrace();
+									logger.addThrowable(e);
 									error = true;
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("fixedPeriod")){
 								try{
 									copy.setFixedPeriodOnly(child_node1.getFirstChild().getNodeValue());
 								}catch(Exception e){
-									e.printStackTrace();
+									logger.addThrowable(e);
 									error = true;
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("quantity")){
 								try{
 									copy.setQuantity(Double.valueOf(child_node1.getFirstChild().getNodeValue()));
 								}catch(Exception e){
-									e.printStackTrace();
+									logger.addThrowable(e);
 									error = true;
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("fixedQuantity")){
 								try{
 									copy.setFixedQuantity(Double.valueOf(child_node1.getFirstChild().getNodeValue()));
 								}catch(Exception e){
-									e.printStackTrace();
+									logger.addThrowable(e);
 									error = true;
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("leadDays")){
 								try{
 									copy.setLeadDays(Double.valueOf(child_node1.getFirstChild().getNodeValue()));
 								}catch(Exception e){
-									e.printStackTrace();
+									logger.addThrowable(e);
 									error = true;
 								}
 							}else if(child_node1.getNodeName().equalsIgnoreCase("consumptions")){ 
@@ -1020,7 +1053,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 														try{
 															currentPosition = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(child_node3.getFirstChild().getNodeValue());
 														}catch(Exception e){
-															e.printStackTrace();
+															logger.addThrowable(e);
 														}
 													}else if(child_node3.getNodeName().equalsIgnoreCase("value")){
 														try{
@@ -1032,7 +1065,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 																currentPosition = null;
 															}
 														}catch(Exception e){
-															e.printStackTrace();
+															logger.addThrowable(e);
 														}
 													}
 												}
@@ -1056,7 +1089,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 														try{
 															currentPosition = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(child_node3.getFirstChild().getNodeValue());
 														}catch(Exception e){
-															e.printStackTrace();
+															logger.addThrowable(e);
 														}
 													}else if(child_node3.getNodeName().equalsIgnoreCase("value")){
 														try{
@@ -1068,7 +1101,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 																currentPosition = null;
 															}
 														}catch(Exception e){
-															e.printStackTrace();
+															logger.addThrowable(e);
 														}
 													}
 												}
@@ -1784,10 +1817,8 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 
 
 	public int getLeastSqDegree() {
-		if(getProxy()!=null && getProxy().getComputingPlugin()!=null){
-			if(getProxy().getComputingPlugin() instanceof ComputingPolynomialFitter)
-				return ((ComputingPolynomialFitter)(getProxy().getComputingPlugin())).getDegree();
-		}
+		if(getProxy()!=null && getProxy().getComputingPlugin()!=null && getProxy().getComputingPlugin() instanceof ComputingPolynomialFitter)
+			return ((ComputingPolynomialFitter)(getProxy().getComputingPlugin())).getDegree();
 		return leastSqDegree;
 	}
 

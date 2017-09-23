@@ -26,21 +26,23 @@ package it.dycomodel.utils;
 
 import javax.xml.parsers.*;
 import org.w3c.dom.*;
+import org.xml.sax.SAXException;
+
 import java.io.*;
 
 public class Normalizer {
 	
-public Normalizer() {
+Normalizer() {
 	super();
 }
-public static Document readXML(String uriXML, boolean valid) throws Exception{
+public static Document readXML(String uriXML, boolean valid)  throws IOException, SAXException, ParserConfigurationException{
 	DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 	dbf.setValidating(valid);
 	if(uriXML.toUpperCase().trim().indexOf("HTTP:")==-1){
 		return  dbf.newDocumentBuilder().parse(new File(uriXML));
 	}else return  DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(uriXML);
 }
-public static Document readXMLData(String dataXML, boolean valid) throws Exception{
+public static Document readXMLData(String dataXML, boolean valid)  throws IOException, SAXException, ParserConfigurationException{
 	if(dataXML==null) return null;
 	ByteArrayInputStream xmlSrcStream = new	ByteArrayInputStream(dataXML.getBytes());
 	DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -48,21 +50,22 @@ public static Document readXMLData(String dataXML, boolean valid) throws Excepti
 	return dbf.newDocumentBuilder().parse(xmlSrcStream);
 }
 
-public static Document readXML(String uriXML) throws Exception{
+public static Document readXML(String uriXML) throws IOException, SAXException, ParserConfigurationException{
 	DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 	dbf.setValidating(false);
 	if(uriXML.toUpperCase().trim().indexOf("HTTP:")==-1){
 		return  dbf.newDocumentBuilder().parse(new File(uriXML));
-	}else return  DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(uriXML);
+	}else 
+		return  DocumentBuilderFactory.newInstance().newDocumentBuilder().parse(uriXML);
 }
-public static Document readXMLData(String dataXML) throws Exception{
+public static Document readXMLData(String dataXML)  throws IOException, SAXException, ParserConfigurationException{
 	if(dataXML==null) return null;
 	ByteArrayInputStream xmlSrcStream = new	ByteArrayInputStream(dataXML.getBytes());
 	DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
 		dbf.setValidating(false);
 	return  dbf.newDocumentBuilder().parse(xmlSrcStream);
 }
-public static Document readXMLData(byte[] dataXML) throws Exception{
+public static Document readXMLData(byte[] dataXML)  throws IOException, SAXException, ParserConfigurationException{
 	if(dataXML==null) return null;
 	ByteArrayInputStream xmlSrcStream = new	ByteArrayInputStream(dataXML);
 	DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -83,45 +86,35 @@ public static String removeNonUtf8CompliantCharacters( final String inString ) {
 	return new String( byteArr );
 	}
 
-public static String normalXML (String input, String charSet) {
+public static String normalXML (String inputV, String charSet, ILogger logger) {	
+	if (inputV==null) return "";
 	
-	if (input==null) return input;
-	
-	if(input.indexOf("<![CDATA[")==0){
-		return input;
+	if(inputV.indexOf("<![CDATA[")==0){
+		return inputV;
 	}
-
-/*	
+	String input = inputV;
 	try{
-		if(charSet==null) input = new String(input.getBytes(),"utf8");
-		else input = new String(input.getBytes(),charSet);
+		if(charSet!=null) input = new String(inputV.getBytes(),charSet);
 	}catch(Exception e){
-		input="";
-	}
-*/
-	
-	try{
-		if(charSet!=null) input = new String(input.getBytes(),charSet);
-	}catch(Exception e){
-
+		if(logger!=null)
+			logger.addThrowable(e);
 	}
 
-	String result="";
-	if (input.indexOf("&")>-1 ||
-		input.indexOf("\\")>-1 ||
-		input.indexOf(">")>-1 ||
-		input.indexOf("<")>-1 ||
-		input.indexOf("\"")>-1) { 
+	StringBuilder result=new StringBuilder();
+	if (input.indexOf('&')>-1 ||
+		input.indexOf('\\')>-1 ||
+		input.indexOf('>')>-1 ||
+		input.indexOf('<')>-1 ||
+		input.indexOf('\"')>-1) { 
 
 		for (int i=0;i<input.length();i++) {
-			if (input.charAt(i)=='&') result+="&amp;";
-//			else if (input.charAt(i)=='\'') result+="&apos;";
-			else if (input.charAt(i)=='>') result+="&gt;";
-			else if (input.charAt(i)=='<') result+="&lt;";
-			else if (input.charAt(i)=='"') result+="&quot;";
-			else result+=input.charAt(i);
+			if (input.charAt(i)=='&') result.append("&amp;");
+			else if (input.charAt(i)=='>') result.append("&gt;");
+			else if (input.charAt(i)=='<') result.append("&lt;");
+			else if (input.charAt(i)=='"') result.append("&quot;");
+			else result.append(input.charAt(i));
 		}
-		return result;
+		return result.toString();
 	}
 	else 
 		return input;
@@ -129,12 +122,10 @@ public static String normalXML (String input, String charSet) {
 
 public static String normalASCII(String input){
 	if(input==null || input.length()==0) return "";
-	String result="";
+	StringBuilder result=new StringBuilder();
 	for(int i=0;i<input.length();i++){
 		char c = input.charAt(i); 
 		int ascii = (int)c;
-//		if(ascii!=19 && ascii!=7 && ascii!=25)
-//			result+="&#"+ascii+";";
 		
 		if ((ascii == 0x9) ||
             (ascii == 0xA) ||
@@ -142,40 +133,41 @@ public static String normalASCII(String input){
             ((ascii >= 0x20) && (ascii <= 0xD7FF)) ||
             ((ascii >= 0xE000) && (ascii <= 0xFFFD)) ||
             ((ascii >= 0x10000) && (ascii <= 0x10FFFF))){
-			result+="&#"+ascii+";";
+			result.append("&#"+ascii+";");
         }		
 		
 	}
 	
-	return result;
+	return result.toString();
 	
 }
 
-public static String normalHTML(String input, String charSet) {	
-	if (input==null) return "";
-	
+public static String normalHTML(String inputV, String charSet, ILogger logger) {	
+	if (inputV==null) return "";
+	String input = inputV;
 	try{
-		if(charSet!=null) input = new String(input.getBytes(),charSet);
+		if(charSet!=null) input = new String(inputV.getBytes(),charSet);
 	}catch(Exception e){
-
+		if(logger!=null)
+			logger.addThrowable(e);
 	}
 
-	String result="";
-	if (input.indexOf("&")>-1 ||
-		input.indexOf("\\")>-1 ||
-		input.indexOf(">")>-1 ||
-		input.indexOf("<")>-1 ||
-		input.indexOf("\"")>-1) { 
+	StringBuilder result=new StringBuilder();
+	if (input.indexOf('&')>-1 ||
+		input.indexOf('\\')>-1 ||
+		input.indexOf('>')>-1 ||
+		input.indexOf('<')>-1 ||
+		input.indexOf('\"')>-1) { 
 
 		for (int i=0;i<input.length();i++) {
-			if (input.charAt(i)=='&') result+="&amp;";
-			else if (input.charAt(i)=='\'') result+="&apos;";
-			else if (input.charAt(i)=='>') result+="&gt;";
-			else if (input.charAt(i)=='<') result+="&lt;";
-			else if (input.charAt(i)=='"') result+="&quot;";
-			else result+=input.charAt(i);
+			if (input.charAt(i)=='&') result.append("&amp;");
+			else if (input.charAt(i)=='\'') result.append("&apos;");
+			else if (input.charAt(i)=='>') result.append("&gt;");
+			else if (input.charAt(i)=='<') result.append("&lt;");
+			else if (input.charAt(i)=='"') result.append("&quot;");
+			else result.append(input.charAt(i));
 		}
-		return result;
+		return result.toString();
 	}
 	else 
 		return input;

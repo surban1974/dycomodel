@@ -50,7 +50,6 @@ public abstract class ApacheCommonMath implements IComputing {
 	
 	@Override
 	public <T extends Number> T[] getPolynomialRoots(APolynomial<T> completePolynomial, IEquation<T> incompleteEquation, T startPeriod, T finishPeriod, APolynomial<T> adapter) throws RootSolvingException {
-//		double[] result = new double[0];
 		double initialDelta = 0;
 		double maxInterval = 0;
 		if(incompleteEquation!=null){
@@ -89,8 +88,8 @@ public abstract class ApacheCommonMath implements IComputing {
 			throw new RootSolvingException(e)
 					.setCompletePolynomial(completePolynomial)
 					.setIncompleteEquation(incompleteEquation)
-					.setStartPeriod(startPeriod.doubleValue())
-					.setFinishPeriod(finishPeriod.doubleValue());
+					.setStartPeriod((startPeriod==null)?null:startPeriod.doubleValue())
+					.setFinishPeriod((finishPeriod==null)?null:finishPeriod.doubleValue());
 		}
 		return adapter.initArray(0);
 	}

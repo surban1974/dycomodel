@@ -13,10 +13,13 @@ import org.w3c.dom.NodeList;
 
 import it.dycomodel.equation.AEquation;
 import it.dycomodel.equation.IEquation;
+import it.dycomodel.exceptions.EquationException;
 import it.dycomodel.exceptions.InputParameterException;
+import it.dycomodel.exceptions.PolynomialConstantsException;
+import it.dycomodel.exceptions.WrapperException;
 import it.dycomodel.plugins.IComputing;
 import it.dycomodel.polynomial.APolynomial;
-
+import it.dycomodel.utils.ILogger;
 import it.dycomodel.utils.Normalizer;
 
 public abstract class ADateWrapper<T extends Number> implements Serializable {
@@ -25,13 +28,14 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 
 	
 	protected Date initialDeltaDate;
-	protected IEquation<T> equation;
+	protected transient IEquation<T> equation;
 	protected APolynomial<T> lead;
 	protected IComputing computingPlugin;
+	protected ILogger logger;
 	
 
 
-	public ADateWrapper<T> init(SortedMap<Date, Double> forecastedConsumption, SortedMap<Date, Double> forecastedStock) throws Exception{
+	public ADateWrapper<T> init(SortedMap<Date, Double> forecastedConsumption, SortedMap<Date, Double> forecastedStock) throws EquationException, PolynomialConstantsException{
 		APolynomial<T> adapter = initAdapter();
 		double[][] speed = new double[0][0];
 		double[][] secure = new double[0][0];
@@ -45,7 +49,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 					initialDeltaDate=entry.getKey();
 				
 				
-				speed[count][0] = Double.valueOf((entry.getKey().getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
+				speed[count][0] = ((double)(entry.getKey().getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
 				speed[count][1] = entry.getValue();
 				count++;
 			}
@@ -57,7 +61,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 			int count=0;
 			for(Map.Entry<Date, Double> entry : forecastedStock.entrySet()) {
 				if(speed.length>1 && speed[0][0]<=secure[count][0] && secure[count][0]<=speed[speed.length-1][0]){
-					secure[count][0] = Double.valueOf((entry.getKey().getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
+					secure[count][0] = ((double)(entry.getKey().getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
 					secure[count][1] = entry.getValue();
 				}
 				count++;
@@ -65,6 +69,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		}	
 		
 		equation = initEquation()
+				.setLogger(logger)
 				.setComputingPlugin(computingPlugin)
 				.setAveragePoints(
 						adapter.copyToTArray(speed),
@@ -81,9 +86,9 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 			return null;
 		double solved = 0;
 		if(initialDeltaDate!=null)
-			solved = Double.valueOf((point.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
+			solved = ((double)(point.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
 		else
-			solved = Double.valueOf((point.getTime()) / (1000 * 60 * 60 * 24));
+			solved = ((double)(point.getTime()) / (1000 * 60 * 60 * 24));
 		double solvedLead = 0;
 		if(lead!=null)
 			solvedLead = solved - lead.compute(lead.convertValue(solved)).doubleValue();
@@ -110,11 +115,11 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		double solved = 0;
 		double limit = 0;
 		if(initialDeltaDate!=null){
-			solved = Double.valueOf((date.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
-			limit = Double.valueOf((limitDate.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
+			solved = ((double)(date.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
+			limit = ((double)(limitDate.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
 		}else{
-			solved = Double.valueOf((date.getTime()) / (1000 * 60 * 60 * 24));
-			limit = Double.valueOf((limitDate.getTime()) / (1000 * 60 * 60 * 24));
+			solved = ((double)(date.getTime()) / (1000 * 60 * 60 * 24));
+			limit = ((double)(limitDate.getTime()) / (1000 * 60 * 60 * 24));
 		}
 		if(limit<solved)
 			limit=solved+365;
@@ -159,9 +164,9 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		Double finishPeriod = null;
 		if(initialDeltaDate!=null){
 			if(startDate!=null)
-				startPeriod = Double.valueOf((startDate.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
+				startPeriod = ((double)(startDate.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
 			if(finishDate!=null)
-				finishPeriod = Double.valueOf((finishDate.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));			
+				finishPeriod = ((double)(finishDate.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));			
 		}else
 			startPeriod = 0d;
 		if(startPeriod<0 ||  initialQuantity==null)
@@ -225,45 +230,31 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		Double finishPeriod = null;
 		if(initialDeltaDate!=null){
 			if(startDate!=null)
-				startPeriod = Double.valueOf((startDate.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
+				startPeriod = ((double)(startDate.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));
 			if(point!=null)
-				finishPeriod = Double.valueOf((point.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));			
+				finishPeriod = ((double)(point.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));			
 		}else{
 			if(startDate!=null)
-				startPeriod = Double.valueOf((startDate.getTime()) / (1000 * 60 * 60 * 24));
+				startPeriod = ((double)(startDate.getTime()) / (1000 * 60 * 60 * 24));
 			if(point!=null)
-				finishPeriod = Double.valueOf((point.getTime()) / (1000 * 60 * 60 * 24));			
+				finishPeriod = ((double)(point.getTime()) / (1000 * 60 * 60 * 24));			
 
 		}
+			
 		
-/*		
-		T diff = calc
-				.subtraction(
-						convertValue(processedInitialQuantity),
-						calc
-							.subtraction(
-								equation.getConsumptionIntegral().compute(convertValue(finishPeriod)),
-								equation.getConsumptionIntegral().compute(convertValue(startPeriod))
-							)
-						);
-*/						
-		T diff = equation.computeConsumption(processedInitialQuantity, convertValue(startPeriod), convertValue(finishPeriod));
-				
-		
-		return diff;
+		return equation.computeConsumption(processedInitialQuantity, convertValue(startPeriod), convertValue(finishPeriod));
 	}
 	
 	public T computeSecureStockInPoint(Date point){
 		Double pointPeriod = null;
 		if(initialDeltaDate!=null){
 			if(point!=null)
-				pointPeriod = Double.valueOf((point.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));			
+				pointPeriod = ((double)(point.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));			
 		}else{
 			if(point!=null)
-				pointPeriod = Double.valueOf((point.getTime()) / (1000 * 60 * 60 * 24));			
+				pointPeriod = ((double)(point.getTime()) / (1000 * 60 * 60 * 24));			
 		}
 
-//		return equation.getSecureStock().compute(convertValue(pointPeriod));
 		return equation.compute(AEquation.COMPUTE_STOCK, convertValue(pointPeriod));
 	}
 	
@@ -271,12 +262,11 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		Double pointPeriod = null;
 		if(initialDeltaDate!=null){
 			if(point!=null)
-				pointPeriod = Double.valueOf((point.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));			
+				pointPeriod = ((double)(point.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));			
 		}else{
 			if(point!=null)
-				pointPeriod = Double.valueOf((point.getTime()) / (1000 * 60 * 60 * 24));			
+				pointPeriod = ((double)(point.getTime()) / (1000 * 60 * 60 * 24));			
 		}
-//		return equation.getConsumption().compute(convertValue(pointPeriod));
 		return equation.compute(AEquation.COMPUTE_CONSUMPTION, convertValue(pointPeriod));
 	}	
 
@@ -289,7 +279,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		APolynomial<T> calc = equation.initPolynomial();
 		
 		T division = calc.division(quantity, granulation);
-		if(calc.equal(calc.fractionalPart(division), convertValue(0)))
+		if(calc.identic(calc.fractionalPart(division), convertValue(0)))
 			return quantity;
 		else
 			return calc.multiplication(
@@ -312,7 +302,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		else
 			finishDate=new Date(finishDate.getTime()+30 * 1000 * 60 * 60 * 24);
 		
-		SortedMap<Date, T> result = new TreeMap<Date, T>();
+		SortedMap<Date, T> result = new TreeMap<>();
 		result.putAll(processedOrders);
 		Date current = getFirstPoint(initialQuantity, startDate, finishDate, processedOrders);
 		Date leadCurrent = computeLead(current);
@@ -344,7 +334,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		if(finishDate==null)
 			finishDate=new Date(startDate.getTime()+365 * 1000 * 60 * 60 * 24);
 		
-		SortedMap<Date, T> result = new TreeMap<Date, T>();
+		SortedMap<Date, T> result = new TreeMap<>();
 		result.putAll(processedOrders);
 		
 		Date k0Date = null;
@@ -361,19 +351,12 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 					Double finishPeriod = null;
 					if(initialDeltaDate!=null){
 						if(k0Date!=null)
-							finishPeriod = Double.valueOf((k0Date.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));			
+							finishPeriod = ((double)(k0Date.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));			
 					}else{
 						if(k0Date!=null)
-							finishPeriod = Double.valueOf((k0Date.getTime()) / (1000 * 60 * 60 * 24));			
+							finishPeriod = ((double)(k0Date.getTime()) / (1000 * 60 * 60 * 24));			
 					}
-					
-/*					
-					diff = calc
-							.subtraction(
-								diff,
-								equation.getSecureStock().compute(convertValue(finishPeriod))
-							);
-*/					
+				
 					diff = calc
 							.subtraction(
 								diff,
@@ -408,19 +391,12 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 					Double finishPeriod = null;
 					if(initialDeltaDate!=null){
 						if(k0Date!=null)
-							finishPeriod = Double.valueOf((k1Date.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));			
+							finishPeriod = ((double)(k1Date.getTime() - initialDeltaDate.getTime()) / (1000 * 60 * 60 * 24));			
 					}else{
 						if(k0Date!=null)
-							finishPeriod = Double.valueOf((k1Date.getTime()) / (1000 * 60 * 60 * 24));			
+							finishPeriod = ((double)(k1Date.getTime()) / (1000 * 60 * 60 * 24));			
 					}
-					
-/*					
-					diff = calc
-							.subtraction(
-								diff,
-								equation.getSecureStock().compute(convertValue(finishPeriod))
-							);
-*/
+
 					diff = calc
 							.subtraction(
 								diff,
@@ -477,6 +453,8 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 
 	public ADateWrapper<T> setLead(APolynomial<T> lead) {
 		this.lead = lead;
+		if(this.lead!=null)
+			this.lead.setLogger(logger);
 		return this;
 	}
 
@@ -514,44 +492,47 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 	
 
 	@SuppressWarnings("unchecked")
-	public ADateWrapper<T> init(Node node) throws Exception{
+	public ADateWrapper<T> init(Node node) throws WrapperException{
 		
 		NodeList list = node.getChildNodes();
 		for(int i=0;i<list.getLength();i++){
-			Node child_node = list.item(i);
-			if(child_node.getNodeType()== Node.ELEMENT_NODE){
+			Node childNode = list.item(i);
+			if(childNode.getNodeType()== Node.ELEMENT_NODE){
 				
 				
-				if(child_node.getNodeName().equalsIgnoreCase("initialDeltaDate")){
+				if(childNode.getNodeName().equalsIgnoreCase("initialDeltaDate")){
 					try{
-						this.initialDeltaDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(child_node.getFirstChild().getNodeValue());
+						this.initialDeltaDate = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss").parse(childNode.getFirstChild().getNodeValue());
 					}catch(Exception e){
-						e.printStackTrace();
+						writeLog(e);
 					}
-				}else if(child_node.getNodeName().equalsIgnoreCase("computingPlugin")){
+				}else if(childNode.getNodeName().equalsIgnoreCase("computingPlugin")){
 					try{
-						computingPlugin = Class.forName(child_node.getFirstChild().getNodeValue()).asSubclass(IComputing.class).newInstance();
+						computingPlugin = Class.forName(childNode.getFirstChild().getNodeValue()).asSubclass(IComputing.class).newInstance();
 					}catch(Exception e){
-						e.printStackTrace();
+						writeLog(e);
 					}
-				}else if(child_node.getNodeName().equalsIgnoreCase("lead")){
-					for(int j=0;j<child_node.getChildNodes().getLength();j++){
-						if(child_node.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
+				}else if(childNode.getNodeName().equalsIgnoreCase("lead")){
+					for(int j=0;j<childNode.getChildNodes().getLength();j++){
+						if(childNode.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
 							try{
-								lead = Class.forName(child_node.getChildNodes().item(j).getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(APolynomial.class).newInstance();
-								lead.init(child_node.getChildNodes().item(j));
+								lead = Class.forName(childNode.getChildNodes().item(j).getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(APolynomial.class)
+											.newInstance()
+											.setLogger(logger)
+											.init(childNode.getChildNodes().item(j));
 								break;
 							}catch(Exception e){		
-								e.printStackTrace();
+								writeLog(e);
 							}
 						}
 					}
-				}else if(child_node.getNodeName().equalsIgnoreCase("equation")){
+				}else if(childNode.getNodeName().equalsIgnoreCase("equation")){
 					try{
-						equation = Class.forName(child_node.getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(IEquation.class).newInstance();
-						equation.init(child_node);
+						equation = Class.forName(childNode.getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(IEquation.class)
+											.newInstance()
+											.init(childNode);
 					}catch(Exception e){
-						e.printStackTrace();
+						writeLog(e);
 					}
 				}
 			}
@@ -560,6 +541,16 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 	
 		
 		return this;
+	}
+	
+	public ADateWrapper<T> setLogger(ILogger logger){
+		this.logger = logger;
+		return this;
+	}
+
+	protected void writeLog(Throwable t){
+		if(logger!=null)
+			logger.addThrowable(t);
 	}
 
 }

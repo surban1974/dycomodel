@@ -10,7 +10,7 @@ public class EquationD extends AEquation<Double> {
 
 	@Override
 	public APolynomial<Double> initPolynomial() {		
-		return new PolynomialD();
+		return new PolynomialD().setLogger(logger);
 	}
 
 	@Override

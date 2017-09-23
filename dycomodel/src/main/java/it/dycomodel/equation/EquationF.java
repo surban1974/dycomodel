@@ -10,7 +10,7 @@ public class EquationF extends AEquation<Float> {
 
 	@Override
 	public APolynomial<Float> initPolynomial() {		
-		return new PolynomialF();
+		return new PolynomialF().setLogger(logger);
 	}
 
 	@Override

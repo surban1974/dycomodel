@@ -10,7 +10,7 @@ public class DateWrapperD extends ADateWrapper<Double> {
 
 	@Override
 	public IEquation<Double> initEquation() {
-		return new EquationD();
+		return new EquationD().setLogger(logger);
 	}
 	@Override
 	public Double convertValue(Number value){
@@ -18,7 +18,7 @@ public class DateWrapperD extends ADateWrapper<Double> {
 	}
 	@Override
 	protected APolynomial<Double> initAdapter() {
-		return new PolynomialD();
+		return new PolynomialD().setLogger(logger);
 	}
 
 }

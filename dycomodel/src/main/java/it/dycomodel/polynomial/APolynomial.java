@@ -8,12 +8,14 @@ import java.util.List;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import it.dycomodel.utils.ILogger;
 import it.dycomodel.utils.Normalizer;
+
 
 public abstract class APolynomial<T extends Number> implements Serializable{
 	private static final long serialVersionUID = 1L;
 	protected List<T> constants;
-
+	private ILogger logger;
 
 	
 	public abstract APolynomial<T> additionConstant(int n, T value);
@@ -26,7 +28,7 @@ public abstract class APolynomial<T extends Number> implements Serializable{
 	public abstract T division(T value1, T value2);
 	public abstract T floorPart(T value1);
 	public abstract T fractionalPart(T value1);
-	public abstract boolean equal(T value1, T value2);
+	public abstract boolean identic(T value1, T value2);
 	public abstract T[] initArray(int length);	
 	public abstract T[][] initArray(int length1, int length2);
 	public abstract T convertValue(Number value);
@@ -75,7 +77,7 @@ public abstract class APolynomial<T extends Number> implements Serializable{
 		if(arg==null || arg.getConstants()==null)
 			return null;
 		if(constants==null)
-			constants = new ArrayList<T>();
+			constants = new ArrayList<>();
 		for(int i=0;i<arg.getConstants().size();i++)
 			additionConstant(i, arg.getConstants().get(i));
 		return this;
@@ -85,7 +87,7 @@ public abstract class APolynomial<T extends Number> implements Serializable{
 		if(arg==null || arg.getConstants()==null)
 			return null;
 		if(constants==null)
-			constants = new ArrayList<T>();
+			constants = new ArrayList<>();
 		for(int i=0;i<arg.getConstants().size();i++)
 			subtractionConstant(i, arg.getConstants().get(i));
 		return this;
@@ -93,12 +95,12 @@ public abstract class APolynomial<T extends Number> implements Serializable{
 
 	public APolynomial<T> integral(){
 		if(constants==null)
-			constants = new ArrayList<T>();
+			constants = new ArrayList<>();
 		for(int i=getConstants().size()-1;i>=0;i--){
 			setConstant(i+1, getConstants().get(i));
 			divisionConstant(i+1, convertValue(i+1));
 		}
-		if(constants.size()>0)
+		if(!constants.isEmpty())
 			setConstant(0, convertValue(0));
 		
 		return this;
@@ -106,7 +108,7 @@ public abstract class APolynomial<T extends Number> implements Serializable{
 	
 	public T compute(T arg){
 		if(constants==null)
-			constants = new ArrayList<T>();
+			constants = new ArrayList<>();
 		T result = convertValue(0);
 		for(int i=0;i<getConstants().size();i++){
 			T pow = convertValue(1);
@@ -125,7 +127,7 @@ public abstract class APolynomial<T extends Number> implements Serializable{
 	
 	protected APolynomial<T> normalizeSize(int n){
 		if(constants==null)
-			constants = new ArrayList<T>();
+			constants = new ArrayList<>();
 		while(constants.size()<(n+1)){
 			constants.add(convertValue(0));
 		}
@@ -148,50 +150,56 @@ public abstract class APolynomial<T extends Number> implements Serializable{
 	}
 	
 	public String toString(){
-		String result="";
+		StringBuilder result=new StringBuilder();
 		for(int i=0;i<constants.size();i++){
 			double roundConst = new BigDecimal(constants.get(i).toString()).divide(new BigDecimal(1),6,BigDecimal.ROUND_HALF_UP).doubleValue();
 			if(roundConst>0)
-				result+=" +"+new BigDecimal(constants.get(i).toString()).divide(new BigDecimal(1),6,BigDecimal.ROUND_HALF_UP)+"*x^"+i;
+				result.append(" +"+new BigDecimal(constants.get(i).toString()).divide(new BigDecimal(1),6,BigDecimal.ROUND_HALF_UP)+"*x^"+i);
 			else if(roundConst<0)
-				result+=" "+new BigDecimal(constants.get(i).toString()).divide(new BigDecimal(1),6,BigDecimal.ROUND_HALF_UP)+"*x^"+i;
+				result.append(" "+new BigDecimal(constants.get(i).toString()).divide(new BigDecimal(1),6,BigDecimal.ROUND_HALF_UP)+"*x^"+i);
 		}
-		return result;
+		return result.toString();
 	}
 	
 	public String toXml(int level){
-		String result="";
-		if(constants.size()==0)
-			result+=Normalizer.spaces(level)+"<polynomial provider=\""+this.getClass().getName()+"\"/>\n";
+		StringBuilder result=new StringBuilder();
+		if(!constants.isEmpty())
+			result.append(Normalizer.spaces(level)+"<polynomial provider=\""+this.getClass().getName()+"\"/>\n");
 		else{
-			result+=Normalizer.spaces(level)+"<polynomial provider=\""+this.getClass().getName()+"\">\n";
+			result.append(Normalizer.spaces(level)+"<polynomial provider=\""+this.getClass().getName()+"\">\n");
 			for(int i=0;i<constants.size();i++)
-				result+=Normalizer.spaces(level+1)+"<coefficient position=\""+i+"\">"+constants.get(i).toString()+"</coefficient>\n";		
-			result+=Normalizer.spaces(level)+"</polynomial>\n";
+				result.append(Normalizer.spaces(level+1)+"<coefficient position=\""+i+"\">"+constants.get(i).toString()+"</coefficient>\n");		
+			result.append(Normalizer.spaces(level)+"</polynomial>\n");
 		}
-		return result;
+		return result.toString();
 	}
 	
 	public APolynomial<T> init(Node node){
 		NodeList list = node.getChildNodes();
 		for(int i=0;i<list.getLength();i++){
-			Node child_node = list.item(i);
-			if(child_node.getNodeType()== Node.ELEMENT_NODE){
-				if(child_node.getNodeName().equalsIgnoreCase("coefficient")){
+			Node childNode = list.item(i);
+			if(childNode.getNodeType()== Node.ELEMENT_NODE && childNode.getNodeName().equalsIgnoreCase("coefficient")){
 					try{
 						
 						setConstant(
-								Integer.valueOf(child_node.getAttributes().getNamedItem("position").getNodeValue()),
-								convertValue(Double.valueOf(child_node.getFirstChild().getNodeValue()))								
+								Integer.valueOf(childNode.getAttributes().getNamedItem("position").getNodeValue()),
+								convertValue(Double.valueOf(childNode.getFirstChild().getNodeValue()))								
 						);
 					}catch(Exception e){
-						e.printStackTrace();
+						writeLog(e);
 					}
-				}
 				
 			}
 		}
 		return this;
 	}
-	
+	public APolynomial<T> setLogger(ILogger logger){
+		this.logger = logger;
+		return this;
+	}
+
+	protected void writeLog(Throwable t){
+		if(logger!=null)
+			logger.addThrowable(t);
+	}
 }

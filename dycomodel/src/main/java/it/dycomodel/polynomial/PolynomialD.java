@@ -99,12 +99,13 @@ public class PolynomialD extends APolynomial<Double>{
 	}
 
 	@Override
-	public boolean equal(Double value1, Double value2) {
+	public boolean identic(Double value1, Double value2) {
 		if(value1==null || value2==null)
 			return false;
 		else if(value1.doubleValue()==value2.doubleValue())
 			return true;
-		else return false;					
+		else 
+			return false;					
 	}
 
 

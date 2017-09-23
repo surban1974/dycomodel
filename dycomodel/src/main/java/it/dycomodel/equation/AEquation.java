@@ -9,9 +9,13 @@ import java.util.TreeMap;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
+import it.dycomodel.exceptions.EquationException;
+import it.dycomodel.exceptions.PolynomialConstantsException;
+import it.dycomodel.exceptions.RootSolvingException;
 import it.dycomodel.plugins.ComputingLaguerre;
 import it.dycomodel.plugins.IComputing;
 import it.dycomodel.polynomial.APolynomial;
+import it.dycomodel.utils.ILogger;
 import it.dycomodel.utils.Normalizer;
 
 
@@ -30,7 +34,8 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 	protected APolynomial<T> adapter;
 
 	protected IComputing computingPlugin;
-	protected SortedMap<T, IEquation<T>> segmentEquations;
+	protected transient SortedMap<T, IEquation<T>> segmentEquations;
+	protected ILogger logger;
 	
 	public AEquation(){
 		super();
@@ -41,12 +46,9 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 		incompleteEquation = initPolynomial();	
 		adapter = initPolynomial();
 	}
+
 	
-	public abstract IEquation<T> initEquation();
-	public abstract APolynomial<T> initPolynomial();
-	public abstract APolynomial<T> setConstant(APolynomial<T> polynomial, int n, T value);
-	
-	public IEquation<T> setAveragePoints(T[][] forecastedConsumption, T[][] forecastedStock) throws Exception{
+	public IEquation<T> setAveragePoints(T[][] forecastedConsumption, T[][] forecastedStock) throws EquationException, PolynomialConstantsException{
 		if(computingPlugin==null)
 			computingPlugin = new ComputingLaguerre();
 
@@ -82,7 +84,7 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 		SortedMap<T, T[]> allCoeficients = computingPlugin.getPolynomialCoeficients(xc, yc, adapter);
 		if(allCoeficients!=null && allCoeficients.size()>1){
 			global=false;
-			segmentEquations = new TreeMap<T, IEquation<T>>();
+			segmentEquations = new TreeMap<>();
 			for(Map.Entry<T, T[]> entry : allCoeficients.entrySet()){
 				IEquation<T> segmentE = 
 						initEquation()
@@ -116,7 +118,7 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 		return this;
 	}
 	
-	public IEquation<T> init(T[] coeficientsConsumption, T[] coeficientsStock) throws Exception{
+	public IEquation<T> init(T[] coeficientsConsumption, T[] coeficientsStock) throws EquationException{
 
 
 		if(coeficientsConsumption!=null){
@@ -238,7 +240,7 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 		return null;
 	}	
 
-	public IEquation<T> makeIncompleteEquation() throws Exception{
+	public IEquation<T> makeIncompleteEquation() throws EquationException{
 		if(global)
 			incompleteEquation = initPolynomial()
 						.subtraction(secureStock)
@@ -252,7 +254,7 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 		return this;
 	}
 	
-	public T solveEquation(T initialQuantity, T startPeriod, T finishPeriod) throws Exception{
+	public T solveEquation(T initialQuantity, T startPeriod, T finishPeriod) throws EquationException, RootSolvingException{
 		if(global){
 			if(computingPlugin!=null){	
 				APolynomial<T> computedEquation = 
@@ -305,7 +307,7 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 					
 					IEquation<T> segmentEquation = segmentEquations.get(firstSegmentKey);
 					T solved = segmentEquation.solveEquation(segmentInitialQuantity,segmentStartPeriod, segmentFinishPeriod);
-					if(!adapter.equal(solved, adapter.convertValue(-1)))
+					if(!adapter.identic(solved, adapter.convertValue(-1)))
 						return solved;
 					
 					else{
@@ -369,197 +371,196 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 	}
 	
 	public String toXml(int level){
-		String result="";
-		result+=Normalizer.spaces(level)+"<equation provider=\""+this.getClass().getName()+"\">\n";
+		StringBuilder result=new StringBuilder();
+		result.append(Normalizer.spaces(level)+"<equation provider=\""+this.getClass().getName()+"\">\n");
 		if(consumption!=null){
-			result+=Normalizer.spaces(level+1)+"<consumption>\n";
-			result+=consumption.toXml(level+2);
-			result+=Normalizer.spaces(level+1)+"</consumption>\n";
+			result.append(Normalizer.spaces(level+1)+"<consumption>\n");
+			result.append(consumption.toXml(level+2));
+			result.append(Normalizer.spaces(level+1)+"</consumption>\n");
 		}
 		if(consumptionIntegral!=null){
-			result+=Normalizer.spaces(level+1)+"<consumptionIntegral>\n";
-			result+=consumptionIntegral.toXml(level+2);
-			result+=Normalizer.spaces(level+1)+"</consumptionIntegral>\n";
+			result.append(Normalizer.spaces(level+1)+"<consumptionIntegral>\n");
+			result.append(consumptionIntegral.toXml(level+2));
+			result.append(Normalizer.spaces(level+1)+"</consumptionIntegral>\n");
 		}		
 		if(secureStock!=null){
-			result+=Normalizer.spaces(level+1)+"<secureStock>\n";
-			result+=secureStock.toXml(level+2);
-			result+=Normalizer.spaces(level+1)+"</secureStock>\n";
+			result.append(Normalizer.spaces(level+1)+"<secureStock>\n");
+			result.append(secureStock.toXml(level+2));
+			result.append(Normalizer.spaces(level+1)+"</secureStock>\n");
 		}	
 		if(secureStockIntegral!=null){
-			result+=Normalizer.spaces(level+1)+"<secureStockIntegral>\n";
-			result+=secureStockIntegral.toXml(level+2);
-			result+=Normalizer.spaces(level+1)+"</secureStockIntegral>\n";
+			result.append(Normalizer.spaces(level+1)+"<secureStockIntegral>\n");
+			result.append(secureStockIntegral.toXml(level+2));
+			result.append(Normalizer.spaces(level+1)+"</secureStockIntegral>\n");
 		}
 		if(incompleteEquation!=null){
-			result+=Normalizer.spaces(level+1)+"<incompleteEquation>\n";
-			result+=incompleteEquation.toXml(level+2);
-			result+=Normalizer.spaces(level+1)+"</incompleteEquation>\n";
+			result.append(Normalizer.spaces(level+1)+"<incompleteEquation>\n");
+			result.append(incompleteEquation.toXml(level+2));
+			result.append(Normalizer.spaces(level+1)+"</incompleteEquation>\n");
 		}
-		result+=Normalizer.spaces(level+1)+"<initialDelta>"+initialDelta+"</initialDelta>\n";
-		result+=Normalizer.spaces(level+1)+"<maxInterval>"+maxInterval+"</maxInterval>\n";
-		result+=Normalizer.spaces(level+1)+"<global>"+global+"</global>\n";
+		result.append(Normalizer.spaces(level+1)+"<initialDelta>"+initialDelta+"</initialDelta>\n");
+		result.append(Normalizer.spaces(level+1)+"<maxInterval>"+maxInterval+"</maxInterval>\n");
+		result.append(Normalizer.spaces(level+1)+"<global>"+global+"</global>\n");
 		
 		if(adapter!=null){
-			result+=Normalizer.spaces(level+1)+"<adapter>\n";
-			result+=adapter.toXml(level+2);
-			result+=Normalizer.spaces(level+1)+"</adapter>\n";
+			result.append(Normalizer.spaces(level+1)+"<adapter>\n");
+			result.append(adapter.toXml(level+2));
+			result.append(Normalizer.spaces(level+1)+"</adapter>\n");
 		}
 		if(computingPlugin!=null)
-			result+=Normalizer.spaces(level+1)+"<computingPlugin>"+computingPlugin.getClass().getName()+"</computingPlugin>\n";
+			result.append(Normalizer.spaces(level+1)+"<computingPlugin>"+computingPlugin.getClass().getName()+"</computingPlugin>\n");
 		if(segmentEquations!=null){
-			result+=Normalizer.spaces(level+1)+"<segments>\n";
+			result.append(Normalizer.spaces(level+1)+"<segments>\n");
 			for(Map.Entry<T, IEquation<T>> entry : segmentEquations.entrySet()){
-				result+=Normalizer.spaces(level+2)+"<segment>\n";
-				result+=Normalizer.spaces(level+3)+"<position>"+entry.getKey().doubleValue()+"</position>\n";
-				result+=entry.getValue().toXml(level+3);	
-				result+=Normalizer.spaces(level+2)+"</segment>\n";
+				result.append(Normalizer.spaces(level+2)+"<segment>\n");
+				result.append(Normalizer.spaces(level+3)+"<position>"+entry.getKey().doubleValue()+"</position>\n");
+				result.append(entry.getValue().toXml(level+3));	
+				result.append(Normalizer.spaces(level+2)+"</segment>\n");
 			}
 			
-			result+=Normalizer.spaces(level+1)+"</segments>\n";
+			result.append(Normalizer.spaces(level+1)+"</segments>\n");
 		}
-		result+=Normalizer.spaces(level)+"</equation>\n";
-		return result;
+		result.append(Normalizer.spaces(level)+"</equation>\n");
+		return result.toString();
 	}
 
 	@SuppressWarnings("unchecked")
-	public IEquation<T> init(Node node) throws Exception{
+	public IEquation<T> init(Node node) throws EquationException{
 
 		
-		
+		final String constNodeProvider = "provider";
 		NodeList list = node.getChildNodes();
 		for(int i=0;i<list.getLength();i++){
-			Node child_node = list.item(i);
-			if(child_node.getNodeType()== Node.ELEMENT_NODE){				
-				if(child_node.getNodeName().equalsIgnoreCase("initialDeltaDate")){
+			Node childNode = list.item(i);
+			if(childNode.getNodeType()== Node.ELEMENT_NODE){				
+				if(childNode.getNodeName().equalsIgnoreCase("initialDeltaDate")){
 					try{
-						this.initialDelta = Double.valueOf(child_node.getFirstChild().getNodeValue());
+						this.initialDelta = Double.valueOf(childNode.getFirstChild().getNodeValue());
 					}catch(Exception e){
-						e.printStackTrace();
+						writeLog(e);
 					}
-				}else if(child_node.getNodeName().equalsIgnoreCase("maxInterval")){
+				}else if(childNode.getNodeName().equalsIgnoreCase("maxInterval")){
 					try{
-						this.maxInterval = Double.valueOf(child_node.getFirstChild().getNodeValue());
+						this.maxInterval = Double.valueOf(childNode.getFirstChild().getNodeValue());
 					}catch(Exception e){
-						e.printStackTrace();
+						writeLog(e);
 					}
-				}else if(child_node.getNodeName().equalsIgnoreCase("global")){
+				}else if(childNode.getNodeName().equalsIgnoreCase("global")){
 					try{
-						this.global = Boolean.valueOf(child_node.getFirstChild().getNodeValue());
+						this.global = Boolean.valueOf(childNode.getFirstChild().getNodeValue());
 					}catch(Exception e){
-						e.printStackTrace();
+						writeLog(e);
 					}
-				}else if(child_node.getNodeName().equalsIgnoreCase("computingPlugin")){
+				}else if(childNode.getNodeName().equalsIgnoreCase("computingPlugin")){
 					try{
-						computingPlugin = Class.forName(child_node.getFirstChild().getNodeValue()).asSubclass(IComputing.class).newInstance();
+						computingPlugin = Class.forName(childNode.getFirstChild().getNodeValue()).asSubclass(IComputing.class).newInstance();
 					}catch(Exception e){
-						e.printStackTrace();
+						writeLog(e);
 					}
-				}else if(child_node.getNodeName().equalsIgnoreCase("consumption")){
-					for(int j=0;j<child_node.getChildNodes().getLength();j++){
-						if(child_node.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
+				}else if(childNode.getNodeName().equalsIgnoreCase("consumption")){
+					for(int j=0;j<childNode.getChildNodes().getLength();j++){
+						if(childNode.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
 							try{
-								consumption = Class.forName(child_node.getChildNodes().item(j).getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(APolynomial.class).newInstance();
-								consumption.init(child_node.getChildNodes().item(j));
+								consumption = Class.forName(childNode.getChildNodes().item(j).getAttributes().getNamedItem(constNodeProvider).getNodeValue()).asSubclass(APolynomial.class).newInstance();
+								consumption.init(childNode.getChildNodes().item(j));
 								break;
 							}catch(Exception e){		
-								e.printStackTrace();
+								writeLog(e);
 							}
 						}
 					}
-				}else if(child_node.getNodeName().equalsIgnoreCase("consumptionIntegral")){
-					for(int j=0;j<child_node.getChildNodes().getLength();j++){
-						if(child_node.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
+				}else if(childNode.getNodeName().equalsIgnoreCase("consumptionIntegral")){
+					for(int j=0;j<childNode.getChildNodes().getLength();j++){
+						if(childNode.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
 							try{
-								consumptionIntegral = Class.forName(child_node.getChildNodes().item(j).getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(APolynomial.class).newInstance();
-								consumptionIntegral.init(child_node.getChildNodes().item(j));
+								consumptionIntegral = Class.forName(childNode.getChildNodes().item(j).getAttributes().getNamedItem(constNodeProvider).getNodeValue()).asSubclass(APolynomial.class).newInstance();
+								consumptionIntegral.init(childNode.getChildNodes().item(j));
 								break;
 							}catch(Exception e){		
-								e.printStackTrace();
+								writeLog(e);
 							}
 						}
 					}
-				}else if(child_node.getNodeName().equalsIgnoreCase("secureStock")){
-					for(int j=0;j<child_node.getChildNodes().getLength();j++){
-						if(child_node.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
+				}else if(childNode.getNodeName().equalsIgnoreCase("secureStock")){
+					for(int j=0;j<childNode.getChildNodes().getLength();j++){
+						if(childNode.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
 							try{
-								secureStock = Class.forName(child_node.getChildNodes().item(j).getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(APolynomial.class).newInstance();
-								secureStock.init(child_node.getChildNodes().item(j));
+								secureStock = Class.forName(childNode.getChildNodes().item(j).getAttributes().getNamedItem(constNodeProvider).getNodeValue()).asSubclass(APolynomial.class).newInstance();
+								secureStock.init(childNode.getChildNodes().item(j));
 								break;
 							}catch(Exception e){		
-								e.printStackTrace();
+								writeLog(e);
 							}
 						}
 					}
-				}else if(child_node.getNodeName().equalsIgnoreCase("secureStockIntegral")){
-					for(int j=0;j<child_node.getChildNodes().getLength();j++){
-						if(child_node.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
+				}else if(childNode.getNodeName().equalsIgnoreCase("secureStockIntegral")){
+					for(int j=0;j<childNode.getChildNodes().getLength();j++){
+						if(childNode.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
 							try{
-								secureStockIntegral = Class.forName(child_node.getChildNodes().item(j).getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(APolynomial.class).newInstance();
-								secureStockIntegral.init(child_node.getChildNodes().item(j));
+								secureStockIntegral = Class.forName(childNode.getChildNodes().item(j).getAttributes().getNamedItem(constNodeProvider).getNodeValue()).asSubclass(APolynomial.class).newInstance();
+								secureStockIntegral.init(childNode.getChildNodes().item(j));
 								break;
 							}catch(Exception e){		
-								e.printStackTrace();
+								writeLog(e);
 							}
 						}
 					}
-				}else if(child_node.getNodeName().equalsIgnoreCase("incompleteEquation")){
-					for(int j=0;j<child_node.getChildNodes().getLength();j++){
-						if(child_node.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
+				}else if(childNode.getNodeName().equalsIgnoreCase("incompleteEquation")){
+					for(int j=0;j<childNode.getChildNodes().getLength();j++){
+						if(childNode.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
 							try{
-								incompleteEquation = Class.forName(child_node.getChildNodes().item(j).getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(APolynomial.class).newInstance();
-								incompleteEquation.init(child_node.getChildNodes().item(j));
+								incompleteEquation = Class.forName(childNode.getChildNodes().item(j).getAttributes().getNamedItem(constNodeProvider).getNodeValue()).asSubclass(APolynomial.class).newInstance();
+								incompleteEquation.init(childNode.getChildNodes().item(j));
 								break;
 							}catch(Exception e){		
-								e.printStackTrace();
+								writeLog(e);
 							}
 						}
 					}
-				}else if(child_node.getNodeName().equalsIgnoreCase("adapter")){
-					for(int j=0;j<child_node.getChildNodes().getLength();j++){
-						if(child_node.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
+				}else if(childNode.getNodeName().equalsIgnoreCase("adapter")){
+					for(int j=0;j<childNode.getChildNodes().getLength();j++){
+						if(childNode.getChildNodes().item(j).getNodeType()== Node.ELEMENT_NODE){
 							try{
-								adapter = Class.forName(child_node.getChildNodes().item(j).getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(APolynomial.class).newInstance();
-								adapter.init(child_node.getChildNodes().item(j));
+								adapter = Class.forName(childNode.getChildNodes().item(j).getAttributes().getNamedItem(constNodeProvider).getNodeValue()).asSubclass(APolynomial.class).newInstance();
+								adapter.init(childNode.getChildNodes().item(j));
 								break;
 							}catch(Exception e){		
-								e.printStackTrace();
+								writeLog(e);
 							}
 						}
 					}
-				}else if(child_node.getNodeName().equalsIgnoreCase("segments")){
-					segmentEquations = new TreeMap<T, IEquation<T>>();
+				}else if(childNode.getNodeName().equalsIgnoreCase("segments")){
+					segmentEquations = new TreeMap<>();
 					
-					NodeList segmentslist = child_node.getChildNodes();
+					NodeList segmentslist = childNode.getChildNodes();
 					for(int j=0;j<segmentslist.getLength();j++){
-						Node segmentschild_node = segmentslist.item(j);
-						if(segmentschild_node.getNodeType()== Node.ELEMENT_NODE){
-							if(segmentschild_node.getNodeName().equalsIgnoreCase("segment")){
-								NodeList segmentlist = segmentschild_node.getChildNodes();
+						Node segmentschildNode = segmentslist.item(j);
+						if(segmentschildNode.getNodeType()== Node.ELEMENT_NODE && segmentschildNode.getNodeName().equalsIgnoreCase("segment")){
+								NodeList segmentlist = segmentschildNode.getChildNodes();
 								T currentPosition = null;
 								for(int k=0;k<segmentlist.getLength();k++){
-									Node segmentchild_node = segmentlist.item(k);
-									if(segmentchild_node.getNodeType()== Node.ELEMENT_NODE){										
-										if(segmentchild_node.getNodeName().equalsIgnoreCase("position")){
+									Node segmentchildNode = segmentlist.item(k);
+									if(segmentchildNode.getNodeType()== Node.ELEMENT_NODE){										
+										if(segmentchildNode.getNodeName().equalsIgnoreCase("position")){
 											try{
-												currentPosition = adapter.convertValue(Double.valueOf(segmentchild_node.getFirstChild().getNodeValue()));
+												currentPosition = adapter.convertValue(Double.valueOf(segmentchildNode.getFirstChild().getNodeValue()));
 											}catch(Exception e){
-												e.printStackTrace();
+												writeLog(e);
 											}
-										}else if(segmentchild_node.getNodeName().equalsIgnoreCase("equation")){
+										}else if(segmentchildNode.getNodeName().equalsIgnoreCase("equation")){
 											try{
 												if(currentPosition!=null){
-													IEquation<T> equation = Class.forName(segmentchild_node.getAttributes().getNamedItem("provider").getNodeValue()).asSubclass(IEquation.class).newInstance();
-													equation.init(segmentchild_node);
+													IEquation<T> equation = Class.forName(segmentchildNode.getAttributes().getNamedItem(constNodeProvider).getNodeValue()).asSubclass(IEquation.class).newInstance();
+													equation.init(segmentchildNode);
 													segmentEquations.put(currentPosition, equation);
 													currentPosition = null;
 												}
 											}catch(Exception e){
-												e.printStackTrace();
+												writeLog(e);
 											}
 										}
 									}
-								}
+								
 							}
 						}
 					}
@@ -567,5 +568,15 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 			}
 		}		
 		return this;
+	}
+	
+	public AEquation<T> setLogger(ILogger logger){
+		this.logger = logger;
+		return this;
+	}
+
+	protected void writeLog(Throwable t){
+		if(logger!=null)
+			logger.addThrowable(t);
 	}
 }

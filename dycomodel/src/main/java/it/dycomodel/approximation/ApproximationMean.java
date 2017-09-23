@@ -32,13 +32,12 @@ public class ApproximationMean implements IApproximation {
 	
 	@Override
 	public SortedMap<Date, Double> approximateByYear(SortedMap<Long, Double> rawdata, Date startApproximationDate, Date finishApproximationDate){
-		SortedMap<Date, Double> result = new TreeMap<Date, Double>();
-		return result;
+		return new TreeMap<>();
 	}
 
 	@Override
 	public SortedMap<Date, Double> approximateByMonth(SortedMap<Long, Double> rawdata, Date startApproximationDate, Date finishApproximationDate){
-		SortedMap<Date, Double> result = new TreeMap<Date, Double>();
+		SortedMap<Date, Double> result = new TreeMap<>();
 		
 		startInterval = Calendar.getInstance();
 		startInterval.setTime(startApproximationDate);
@@ -50,7 +49,7 @@ public class ApproximationMean implements IApproximation {
 		finishInterval.set(Calendar.DAY_OF_MONTH, finishInterval.getActualMaximum(Calendar.DAY_OF_MONTH));	
 		finishInterval.set(Calendar.YEAR, finishInterval.get(Calendar.YEAR)-1);
 		
-		Map<Integer, SortedSet<Double>> aggr = new HashMap<Integer, SortedSet<Double>>();
+		Map<Integer, SortedSet<Double>> aggr = new HashMap<>();
 	
 		for(Map.Entry<Long, Double> entry : rawdata.entrySet()) {
 		
@@ -60,7 +59,7 @@ public class ApproximationMean implements IApproximation {
 			if(currentC.after(startInterval) && currentC.before(finishInterval)){
 				int code = getDateAsYYYYMM(currentC.getTime());
 				if(aggr.get(code)==null){
-					SortedSet<Double> set = new TreeSet<Double>();
+					SortedSet<Double> set = new TreeSet<>();
 					set.add(entry.getValue());
 					aggr.put(code, set);
 				}
@@ -99,7 +98,7 @@ public class ApproximationMean implements IApproximation {
 					meanValue=meanValue/startC.getActualMaximum(Calendar.DAY_OF_MONTH);
 				}else{
 					Double currentShift = percPolynomial.compute((double)startC.getTimeInMillis());
-					int start = new Double(currentShift*aggr.get(code).size()).intValue();
+					int start = currentShift.intValue()*aggr.get(code).size();
 					int finish = start+aggr.get(code).size();
 					int counter = 0;
 					int i=0;
@@ -110,7 +109,8 @@ public class ApproximationMean implements IApproximation {
 						}
 						i++;
 					}
-					meanValue=meanValue/(counter*startC.getActualMaximum(Calendar.DAY_OF_MONTH)/aggr.get(code).size());
+					if((double)counter*startC.getActualMaximum(Calendar.DAY_OF_MONTH)!=0 && !aggr.get(code).isEmpty())
+						meanValue=meanValue/((double)counter*startC.getActualMaximum(Calendar.DAY_OF_MONTH)/aggr.get(code).size());
 				}
 				
 				setValue = new BigDecimal(meanValue).setScale(0, RoundingMode.HALF_UP).doubleValue();
@@ -124,15 +124,12 @@ public class ApproximationMean implements IApproximation {
 
 	@Override
 	public SortedMap<Date, Double> approximateByWeek(SortedMap<Long, Double> rawdata, Date startApproximationDate, Date finishApproximationDate){
-		SortedMap<Date, Double> result = new TreeMap<Date, Double>();
-		
-		
-		return result;
+		return new TreeMap<>();
 	}	
 	
 	private int getDateAsYYYYMM(Date current){
 		return 
-				Integer.valueOf(new java.text.SimpleDateFormat("YYYYMM").format(current));
+				Integer.valueOf(new java.text.SimpleDateFormat("yyyyMM").format(current));
 	}
 
 	public Date getStartInterval() {

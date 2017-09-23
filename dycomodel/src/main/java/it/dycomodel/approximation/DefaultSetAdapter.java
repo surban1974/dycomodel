@@ -11,7 +11,7 @@ public class DefaultSetAdapter implements ISetAdapter {
 
 	@Override
 	public SortedMap<Date, Double> adapt(SortedMap<Date, Double> set1) {
-		SortedMap<Date, Double> result = new TreeMap<Date, Double>();
+		SortedMap<Date, Double> result = new TreeMap<>();
 		for(Map.Entry<Date, Double> entry : set1.entrySet()) {
 			result.put(entry.getKey(), entry.getValue()*getDayStockDelta());
 		}

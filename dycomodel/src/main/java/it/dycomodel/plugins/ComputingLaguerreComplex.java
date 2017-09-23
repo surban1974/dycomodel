@@ -38,7 +38,7 @@ public class ComputingLaguerreComplex extends ApacheCommonMath implements ICompu
 							startPeriod.doubleValue()-initialDelta+maxInterval;
 							
 		    Complex[] roots = new LaguerreSolver().solveAllComplex(completePolynomial.toDoubleArray(), min, 100);
-		    List<Double> reals = new ArrayList<Double>();
+		    List<Double> reals = new ArrayList<>();
 		    for(Complex complex: roots){
 		    	if(complex.getImaginary()==0 && complex.getReal()>=min && complex.getReal()<=max && complex.getReal()!=startPeriod.doubleValue())
 		    		reals.add(complex.getReal());
@@ -71,8 +71,8 @@ public class ComputingLaguerreComplex extends ApacheCommonMath implements ICompu
 			throw new RootSolvingException(e)
 					.setCompletePolynomial(completePolynomial)
 					.setIncompleteEquation(incompleteEquation)
-					.setStartPeriod(startPeriod.doubleValue())
-					.setFinishPeriod(finishPeriod.doubleValue());
+					.setStartPeriod((startPeriod==null)?null:startPeriod.doubleValue())
+					.setFinishPeriod((finishPeriod==null)?null:finishPeriod.doubleValue());
 		}
 		return result;
 

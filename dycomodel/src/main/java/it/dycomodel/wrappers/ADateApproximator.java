@@ -10,6 +10,7 @@ import java.util.TreeMap;
 import it.dycomodel.approximation.ApproximationMean;
 import it.dycomodel.approximation.IApproximation;
 import it.dycomodel.approximation.ISetAdapter;
+import it.dycomodel.utils.ILogger;
 
 public class ADateApproximator implements Serializable{
 	private static final long serialVersionUID = 1L;
@@ -26,6 +27,7 @@ public class ADateApproximator implements Serializable{
 	private SortedMap<Date, Double> consumption;
 	private SortedMap<Date, Double> stock;
 	private IApproximation approximation;
+	private ILogger logger;
 	
 
 	public ADateApproximator approximation(SortedMap<Long, Double> rawdata){
@@ -34,7 +36,8 @@ public class ADateApproximator implements Serializable{
 				approximation = new ApproximationMean().init();
 				consumption = approximation.approximateByMonth(rawdata, startApproximationDate, finishApproximationDate);
 				stock = stockAdapter.adapt(consumption);
-			}catch(Exception e){				
+			}catch(Exception e){	
+				writeLog(e);
 			}
 		} else if(type==APPROXIMATION_MEANQ25){
 			try{
@@ -43,7 +46,8 @@ public class ADateApproximator implements Serializable{
 						.setPercentile(0.25, startDate)
 						.approximateByMonth(rawdata, startApproximationDate, finishApproximationDate);
 				stock = stockAdapter.adapt(consumption);
-			}catch(Exception e){				
+			}catch(Exception e){		
+				writeLog(e);
 			}
 		}else if(type==APPROXIMATION_MEANQ75){
 			try{
@@ -52,7 +56,8 @@ public class ADateApproximator implements Serializable{
 						.setPercentile(0.75, startDate)
 						.approximateByMonth(rawdata, startApproximationDate, finishApproximationDate);
 				stock = stockAdapter.adapt(consumption);
-			}catch(Exception e){				
+			}catch(Exception e){	
+				writeLog(e);
 			}
 		}
 		return this;
@@ -97,7 +102,7 @@ public class ADateApproximator implements Serializable{
 	public SortedMap<Date, Double> getForecastedConsumption(int year) {
 		if(consumption==null)
 			return null;
-		SortedMap<Date, Double> result = new TreeMap<Date, Double>();
+		SortedMap<Date, Double> result = new TreeMap<>();
 		for(Map.Entry<Date, Double> entry : consumption.entrySet()) {
 			Calendar currentC = Calendar.getInstance();
 			currentC.setTime(entry.getKey());
@@ -110,7 +115,7 @@ public class ADateApproximator implements Serializable{
 	public SortedMap<Date, Double> getForecastedStock(int year) {
 		if(stock==null)
 			return null;
-		SortedMap<Date, Double> result = new TreeMap<Date, Double>();
+		SortedMap<Date, Double> result = new TreeMap<>();
 		for(Map.Entry<Date, Double> entry : stock.entrySet()) {
 			Calendar currentC = Calendar.getInstance();
 			currentC.setTime(entry.getKey());
@@ -140,6 +145,14 @@ public class ADateApproximator implements Serializable{
 		this.startDate = startDate;
 		return this;
 	}
+	
+	public ADateApproximator setLogger(ILogger logger){
+		this.logger = logger;
+		return this;
+	}
 
-
+	protected void writeLog(Throwable t){
+		if(logger!=null)
+			logger.addThrowable(t);
+	}
 }
