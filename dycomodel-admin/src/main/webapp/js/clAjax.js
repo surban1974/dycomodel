@@ -1,8 +1,8 @@
 /**
 * Name: clAjax.js
-* Version: 1.0.8
+* Version: 1.0.9
 * Creation date: (08/11/2016)
-* Last update: (16/07/2018)
+* Last update: (17/07/2018)
 * @author: Svyatoslav Urbanovych svyatoslav.urbanovych@gmail.com
 */
 (function(factory){
@@ -252,7 +252,12 @@
 				this.ready = _ready;
 				return this;
 			},
-
+			
+			setReady : function(_ready){
+				this.ready = _ready;
+				return this;
+			},
+			
 			setFail : function(_fail){
 				this.fail = _fail;
 				return this;
@@ -381,6 +386,7 @@
 				.setStart(this.start)
 				.setSuccess(this.success)
 				.setRedy(this.ready)
+				.setReady(this.ready)
 				.setFail(this.fail)
 				.setError(this.error)
 				.setFinish(this.finish)
@@ -437,8 +443,8 @@
 					}else
 						e.src = this.url;
 
-					if(this.type && this.type!='')
-						e.type=this.type;
+					if(this.contentType && this.contentType!='')
+						e.type=this.contentType;
 					else
 						e.type='text/javascript';
 
@@ -493,8 +499,8 @@
 					}else
 						e.href = this.url;
 
-					if(this.type && this.type!='')
-						e.type=this.type;
+					if(this.contentType && this.contentType!='')
+						e.type=this.contentType;
 					else
 						e.type='text/css';
 
@@ -1046,10 +1052,10 @@
 				if(!_url)
 					_url = this.url;
 
-			    var getstr = '?';
-			    if(_url.indexOf('?')>-1) getstr='&';
+				
+				var getstr = '';			    
 			    if(this.base64){
-			    	getstr+='$inputBase64=true&';
+			    	getstr='?$inputBase64=true&';
 			    	if(_url.indexOf('?')>-1){
 			        	var urlParameters=_url.substring(_url.indexOf('?')+1,_url.length);
 			        	if(urlParameters.length>0){
@@ -1061,6 +1067,9 @@
 			        		}
 			        	}
 			        }
+			    }else{
+			    	getstr = '?';
+				    if(_url.indexOf('?')>-1) getstr='&';
 			    }
 
 			    if(frm){
@@ -1273,7 +1282,6 @@
 			},
 
 			getParametersAsMpart : function(frm,_url) {
-
 				if(window.FormData){
 					if(!frm)
 						frm = this.form;
