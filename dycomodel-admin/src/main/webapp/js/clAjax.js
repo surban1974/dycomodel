@@ -1,7 +1,8 @@
 /**
 * Name: clAjax.js
-* Version: 1.0.5
+* Version: 1.0.8
 * Creation date: (08/11/2016)
+* Last update: (16/07/2018)
 * @author: Svyatoslav Urbanovych svyatoslav.urbanovych@gmail.com
 */
 (function(factory){
@@ -42,6 +43,7 @@
 		this.contentType = 			(prot)?prot.contentType:null;
 		this.progressWait = 		(prot)?prot.progressWait:null;
 		this.mimeType = 			(prot)?prot.mimeType:null;
+		this.enlargeServerStatus = 	(prot)?((prot.enlargeServerStatus)?prot.enlargeServerStatus:false):false;
 
 		this.start = 				(prot)?prot.start:null;
 
@@ -132,6 +134,7 @@
 				this.contentType=null;
 				this.progressWait=null;
 				this.mimeType=null;
+				this.enlargeServerStatus=false;
 
 				this.start=null;
 				this.success=null;
@@ -227,6 +230,11 @@
 
 			setMimeType : function(_mimeType){
 				this.mimeType = _mimeType;
+				return this;
+			},
+			
+			setEnlargeServerStatus : function(_enlargeServerStatus){
+				this.enlargeServerStatus = _enlargeServerStatus;
 				return this;
 			},
 
@@ -369,6 +377,7 @@
 				.setContentType(this.contentType)
 				.setAsynchronous(this.asynchronous)
 				.setMimeType(this.mimeType)
+				.setEnlargeServerStatus(this.enlargeServerStatus)
 				.setStart(this.start)
 				.setSuccess(this.success)
 				.setRedy(this.ready)
@@ -416,7 +425,11 @@
 					var e = document.createElement('script');
 
 					if(this.base64){
-						var parameters = this.getParametersAsUrl(null,this.url);
+						var parameters = null;
+						if(this.form)
+							parameters = this.getParametersAsUrl(this.form,this.url);
+						else
+							parameters = this.getParametersAsUrl(null,this.url);
 						if(this.url.indexOf('?')>-1)
 							e.src = this.url.substring(0,this.url.indexOf('?'))+parameters;
 						else
@@ -562,10 +575,16 @@
 							.setUrl(this.action)
 							.setMpart(this.getParametersAsMpart(this.form, this.action))
 							.request(this.form.method);
-					}else
-						this
-							.setUrl(this.action+this.getParametersAsUrl(this.form, this.action))
-							.request(this.form.method);
+					}else{
+						if(this.action.indexOf('?')>-1)
+							this
+								.setUrl(this.action.substring(0,this.action.indexOf('?')+1)+this.getParametersAsUrl(this.form, this.action))
+								.request(this.form.method);
+						else
+							this
+								.setUrl(this.action+this.getParametersAsUrl(this.form, this.action))
+								.request(this.form.method);
+					}
 				}
 				return this;
 
@@ -597,10 +616,13 @@
 							urlOnly=this.url;
 						}
 					}
-					if(parametersOnly=='')
-						parametersOnly+='js4ajax=true';
+					if(parametersOnly!='')
+						parametersOnly+='&';
+
+					if(this.base64)
+						parametersOnly+='js4ajax='+base64_encode('true');
 					else
-						parametersOnly+='&js4ajax=true';
+						parametersOnly+='js4ajax=true';
 
 				}else if(this.asJson){
 					if(typeof this.json === 'object')
@@ -617,14 +639,20 @@
 					    		var chunks = urlParameters.split('&');
 					    		for(var c=0; c < chunks.length; c++){
 					    			var split = chunks[c].split('=', 2);
-					    			sendJson[split[0]] = split[1];
+					    			if(this.base64)
+					    				sendJson[split[0]] = base64_encode(split[1]);
+					    			else
+					    				sendJson[split[0]] = split[1];
 					    		}
 					    	}
 						}else{
 							urlOnly=this.url;
 						}
 					}
-					sendJson['js4ajax'] = 'true';
+					if(this.base64)
+						sendJson['js4ajax'] = base64_encode('true');
+					else
+						sendJson['js4ajax'] = 'true';
 
 				}else if(this.asXml){
 
@@ -642,14 +670,20 @@
 					    		var chunks = urlParameters.split('&');
 					    		for(var c=0; c < chunks.length; c++){
 					    			var split = chunks[c].split('=', 2);
-					    			this.mpart.append(split[0], (split[1]));
+					    			if(this.base64)
+					    				this.mpart.append(split[0], base64_encode(split[1]));
+					    			else
+					    				this.mpart.append(split[0], (split[1]));
 					    		}
 					    	}
 						}else{
 							urlOnly=this.url;
 						}
 					}
-					this.mpart.append('js4ajax','true');
+					if(this.base64)
+						this.mpart.append('js4ajax',base64_encode('true'));
+					else
+						this.mpart.append('js4ajax','true');
 				}
 
 
@@ -770,6 +804,19 @@
 
 					    		if (http_request.status == 200 ) {
 					    			statusAccepted = true;
+					    		}else if(	instance.enlargeServerStatus &&
+					    					instance.enlargeServerStatus==true && 
+					    					(	http_request.status == 200 ||
+					    						http_request.status == 201 ||
+					    						http_request.status == 400 ||
+					    						http_request.status == 401 ||
+					    						http_request.status == 404 ||
+					    						http_request.status == 405
+					    					)
+					    			){
+					    			statusAccepted = true;
+								}
+					    		if(statusAccepted){
 					    			if(instance.ready && instance.ready!='')
 				            			_fready = instance.ready;
 					    			if(instance.success && instance.success!='')
@@ -779,9 +826,9 @@
 					    			if(instance.finish && instance.finish!='')
 				            			_ffinish = instance.finish;
 					    			if(instance.error && instance.error!='')
-				            			_ferror = instance.error;
-
+				            			_ferror = instance.error;					    			
 					    		}
+					    		
 					    		if(_facceptableStatus && _facceptableStatus.length>0){
 
 					    		}else if(instance.acceptableStatus && instance.acceptableStatus.length>0){
@@ -1029,9 +1076,21 @@
 							_url.indexOf('?'+element_name+'=')==-1 &&
 							_url.indexOf('&'+element_name+'=')==-1){
 
-								if	(element.type.toUpperCase() == 'TEXT' ||
-							         element.type.toUpperCase() == 'HIDDEN' ||
-							         element.type.toUpperCase() == 'PASSWORD') {
+								if	(	element.type.toUpperCase() == 'TEXT' ||
+										element.type.toUpperCase() == "COLOR" ||
+								        element.type.toUpperCase() == "DATE" ||
+								        element.type.toUpperCase() == "DATETIME-LOCAL" ||
+								        element.type.toUpperCase() == "EMAIL" ||
+								        element.type.toUpperCase() == "MONTH" ||
+								        element.type.toUpperCase() == "NUMBER" ||
+								        element.type.toUpperCase() == "RANGE" ||
+								        element.type.toUpperCase() == "SEARCH" ||
+								        element.type.toUpperCase() == "TEL" ||
+								        element.type.toUpperCase() == "TIME" ||
+								        element.type.toUpperCase() == "URL" ||
+								        element.type.toUpperCase() == "WEEK" ||
+								        element.type.toUpperCase() == 'HIDDEN' ||
+								        element.type.toUpperCase() == 'PASSWORD') {
 									if(this.base64)
 										getstr += element_name + '=' + encodeURIComponent(base64_encode(element.value)) + '&';
 									else
@@ -1105,7 +1164,7 @@
 			    	issue = {};
 
 			    if(this.base64)
-			    	issue[$inputBase64]='true';
+			    	issue['$inputBase64']='true';
 
 			    if(_url.indexOf('?')>-1){
 			    	var urlParameters=_url.substring(_url.indexOf('?')+1,_url.length);
@@ -1138,9 +1197,21 @@
 							_url.indexOf('&'+element_name+'=')==-1){
 
 
-								if	(element.type.toUpperCase() == 'TEXT' ||
-							         element.type.toUpperCase() == 'HIDDEN' ||
-							         element.type.toUpperCase() == 'PASSWORD') {
+								if	(	element.type.toUpperCase() == 'TEXT' ||
+										element.type.toUpperCase() == "COLOR" ||
+								        element.type.toUpperCase() == "DATE" ||
+								        element.type.toUpperCase() == "DATETIME-LOCAL" ||
+								        element.type.toUpperCase() == "EMAIL" ||
+								        element.type.toUpperCase() == "MONTH" ||
+								        element.type.toUpperCase() == "NUMBER" ||
+								        element.type.toUpperCase() == "RANGE" ||
+								        element.type.toUpperCase() == "SEARCH" ||
+								        element.type.toUpperCase() == "TEL" ||
+								        element.type.toUpperCase() == "TIME" ||
+								        element.type.toUpperCase() == "URL" ||
+								        element.type.toUpperCase() == "WEEK" ||
+								        element.type.toUpperCase() == 'HIDDEN' ||
+								        element.type.toUpperCase() == 'PASSWORD') {
 									if(this.base64)
 										issue[element_name ] = base64_encode(element.value);
 									else
@@ -1250,9 +1321,21 @@
 
 
 
-									if	(element.type.toUpperCase() == 'TEXT' ||
-								         element.type.toUpperCase() == 'HIDDEN' ||
-								         element.type.toUpperCase() == 'PASSWORD') {
+									if	(	element.type.toUpperCase() == 'TEXT' ||
+											element.type.toUpperCase() == "COLOR" ||
+									        element.type.toUpperCase() == "DATE" ||
+									        element.type.toUpperCase() == "DATETIME-LOCAL" ||
+									        element.type.toUpperCase() == "EMAIL" ||
+									        element.type.toUpperCase() == "MONTH" ||
+									        element.type.toUpperCase() == "NUMBER" ||
+									        element.type.toUpperCase() == "RANGE" ||
+									        element.type.toUpperCase() == "SEARCH" ||
+									        element.type.toUpperCase() == "TEL" ||
+									        element.type.toUpperCase() == "TIME" ||
+									        element.type.toUpperCase() == "URL" ||
+									        element.type.toUpperCase() == "WEEK" ||
+									        element.type.toUpperCase() == 'HIDDEN' ||
+									        element.type.toUpperCase() == 'PASSWORD') {
 										if(this.base64)
 											formdata.append(element_name, base64_encode(element.value));
 										else
