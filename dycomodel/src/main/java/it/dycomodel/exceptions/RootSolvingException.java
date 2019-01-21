@@ -6,7 +6,7 @@ import it.dycomodel.polynomial.APolynomial;
 public class RootSolvingException extends Exception {
 	private static final long serialVersionUID = 1L;
 	private APolynomial<Number> completePolynomial;
-	private transient IEquation<Number> incompleteEquation;
+	private IEquation<Number> incompleteEquation;
 	private Double startPeriod;
 	private Double finishPeriod;
 

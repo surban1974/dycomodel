@@ -101,7 +101,7 @@
 	<dependency>
 		<groupId>com.github.surban1974.classhidra</groupId>
 		<artifactId>classhidra-base-7</artifactId>
-		<version>1.5.4</version>
+		<version>1.5.5</version>
 	</dependency>
 	
 		<dependency>

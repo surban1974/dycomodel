@@ -28,7 +28,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 
 	
 	protected Date initialDeltaDate;
-	protected transient IEquation<T> equation;
+	protected IEquation<T> equation;
 	protected APolynomial<T> lead;
 	protected IComputing computingPlugin;
 	protected ILogger logger;

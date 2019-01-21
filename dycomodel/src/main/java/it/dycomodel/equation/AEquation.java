@@ -34,7 +34,7 @@ public abstract class AEquation<T extends Number> implements Serializable, IEqua
 	protected APolynomial<T> adapter;
 
 	protected IComputing computingPlugin;
-	protected transient SortedMap<T, IEquation<T>> segmentEquations;
+	protected SortedMap<T, IEquation<T>> segmentEquations;
 	protected ILogger logger;
 	
 	public AEquation(){
