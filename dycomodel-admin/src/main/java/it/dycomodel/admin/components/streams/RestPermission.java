@@ -7,10 +7,8 @@ import java.util.StringTokenizer;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.DatatypeConverter;
 
-import it.classhidra.annotation.elements.Apply_to_action;
-import it.classhidra.annotation.elements.Stream;
-import it.classhidra.annotation.elements.Redirect;
 import it.classhidra.core.controller.bsController;
 import it.classhidra.core.controller.i_stream;
 import it.classhidra.core.controller.redirects;
@@ -19,7 +17,7 @@ import it.classhidra.core.init.auth_init;
 import it.classhidra.core.tool.exception.bsControllerException;
 import it.classhidra.core.tool.exception.bsException;
 import it.classhidra.core.tool.log.stubs.iStub;
-import sun.misc.BASE64Decoder;
+
 
 /*
 @Stream(	
@@ -89,7 +87,7 @@ public class RestPermission extends stream implements i_stream{
 		try{			
 			if(header_auth!=null && header_auth.indexOf("Basic ")==0){
 				header_auth=header_auth.replace("Basic ", "");
-				header_auth = new String(new BASE64Decoder().decodeBuffer(header_auth));
+				header_auth = new String(DatatypeConverter.parseBase64Binary(header_auth));
 				StringTokenizer st = new StringTokenizer(header_auth,":");
 
 				String user = st.nextToken();

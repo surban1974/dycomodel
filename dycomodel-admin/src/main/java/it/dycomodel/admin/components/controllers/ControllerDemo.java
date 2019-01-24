@@ -199,7 +199,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	@Serialized
 	private String uploadType;	
 	
-	private final transient ILogger logger = new ILogger() {
+	private final ILogger logger = new ILogger() {
 
 		private static final long serialVersionUID = 1L;
 
