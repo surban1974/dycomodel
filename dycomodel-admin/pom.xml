@@ -31,7 +31,7 @@
 		<plugin>
 			<groupId>org.codehaus.mojo</groupId>
 		    <artifactId>build-helper-maven-plugin</artifactId>
-		    <version>1.7</version>
+		    <version>3.0.0</version>
 		    <executions>
 		        <execution>
 		            <phase>generate-sources</phase>
@@ -101,7 +101,7 @@
 	<dependency>
 		<groupId>com.github.surban1974.classhidra</groupId>
 		<artifactId>classhidra-base-7</artifactId>
-		<version>1.5.5</version>
+		<version>1.5.6</version>
 	</dependency>
 	
 		<dependency>
