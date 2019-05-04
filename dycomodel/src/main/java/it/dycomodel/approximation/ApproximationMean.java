@@ -11,7 +11,6 @@ import java.util.SortedSet;
 import java.util.TreeMap;
 import java.util.TreeSet;
 
-import it.dycomodel.polynomial.PolynomialD;
 
 
 public class ApproximationMean implements IApproximation {
@@ -68,19 +67,20 @@ public class ApproximationMean implements IApproximation {
 			}
 		}
 		
-		PolynomialD percPolynomial = null;
+//		PolynomialD percPolynomial = null;
 		Calendar startPercentile = Calendar.getInstance();
 		if(startDate!=null){
 			startPercentile.setTime(startDate);
 			startPercentile.set(Calendar.YEAR, startPercentile.get(Calendar.YEAR)-1);
 		}else 
 			startPercentile.setTime(startInterval.getTime());
-		if(percentile!=null && percentile>0){
-			percPolynomial = new PolynomialD();
-			Double m = (percentile-0.5)/(finishInterval.getTimeInMillis()-startPercentile.getTimeInMillis());
-			percPolynomial.setConstant(0, -1*m*startPercentile.getTimeInMillis());
-			percPolynomial.setConstant(1, m);
-		}
+		final double percentileSlope = (percentile==null)?0:(percentile-0.5)/(finishInterval.getTimeInMillis()-startPercentile.getTimeInMillis());
+//		if(percentile!=null && percentile>0){
+//			percPolynomial = new PolynomialD();
+//			Double m = (percentile-0.5)/(finishInterval.getTimeInMillis()-startPercentile.getTimeInMillis());
+//			percPolynomial.setConstant(0, -1*m*startPercentile.getTimeInMillis());
+//			percPolynomial.setConstant(1, m);
+//		}
 		
 		Calendar startC = Calendar.getInstance();
 		startC.setTimeInMillis(startInterval.getTimeInMillis());
@@ -89,8 +89,34 @@ public class ApproximationMean implements IApproximation {
 			int code = getDateAsYYYYMM(startC.getTime());
 			startC.set(Calendar.DAY_OF_MONTH,15);
 			Double setValue = 0d;
-			if(aggr.get(code)!=null){
+			final SortedSet<Double> sortedValues = aggr.get(code);
+			if(sortedValues!=null){
 				Double meanValue = 0d;
+				if(percentileSlope==0 || (percentileSlope!=0  && startC.before(startPercentile))) {
+					for(Double current:sortedValues)
+						meanValue+=(current);
+					
+					meanValue=meanValue/startC.getActualMaximum(Calendar.DAY_OF_MONTH);
+				}else {
+					final double currentShift = percentileSlope*(startC.getTimeInMillis()-startPercentile.getTimeInMillis());
+					int start = Double.valueOf(currentShift*sortedValues.size()).intValue();
+					int finish = start+sortedValues.size();
+					if(start<0)
+						start=0;
+					if(finish>sortedValues.size())
+						finish=sortedValues.size();
+					int i=0;
+					int counter = 0;
+					for(Double current:sortedValues){
+						if(i>=0 && i>=start && i<finish && i<sortedValues.size()){
+							meanValue+=(current);
+							counter++;
+						}
+						i++;
+					}					
+					meanValue=meanValue/(startC.getActualMaximum(Calendar.DAY_OF_MONTH)*counter/sortedValues.size());
+				}
+/*				
 				if(percPolynomial==null || (percPolynomial!=null && startC.before(startPercentile))){
 					for(Double current:aggr.get(code))
 						meanValue+=(current);
@@ -112,7 +138,7 @@ public class ApproximationMean implements IApproximation {
 					if((double)counter*startC.getActualMaximum(Calendar.DAY_OF_MONTH)!=0 && !aggr.get(code).isEmpty())
 						meanValue=meanValue/((double)counter*startC.getActualMaximum(Calendar.DAY_OF_MONTH)/aggr.get(code).size());
 				}
-				
+*/				
 				setValue = new BigDecimal(meanValue).setScale(0, RoundingMode.HALF_UP).doubleValue();
 				
 			}
