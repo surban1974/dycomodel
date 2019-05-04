@@ -41,7 +41,7 @@
 									<md-toolbar class="md-primary _md _md-toolbar-transitions">
 										<div class="md-toolbar-tools">
 											<img src="images/customer_infr_small.png"/>&nbsp;
-											<h5 flex >Input chanel from Customer's infrastructure</h5>
+											<h5 flex >Input chanel from Customers' infrastructure</h5>
 									    </div>
 									</md-toolbar>
 								</section>
@@ -86,18 +86,9 @@
 						<div layout="row">
 							<div flex layout-padding >
 
-								<section>
-									<div id="uploader" action="demo-upload?" class="dropzone needsclick dz-clickable" ng-show="view.model.uploadType == 'C'">
-										<div class="dz-message needsclick" style="font-size: small;">
-										    <i>You can drop files here or click to upload<br>
-										   	<b>Consumption CSV file</b> with 2 column: date and quantity<br>
-										    Example of row: 22/04/2016,25.11<br><br><br></i>
-										    <img src="images/draganddrop.png"/>
-										  </div>									
-										
-									</div> 
+								<section >
  									
-									<div id="uploadermodel" action="demo-uploadmodel?" class="dropzone needsclick dz-clickable" ng-show="view.model.uploadType == 'M'">
+									<div id="uploadermodel" action="demo-uploadmodel?" class="dropzone needsclick dz-clickable" style="min-height: 320px;border: none; background: none;" ng-show="view.model.uploadType == 'M'">
 										<div class="dz-message needsclick" style="font-size: small;">
 										    <i>You can drop files here or click to upload<br>
 										    <b>Dynamic Model XML file</b><br><br><br><br><br></i>
@@ -106,11 +97,21 @@
 										
 									</div> 	
 									
-									<div id="uploaderinventory" action="demo-uploadinventory?" class="dropzone needsclick dz-clickable" ng-show="view.model.uploadType == 'I'">
+									<div id="uploader" action="demo-upload?" class="dropzone needsclick dz-clickable" style="min-height: 320px;border: none; background: none;" ng-show="view.model.uploadType == 'C'" >
+										<div class="dz-message needsclick" style="font-size: small;">
+										    <i>You can drop files here or click to upload<br>
+										   	<b>Consumption CSV file</b> with 2 column: date and quantity<br>
+										    Example of row: 22/04/2016;25.11;<br><br><br></i>
+										    <img src="images/draganddrop.png"/>
+										  </div>									
+										
+									</div> 									
+									
+									<div id="uploaderinventory" action="demo-uploadinventory?" class="dropzone needsclick dz-clickable" style="min-height: 320px;border: none; background: none;" ng-show="view.model.uploadType == 'I'" >
 										<div class="dz-message needsclick" style="font-size: small;">
 										    <i>You can drop files here or click to upload<br>
 										   	<b>Inventory CSV file</b> with 2 column: date and quantity<br>
-										    Example of row: 22/03/2017,1021.40<br><br><br></i>
+										    Example of row: 22/03/2017;1021.40;<br><br><br></i>
 										    <img src="images/draganddrop.png"/>
 										  </div>									
 										
@@ -118,8 +119,8 @@
 									
 									<div flex layout-padding>
 										<md-radio-group ng-model="view.model.uploadType" layout="row">
-											<md-radio-button value="C" class="md-primary">Consum.</md-radio-button>
 											<md-radio-button value="M" class="md-accent">Model</md-radio-button>
+											<md-radio-button value="C" class="md-primary">Consum.</md-radio-button>											
 											<md-radio-button value="I" class="md-accent">Invent.</md-radio-button>
 										</md-radio-group>
 									</div>						
@@ -364,7 +365,7 @@
 									<section >
 										<md-toolbar class="md-primary _md _md-toolbar-transitions">
 											<div class="md-toolbar-tools">
-												<h5 flex >Output chanel to Customer's infrastructure</h5>
+												<h5 flex >Output chanel to Customers' infrastructure</h5>
 												&nbsp;<img src="images/customer_infr_small.png"/>
 										    </div>
 										</md-toolbar>

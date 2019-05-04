@@ -270,7 +270,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			            int row=0;
 			            while(error==null && (temp = bfReader.readLine()) != null){
 			                if(temp.trim().length()>0){
-			                	String[] parts = temp.split(",");
+			                	String[] parts = temp.split(";");
 			                	if(parts.length!=2)
 			                		error="File data format error - row "+row;
 			                	else{
@@ -365,7 +365,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			            int row=0;
 			            while(error==null && (temp = bfReader.readLine()) != null){
 			                if(temp.trim().length()>0){
-			                	String[] parts = temp.split(",");
+			                	String[] parts = temp.split(";");
 			                	if(parts.length!=2)
 			                		error="File data format error - row "+row;
 			                	else{
@@ -494,7 +494,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		StringBuffer buffer = new StringBuffer();
 		for(Map.Entry<Long, Double> entry : rawdata.entrySet()) 
 			buffer.append(
-					new SimpleDateFormat("dd/MM/yyyy").format(new Date(entry.getKey()))+","+entry.getValue()+"\n"
+					new SimpleDateFormat("dd/MM/yyyy").format(new Date(entry.getKey()))+";"+entry.getValue()+";\n"
 			);
 		return new response_wrapper()
 				.setContent(buffer.toString().getBytes())
@@ -525,7 +525,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		StringBuffer buffer = new StringBuffer();
 		for(Map.Entry<Date, Double> entry : computedOrders.entrySet()) 
 			buffer.append(
-					new SimpleDateFormat("dd/MM/yyyy").format(entry.getKey())+","+entry.getValue()+"\n"
+					new SimpleDateFormat("dd/MM/yyyy").format(entry.getKey())+";"+entry.getValue()+";\n"
 			);
 		return new response_wrapper()
 				.setContent(buffer.toString().getBytes())
@@ -705,7 +705,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		byte[] datas = (byte[])request.getAttribute(bsController.CONST_RECOVERED_REQUEST_CONTENT);
 		if(datas!=null){
 			String json = new String(datas);
-			@SuppressWarnings("unchecked")
+
 			Map<String,Object> mapped = new JsonReader2Map().mapping(null, json, null);
 			List<String> parameters = null;
 			if(mapped!=null && mapped.size()>0){

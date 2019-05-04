@@ -70,6 +70,7 @@ public class ControllerItem extends AbstractBase implements i_action, i_bean, Se
 	public void reimposta() {
 		super.reimposta();
 		try{
+			@SuppressWarnings("serial")
 			final SortedMap<Date, Double> speedM16 = new TreeMap<Date, Double>() {{
 				put(new SimpleDateFormat("yyyyMMdd").parse("20160115"),752d);
 				put(new SimpleDateFormat("yyyyMMdd").parse("20160215"),512d);
@@ -92,6 +93,7 @@ public class ControllerItem extends AbstractBase implements i_action, i_bean, Se
 			this.prevbyyears = new TreeMap<String, List<ForecastItem>>();
 			prevbyyears.put("2016", previous);
 			
+			@SuppressWarnings("serial")
 			final SortedMap<Date, Double> speedM15 = new TreeMap<Date, Double>() {{
 				put(new SimpleDateFormat("yyyyMMdd").parse("20150115"),577d);
 				put(new SimpleDateFormat("yyyyMMdd").parse("20150215"),317d);
