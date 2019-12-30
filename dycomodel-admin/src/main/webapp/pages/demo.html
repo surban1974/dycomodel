@@ -176,7 +176,7 @@
 			    	<md-content class="md-padding">
 			        	<div id="chartavr_div" style="width: 1250px; height: 200px;"></div>
 			        	<div style="width: 1250px; height: 5px;" >
-							<md-progress-linear md-mode="indeterminate" ng-if="view.model.redrawslider==true"/>
+							<md-progress-linear md-mode="indeterminate" ng-if="view.model.redrawslider==true || view.model.chartsInProgressAv==true"/>
 						</div>
 						<div id="tuning_div" style="padding:0px;" ng-if="view.model.redrawslider==false">
 						<table  cellspacing="0" cellpadding="0" >
@@ -523,13 +523,19 @@
 			if(inLoad==true){
 //				div.style.opacity = .1;
 //				div.style.filter = "alpha(opacity=10)";
-				getScope().view.model.chartsInProgress=true;
+				if(id=='chartavr_div')
+					getScope().view.model.chartsInProgressAv=true;
+				if(id=='chartcons_div')
+					getScope().view.model.chartsInProgress=true;				
 			}else{
 //				div.style.opacity = 1;
 //				div.style.filter = "alpha(opacity=100)";
 				setTimeout(
 						function(){
-							getScope().view.model.chartsInProgress=false;
+							if(id=='chartavr_div')
+								getScope().view.model.chartsInProgressAv=false;							
+							if(id=='chartcons_div')
+								getScope().view.model.chartsInProgress=false;
 						},
 						50
 				);
@@ -796,6 +802,7 @@
 					fixedPeriod: '',
 					proxy: {},
 					chartsInProgress: false,
+					chartsInProgressAv: false,
 					redrawcharts: false,
 					redraworders: false,
 					redrawslider: false,
@@ -1030,12 +1037,17 @@
 
 	    });
 		if($scope.view.model.page_tab==1){
+			chartInLoad("chartavr_div",true);
 			$http({
 	            method : 'GET',
 	            url : 'demo-chartavr'
 		    }).success(function(data, status, headers, config) {
 		        google.charts.load('current', {'packages':['corechart']});
 		        google.charts.setOnLoadCallback(function() {drawChartAverage(data);});
+		        chartInLoad("chartavr_div",false);
+		    }).error(function(data, status, headers, config) {
+		    	chartInLoad("chartavr_div",false);
+		        console.log(data);
 		    });
 		}
 	});

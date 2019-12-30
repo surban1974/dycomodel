@@ -779,7 +779,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	public void reimposta() {
 		super.reimposta();
 		try{
-			setUploadType("C");
+			setUploadType("M");
 			setStartDate(normalizeDate(new Date()));
 			setFinishDate(demoFromStartDate(12));
 			setStartAvrDate(getStartDate());
