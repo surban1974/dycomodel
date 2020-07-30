@@ -97,19 +97,23 @@
 
 
   <dependencies>
-
+<!-- 
 	<dependency>
 		<groupId>com.github.surban1974.classhidra</groupId>
 		<artifactId>classhidra-base-7</artifactId>
 		<version>1.5.6</version>
 	</dependency>
-	
+ -->	
 		<dependency>
 		    <groupId>org.apache.commons</groupId>
 		    <artifactId>commons-math3</artifactId>
 		    <version>3.6.1</version>
 		</dependency>  
-
+		<dependency>
+		    <groupId>com.eclipsesource.minimal-json</groupId>
+		    <artifactId>minimal-json</artifactId>
+		    <version>0.9.5</version>
+		</dependency>
   </dependencies>
   <description>Dynamic Consumption Modeling</description>
 </project>
