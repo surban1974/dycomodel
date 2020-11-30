@@ -84,10 +84,10 @@ public class TestWrapper {
 		
 
 		
-		SortedMap<Date, Double> fixed = wrapper.getPoints(1000d, 20000d, new SimpleDateFormat("yyyyMMdd").parse("20160120"), new SimpleDateFormat("yyyyMMdd").parse("20161220"), null, 1d);
+		SortedMap<Date, Double> fixed = wrapper.getPoints(1000d, 20000d, 30000d, new SimpleDateFormat("yyyyMMdd").parse("20160120"), new SimpleDateFormat("yyyyMMdd").parse("20161220"), null, 1d);
 		System.out.println(fixed);	
 		
-		SortedMap<Date, Double> fixedD = wrapper.getPoints(1000d, fixedDates, new SimpleDateFormat("yyyyMMdd").parse("20160120"), new SimpleDateFormat("yyyyMMdd").parse("20161220"), processedOrders, true, 1d);
+		SortedMap<Date, Double> fixedD = wrapper.getPoints(1000d, 30000d, fixedDates, new SimpleDateFormat("yyyyMMdd").parse("20160120"), new SimpleDateFormat("yyyyMMdd").parse("20161220"), processedOrders, true, 1d);
 		System.out.println(fixedD);
 		
 //					IEquation<Double> equation = 

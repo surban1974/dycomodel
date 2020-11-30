@@ -663,165 +663,132 @@
 				var self = this;
 				if(!self.initialisation){
 
-					$http.post('demo-json', JSON.stringify(newValue))
-					.then(
-				    		    	function (response){
-				    		    		var data = response.data;
-				    		    		self.init(data);
-				    		    	},
-				    		    	function (response){
-				    		    		var data = response.data;
-				    		    		console.log(data);
-				    		    	}
-				    		    );
+					$http.post('demo-json', JSON.stringify(newValue)).
+				    success(function(data, status, headers, config) {
+				    	self.init(data);
+				      }).
+				      error(function(data, status, headers, config) {
+				    	  console.log(data);
+				      });
+
+
 				}
 			},
 			postDirty : function($http,$timeout,newValue){
 				var self = this;
 				if(!self.initialisation){
-					$http.post('demo-diff', JSON.stringify(newValue))
-					.then(
-	    		    	function (response){
-	    		    		var data = response.data;
-					    	self.initMessage(data);
-					    	if(data.model.redrawcharts)
-					    		self.model.redrawcharts = data.model.redrawcharts;
-					    	if(data.model.redraworders)
-					    		self.model.redraworders = data.model.redraworders;
-					    	if(data.model.redrawslider)
-					    		self.model.redrawslider = data.model.redrawslider;
-					    	if(self.model.approximationType=='4')
-					    		self.model.approximationType='1';
+					$http.post('demo-diff', JSON.stringify(newValue)).
+				    success(function(data, status, headers, config) {
+				    	self.initMessage(data);
+				    	if(data.model.redrawcharts)
+				    		self.model.redrawcharts = data.model.redrawcharts;
+				    	if(data.model.redraworders)
+				    		self.model.redraworders = data.model.redraworders;
+				    	if(data.model.redrawslider)
+				    		self.model.redrawslider = data.model.redrawslider;
+				    	if(self.model.approximationType=='4')
+				    		self.model.approximationType='1';
 
 
-							if(self.model.redraworders==true){
-					    		if(self.model.page_tab==0){
-					    			$http({
+						if(self.model.redraworders==true){
+				    		if(self.model.page_tab==0){
+				    			$http({
+				    	            method : 'GET',
+				    	            url : 'demo-json'
+				    		    }).success(function(data, status, headers, config) {
+									if(data.model.sliders)
+										json2model(self.model.sliders,data.model.sliders);
+									
+				    		    });
+				    		}
+						}
+						if(self.model.redrawslider==true){
+
+				    		if(self.model.page_tab==1){
+				    			$http({
+				    	            method : 'GET',
+				    	            url : 'demo-json'
+				    		    }).success(function(data, status, headers, config) {
+									if(data.model.sliders)
+										json2model(self.model.sliders,data.model.sliders);
+									
+									self.model.redrawslider=false;
+				    		    }).error(function(data, status, headers, config) {
+				    		    	self.model.redrawslider=false;
+					    	    });
+				    		}
+
+						}
+				    	if(self.model.redrawcharts==true){
+				    		self.model.redrawcharts=false;
+
+				    		if(self.model.page_tab==1){
+				    			chartInLoad("chartavr_div",true);
+					    		$http({
+					                method : 'GET',
+					                url : 'demo-chartavr'
+					    	    }).success(function(data, status, headers, config) {
+					    	        google.charts.setOnLoadCallback(function() {drawChartAverage(data);});
+									$timeout(
+											function(){
+												self.model.redraworders=false;
+											},
+											500
+									);
+					    	    }).error(function(data, status, headers, config) {
+					    	    	chartInLoad("chartavr_div",false);
+					    	    });
+				    		}
+				    		if(self.model.page_tab==2){
+				    			chartInLoad("chartcons_div",true);
+					    		$http({
+					                method : 'GET',
+					                url : 'demo-chartcons'
+					    	    }).success(function(data, status, headers, config) {
+					    	        google.charts.setOnLoadCallback(function() {drawChartConsumption(data);});
+
+					    	        $http({
 					    	            method : 'GET',
 					    	            url : 'demo-json'
-					    		    }).then(
-					    		    	function (response){
-					    		    		var data = response.data;
-					    		    		if(data.model.sliders)
-												json2model(self.model.sliders,data.model.sliders);
-					    		    	},
-					    		    	function (response){
-					    		    	}
-					    		    );	
-					    		}
-							}
-							if(self.model.redrawslider==true){
+					    		    }).success(function(data, status, headers, config) {
+										if(data.model.orders)
+											self.model.orders=data.model.orders;
+										$timeout(
+												function(){
+													self.model.redraworders=false;
+												},
+												500
+										);
+					    		    });
+					    	    }).error(function(data, status, headers, config) {
+					    	    	chartInLoad("chartcons_div",false);
+					    	    	self.model.redraworders=false;
+					    	    });
+				    		}
 
-					    		if(self.model.page_tab==1){
-					    			$http({
-					    	            method : 'GET',
-					    	            url : 'demo-json'
-					    		    }).then(
-						    		    	function (response){
-						    		    		var data = response.data;
-												if(data.model.sliders)
-													json2model(self.model.sliders,data.model.sliders);
-												
-												self.model.redrawslider=false;
-						    		    	},
-						    		    	function (response){
-						    		    		self.model.redrawslider=false;
-						    		    	}
-						    		    );				    		    
-						    		}
-
-							}
-					    	if(self.model.redrawcharts==true){
-					    		self.model.redrawcharts=false;
-
-					    		if(self.model.page_tab==1){
-					    			chartInLoad("chartavr_div",true);
-						    		$http({
-						                method : 'GET',
-						                url : 'demo-chartavr'
-						    	    })
-									.then(
-					    		    	function (response){
-					    		    		var data = response.data;
-					    		    		google.charts.setOnLoadCallback(function() {drawChartAverage(data);});
-											$timeout(
-													function(){
-														self.model.redraworders=false;
-													},
-													500
-											);
-					    		    	},
-					    		    	function (response){
-					    		    		chartInLoad("chartavr_div",false);
-					    		    	}
-					    		    );						    	    
-
-					    		}
-					    		if(self.model.page_tab==2){
-					    			chartInLoad("chartcons_div",true);
-						    		$http({
-						                method : 'GET',
-						                url : 'demo-chartcons'
-						    	    }).then(
-						    		    	function (response){
-						    		    		var data = response.data;
-								    	        google.charts.setOnLoadCallback(function() {drawChartConsumption(data);});
-
-								    	        $http({
-								    	            method : 'GET',
-								    	            url : 'demo-json'
-								    		    }).then(
-									    		    	function (response){
-									    		    		var data = response.data;
-									    		    		if(data.model.orders)
-																self.model.orders=data.model.orders;
-															$timeout(
-																	function(){
-																		self.model.redraworders=false;
-																	},
-																	500
-															);
-									    		    	},
-									    		    	function (response){
-									    		    	}
-									    		    );
-						    		    	},
-						    		    	function (response){
-						    		    		chartInLoad("chartcons_div",false);
-								    	    	self.model.redraworders=false;
-						    		    	}
-						    		    );
-					    		}
-
-					    	}else{
-					    		if(self.model.redraworders==true){
-					    			$http({
-					    	            method : 'GET',
-					    	            url : 'demo-json'
-					    		    }).then(
-						    		    	function (response){
-						    		    		var data = response.data;
-						    		    		if(data.model.orders)
-													self.model.orders=data.model.orders;
-												$timeout(
-														function(){
-															self.model.redraworders=false;
-														},
-														500
-												);
-						    		    	},
-						    		    	function (response){
-						    		    		self.model.redraworders=false;
-						    		    	}
-						    		    );
-					    		}
-					    	}
-	    		    	},
-	    		    	function (response){
-	    		    		var data = response.data;
-	    		    		 console.log(data);
-	    		    	}
-	    		    );
+				    	}else{
+				    		if(self.model.redraworders==true){
+				    			$http({
+				    	            method : 'GET',
+				    	            url : 'demo-json'
+				    		    }).success(function(data, status, headers, config) {
+									if(data.model.orders)
+										self.model.orders=data.model.orders;
+									$timeout(
+											function(){
+												self.model.redraworders=false;
+											},
+											500
+									);
+					    	    }).error(function(data, status, headers, config) {
+					    	    	self.model.redraworders=false;
+					    	    });
+				    		}
+				    	}
+				      }).
+				      error(function(data, status, headers, config) {
+				    	  console.log(data);
+				      });
 				}
 			}
 			
@@ -913,29 +880,25 @@
 		
 		$scope.editConsumption = function(ev, desc) {
 			var key = {value: desc};
-			$http.get('demo-editconsumption?value='+desc)
-			.then(
-   		    	function (response){
-   		    		var data = response.data;
-   			    	getScope().view.model.editor.consumption.desc = data.slider.desc;
-   			    	getScope().view.model.editor.consumption.enabled = data.slider.enabled;
-   			    	getScope().view.model.editor.consumption.value = data.slider.value;
-   			    	getScope().view.model.editor.consumption.pointL = data.slider.pointL;
-   			    	getScope().view.model.editor.consumption.point = new Date(getScope().view.model.editor.consumption.pointL);
-   					$mdDialog.show({
-   					      contentElement: '#panelEditConsumption',
-   					      parent: angular.element(document.body),
-   					      ariaLabel: 'Edit Consumption',
-   					      targetEvent: ev,
-   					      clickOutsideToClose: true
-   					    });
-   		    	},
-   		    	function (response){
-   		    		var data = response.data;
-   		    		console.log(data);
-   		    	}
-   		    );			
+			$http.get('demo-editconsumption?value='+desc).
+		    success(function(data, status, headers, config) {
+		    	getScope().view.model.editor.consumption.desc = data.slider.desc;
+		    	getScope().view.model.editor.consumption.enabled = data.slider.enabled;
+		    	getScope().view.model.editor.consumption.value = data.slider.value;
+		    	getScope().view.model.editor.consumption.pointL = data.slider.pointL;
+		    	getScope().view.model.editor.consumption.point = new Date(getScope().view.model.editor.consumption.pointL);
+				$mdDialog.show({
+				      contentElement: '#panelEditConsumption',
+				      parent: angular.element(document.body),
+				      ariaLabel: 'Edit Consumption',
+				      targetEvent: ev,
+				      clickOutsideToClose: true
+				    });
 
+		      }).
+		      error(function(data, status, headers, config) {
+		    	  console.log(data);
+		      });
 		}
 		
 		$scope.newConsumption = function(ev) {
@@ -960,39 +923,33 @@
 		$scope.updateEditConsumption = function(ev) {
 			getScope().view.model.editor.consumption.pointL = getScope().view.model.editor.consumption.point.getTime();
 			var key = {value: getScope().view.model.editor.consumption};
-			$http.put('demo-editconsumption', JSON.stringify(key))
-			.then(
-				function (response){
-					var data = response.data;
-			    	if(data!='')
-			    		json2model(getScope().view.model.sliders,data.sliders);
-			    	$mdDialog.cancel();
-				},
-				function (response){
-					var data = response.data;
-					console.log(data);
-				}
-			);	
-		 	$mdDialog.cancel();
+			$http.put('demo-editconsumption', JSON.stringify(key)).
+		    success(function(data, status, headers, config) {
+		    	if(data!='')
+		    		json2model(getScope().view.model.sliders,data.sliders);
+		    	$mdDialog.cancel();
+
+		      }).
+		      error(function(data, status, headers, config) {
+		    	  console.log(data);
+		      });
+			 $mdDialog.cancel();
 		}		
 		
 		$scope.insertEditConsumption = function(ev) {
 			getScope().view.model.editor.consumption.pointL = getScope().view.model.editor.consumption.point.getTime();
 			var key = {value: getScope().view.model.editor.consumption};
-			$http.post('demo-editconsumption', JSON.stringify(key))
-			.then(
-				function (response){
-					var data = response.data;
-			    	if(data!='')
-			    		json2model(getScope().view.model.sliders,data.sliders);
-			    	$mdDialog.cancel();
-				},
-				function (response){
-					var data = response.data;
-					console.log(data);
-				}
-			);	
- 		 	$mdDialog.cancel();
+			$http.post('demo-editconsumption', JSON.stringify(key)).
+		    success(function(data, status, headers, config) {
+		    	if(data!='')
+		    		json2model(getScope().view.model.sliders,data.sliders);
+		    	$mdDialog.cancel();
+
+		      }).
+		      error(function(data, status, headers, config) {
+		    	  console.log(data);
+		      });
+			 $mdDialog.cancel();
 		}			
 
 		$scope.removeEditConsumption = function(ev) {
@@ -1007,19 +964,18 @@
 			    headers: {
 			        'Content-type': 'application/json;charset=utf-8'
 			    }
-			}).then(
-					function (response){
-						var data = response.data;
-				    	if(data!='')
-				    		json2model(getScope().view.model.sliders,data.sliders);
-				    	$mdDialog.cancel();
-					},
-					function (response){
-						var data = response.data;
-				    	  console.log(data);
-					}
-				);
-				$mdDialog.cancel();
+			}).
+
+		    success(function(data, status, headers, config) {
+		    	if(data!='')
+		    		json2model(getScope().view.model.sliders,data.sliders);
+		    	$mdDialog.cancel();
+
+		      }).
+		      error(function(data, status, headers, config) {
+		    	  console.log(data);
+		      });
+			 $mdDialog.cancel();
 		}		
 		
 
@@ -1032,97 +988,72 @@
 		    $http({
                 method : 'GET',
                 url : 'demo-chartcons'
-    	    }).then(
-   		    	function (response){
-   		    		var data = response.data;
-   		    		google.charts.setOnLoadCallback(function() {drawChartConsumption(data);});
-   	    	        $http({
-   	    	            method : 'GET',
-   	    	            url : 'demo-json'
-   	    		    }).then(
-		    		    	function (response){
-		    		    		var data = response.data;
-		    		    		if(data.model.orders)
-		   							getScope().view.model.orders = data.model.orders;
-		    		    	},
-		    		    	function (response){
-		    		    	}
-		    		    );
-    		    	},
-   		    	function (response){
-   		    	}
-   		    );   
+    	    }).success(function(data, status, headers, config) {
+    	        google.charts.setOnLoadCallback(function() {drawChartConsumption(data);});
+    	        $http({
+    	            method : 'GET',
+    	            url : 'demo-json'
+    		    }).success(function(data, status, headers, config) {
+					if(data.model.orders)
+						getScope().view.model.orders = data.model.orders;
+    		    });
 
+    	    });
 		}
 		$scope.selectTabForecasting = function() {
 			$scope.view.model.page_tab = 1;
 		    $http({
                 method : 'GET',
                 url : 'demo-chartavr'
-    	    }).then(
-    		    	function (response){
-    		    		var data = response.data;
-    		    		google.charts.setOnLoadCallback(function() {drawChartAverage(data);});
-    		    	},
-    		    	function (response){    		    		
-    		    	}
-    		    );
+    	    }).success(function(data, status, headers, config) {
+    	        google.charts.setOnLoadCallback(function() {drawChartAverage(data);});
+    	    });
 		}
 
 
 		$http({
             method : 'GET',
             url : 'demo-json'
-	    }).then(
-		    	function (response){
-		    		var data = response.data;
-			    	getScope().view.init(data);
-			    	if(getScope().view.model.redraworders==true)
-			    		getScope().view.model.redraworders=false;
-			    	getScope().$watch('view', function(newValue, oldValue) {
-			    		var diff = newValue.getDirty(oldValue,function(property){
-			    			if(property &&
-				    				(
-				    					property.indexOf('$$')>=0 ||
-				    					property=='model.error' ||
-				    					property=='model.info' ||
-				    					property=='model.warning'||
-				    					property=='model.success' ||
-				    					property=='model.editor'
-				    				)
-				    			)
-				    				return true;
-				    			return false;
-				    		});
-						if(diff.length>0)
-							$scope.view.postDirty($http,$timeout,diff);
-			  		},true);
+	    }).success(function(data, status, headers, config) {
+	    	getScope().view.init(data);
+	    	if(getScope().view.model.redraworders==true)
+	    		getScope().view.model.redraworders=false;
+	    	getScope().$watch('view', function(newValue, oldValue) {
+	    		var diff = newValue.getDirty(oldValue,function(property){
+	    			if(property &&
+		    				(
+		    					property.indexOf('$$')>=0 ||
+		    					property=='model.error' ||
+		    					property=='model.info' ||
+		    					property=='model.warning'||
+		    					property=='model.success' ||
+		    					property=='model.editor'
+		    				)
+		    			)
+		    				return true;
+		    			return false;
+		    		});
+				if(diff.length>0)
+					$scope.view.postDirty($http,$timeout,diff);
+	  		},true);
 
-		    	},
-		    	function (response){
-		    	}
-		    );
-	    
 
+	    }).error(function(data, status, headers, config) {
+
+	    });
 		if($scope.view.model.page_tab==1){
 			chartInLoad("chartavr_div",true);
 			$http({
 	            method : 'GET',
 	            url : 'demo-chartavr'
-		    }).then(
-    		    	function (response){
-    		    		var data = response.data;
-    			        google.charts.load('current', {'packages':['corechart']});
-    			        google.charts.setOnLoadCallback(function() {drawChartAverage(data);});
-    			        chartInLoad("chartavr_div",false);
-    		    	},
-    		    	function (response){
-    		    		var data = response.data;
-    			    	chartInLoad("chartavr_div",false);
-    			        console.log(data);
-    		    	}
-    		    );
-
+		    }).success(function(data, status, headers, config) {
+		        google.charts.load('current', {'packages':['corechart']});
+		        google.charts.setOnLoadCallback(function() {drawChartAverage(data);});
+		        chartInLoad("chartavr_div",false);
+		    }).error(function(data, status, headers, config) {
+		    	chartInLoad("chartavr_div",false);
+		        console.log(data);
+		    });
 		}
 	});
 

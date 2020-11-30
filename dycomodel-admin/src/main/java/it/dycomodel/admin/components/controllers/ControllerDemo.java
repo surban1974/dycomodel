@@ -153,6 +153,9 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	
 	@Serialized
 	private double fixedQuantity=0;	
+	
+	@Serialized
+	private double maxThreshold=0;	
 
 	@Serialized
 	private int page_tab=1;
@@ -838,6 +841,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			
 			setQuantity(1000d);
 			setFixedQuantity(1000d);
+			setMaxThreshold(10000d);
 			setLeadDays(15d);
 
 
@@ -1030,6 +1034,13 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 									logger.addThrowable(e);
 									error = true;
 								}
+							}else if(child_node1.getNodeName().equalsIgnoreCase("maxThreshold")){
+								try{
+									copy.setMaxThreshold(Double.valueOf(child_node1.getFirstChild().getNodeValue()));
+								}catch(Exception e){
+									logger.addThrowable(e);
+									error = true;
+								}								
 							}else if(child_node1.getNodeName().equalsIgnoreCase("leadDays")){
 								try{
 									copy.setLeadDays(Double.valueOf(child_node1.getFirstChild().getNodeValue()));
@@ -1155,6 +1166,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			fixedPeriod = copy.getFixedPeriod();
 			quantity = copy.getQuantity();
 			fixedQuantity = copy.getFixedQuantity();
+			maxThreshold = copy.getMaxThreshold();
 			leadDays = copy.getLeadDays();
 			
 			
@@ -1190,6 +1202,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		
 		result+=Normalizer.spaces(level+1)+"<quantity>"+quantity+"</quantity>\n";
 		result+=Normalizer.spaces(level+1)+"<fixedQuantity>"+fixedQuantity+"</fixedQuantity>\n";
+		result+=Normalizer.spaces(level+1)+"<maxThreshold>"+maxThreshold+"</maxThreshold>\n";		
 		result+=Normalizer.spaces(level+1)+"<leadDays>"+leadDays+"</leadDays>\n";
 
 		
@@ -1856,4 +1869,13 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	}
 
 
+	public double getMaxThreshold() {
+		return maxThreshold;
+	}
+
+
+	public void setMaxThreshold(double maxThreshold) {
+		this.maxThreshold = maxThreshold;
+		setRedrawcharts(true);
+	}
 }

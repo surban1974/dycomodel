@@ -32,6 +32,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 	protected APolynomial<T> lead;
 	protected IComputing computingPlugin;
 	protected ILogger logger;
+
 	
 
 
@@ -289,7 +290,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 	}
 
 	
-	public SortedMap<Date, T> getPoints(T initialQuantity, T fixedQuantity, Date startDate, Date finishDate, SortedMap<Date, T> processedOrders, T granulation) throws InputParameterException{
+	public SortedMap<Date, T> getPoints(T initialQuantity, T fixedQuantity, T maxThreshold, Date startDate, Date finishDate, SortedMap<Date, T> processedOrders, T granulation) throws InputParameterException{
 
 		if(startDate==null){
 			if(initialDeltaDate!=null)
@@ -307,23 +308,39 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 		Date current = getFirstPoint(initialQuantity, startDate, finishDate, processedOrders);
 		Date leadCurrent = computeLead(current);
 		if(current==null )
-			return result;
-		result.put(leadCurrent, roundWithGranulation(fixedQuantity, granulation));
+			return result; 
+		T newFixedQuantity = fixedQuantity;
+		boolean isMaxThreshold=false;
+		if(maxThreshold!=null && equation.initPolynomial().more(maxThreshold, equation.initPolynomial().zero())) {
+			isMaxThreshold = true;
+			T stock = computeSecureStockInPoint(current);			
+			if(equation.initPolynomial().more(equation.initPolynomial().addition(stock, fixedQuantity),maxThreshold))
+				newFixedQuantity = equation.initPolynomial().subtraction(maxThreshold, stock);
+	
+		}
+		result.put(leadCurrent, roundWithGranulation(newFixedQuantity, granulation));
 		
 		while(current!=null && leadCurrent.before(finishDate)){
-			T diff = equation.initPolynomial().addition(fixedQuantity, computeConsumptionInPoint(initialQuantity, result, startDate, current, finishDate));
+			T diff = equation.initPolynomial().addition(newFixedQuantity, computeConsumptionInPoint(initialQuantity, result, startDate, current, finishDate));
 			Date point = getFirstPoint(diff, current, finishDate, processedOrders);
 			if(point==null || point.compareTo(current)<=0)
 				return result;
 			current=point;
 			leadCurrent = computeLead(current);
-			result.put(leadCurrent, roundWithGranulation(fixedQuantity, granulation));
+			newFixedQuantity = fixedQuantity;
+			if(isMaxThreshold) {
+				T stock = computeSecureStockInPoint(current);
+				if(equation.initPolynomial().more(equation.initPolynomial().addition(stock, fixedQuantity),maxThreshold))
+					newFixedQuantity = equation.initPolynomial().subtraction(maxThreshold, stock);
+				
+			}
+			result.put(leadCurrent, roundWithGranulation(newFixedQuantity, granulation));
 		}
 		return result;
 	}
 
 
-	public SortedMap<Date, T> getPoints(T initialQuantity, SortedSet<Date> pointDates, Date startDate, Date finishDate, SortedMap<Date, T> processedOrders, boolean withLead, T granulation) throws InputParameterException{
+	public SortedMap<Date, T> getPoints(T initialQuantity, T maxThreshold, SortedSet<Date> pointDates, Date startDate, Date finishDate, SortedMap<Date, T> processedOrders, boolean withLead, T granulation) throws InputParameterException{
 
 		if(startDate==null){
 			if(initialDeltaDate!=null)
@@ -363,25 +380,26 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 								equation.compute(AEquation.COMPUTE_STOCK, convertValue(finishPeriod))
 							);
 					
-					if(diff.doubleValue()<0){
-						
-						Date firstPoint = getFirstPoint(initialQuantity, startDate, finishDate, result);
-					
-						result.put(
-								(withLead)
-									?
-										computeLead(firstPoint)
-									:
-										firstPoint
-								,
-								roundWithGranulation(
-									calc
-									.multiplication(diff, convertValue(-1))
-									,
-									granulation
-								)
-							);
-						
+					if(diff.doubleValue()<0){						
+						Date firstPoint = getFirstPoint(initialQuantity, startDate, finishDate, result);						
+						T newDiff = calc.multiplication(diff, convertValue(-1));
+						if(maxThreshold!=null && calc.more(maxThreshold, calc.zero())) {
+							T stock = computeSecureStockInPoint(firstPoint);			
+							if(calc.more(calc.addition(stock, newDiff),maxThreshold)) {
+								Date currentPoint = firstPoint;
+								while(calc.more(calc.addition(stock, newDiff),maxThreshold)) {
+									T deltaDiff = calc.subtraction(maxThreshold, stock);
+									result.put((withLead)?computeLead(currentPoint):currentPoint,roundWithGranulation(deltaDiff,granulation));
+									currentPoint = getFirstPoint(calc.addition(deltaDiff,stock), currentPoint, finishDate, processedOrders);
+									newDiff = calc.subtraction(newDiff, deltaDiff);
+									stock = computeSecureStockInPoint(currentPoint);
+								}
+								if(calc.more(newDiff,calc.zero())) 
+									result.put((withLead)?computeLead(currentPoint):currentPoint,roundWithGranulation(newDiff,granulation));								
+							}else
+								result.put((withLead)?computeLead(firstPoint):firstPoint,roundWithGranulation(newDiff,granulation));					
+						}else 
+							result.put((withLead)?computeLead(firstPoint):firstPoint,roundWithGranulation(newDiff,granulation));						
 					}
 				}else{
 					k1Date = forecastPointWithLead(d,finishDate);
@@ -401,8 +419,7 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 							.subtraction(
 								diff,
 								equation.compute(AEquation.COMPUTE_STOCK, convertValue(finishPeriod))
-							);
-					
+							);					
 					
 					if(diff.doubleValue()>0){
 						result.put(
@@ -415,20 +432,27 @@ public abstract class ADateWrapper<T extends Number> implements Serializable {
 								convertValue(0)
 								);					
 					}else{
-						result.put(
-								(withLead)
-									?
-										computeLead(k0Date)
-									:
-										k0Date
-								,
-								roundWithGranulation(
-									calc
-									.multiplication(diff, convertValue(-1))
-									,
-									granulation
-								)
-							);
+						
+						
+						T newDiff = calc.multiplication(diff, convertValue(-1));
+						if(maxThreshold!=null && calc.more(maxThreshold, calc.zero())) {
+							T stock = computeSecureStockInPoint(k0Date);			
+							if(calc.more(calc.addition(stock, newDiff),maxThreshold)) {
+								Date currentPoint = k0Date;
+								while(calc.more(calc.addition(stock, newDiff),maxThreshold)) {
+									T deltaDiff = calc.subtraction(maxThreshold, stock);
+									result.put((withLead)?computeLead(currentPoint):currentPoint,roundWithGranulation(deltaDiff,granulation));
+									currentPoint = getFirstPoint(calc.addition(deltaDiff,stock), currentPoint, finishDate, processedOrders);
+									newDiff = calc.subtraction(newDiff, deltaDiff);
+									stock = computeSecureStockInPoint(currentPoint);
+								}
+								if(calc.more(newDiff,calc.zero())) 
+									result.put((withLead)?computeLead(currentPoint):currentPoint,roundWithGranulation(newDiff,granulation));								
+							}else
+								result.put((withLead)?computeLead(k0Date):k0Date,roundWithGranulation(newDiff,granulation));					
+						}else 
+							
+							result.put((withLead)?computeLead(k0Date):k0Date,roundWithGranulation(newDiff,granulation));
 					}
 					k0Date=k1Date;
 					

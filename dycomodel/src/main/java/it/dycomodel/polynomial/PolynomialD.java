@@ -108,7 +108,28 @@ public class PolynomialD extends APolynomial<Double>{
 			return false;					
 	}
 
-
-
-
+	@Override
+	public boolean more(Double value1, Double value2) {
+		if(value1==null || value2==null)
+			return false;
+		else if(value1.doubleValue()>value2.doubleValue())
+			return true;
+		else 
+			return false;					
+	}
+	
+	@Override
+	public boolean less(Double value1, Double value2) {
+		if(value1==null || value2==null)
+			return false;
+		else if(value1.doubleValue()<value2.doubleValue())
+			return true;
+		else 
+			return false;					
+	}	
+	
+	@Override
+	public Double zero() {
+		return 0d;
+	}
 }

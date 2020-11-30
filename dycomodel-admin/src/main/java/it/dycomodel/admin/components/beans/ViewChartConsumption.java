@@ -51,7 +51,7 @@ public class ViewChartConsumption implements Serializable{
 			
 			if(controller.getCalculatemode()==2){
 				try{
-					SortedMap<Date, Double> newOrders = controller.getProxy().getPoints(controller.getQuantity(), controller.getFixedQuantity(), controller.getStartDate(), finishChartDate, controller.getProcessedOrders(), (double)controller.getItemsForPack());
+					SortedMap<Date, Double> newOrders = controller.getProxy().getPoints(controller.getQuantity(), controller.getFixedQuantity(), controller.getMaxThreshold(), controller.getStartDate(), finishChartDate, controller.getProcessedOrders(), (double)controller.getItemsForPack());
 					allProcessedOrders.putAll(newOrders);	
 					controller.setComputedOrders(newOrders);
 				}catch(Exception e){					
@@ -60,7 +60,7 @@ public class ViewChartConsumption implements Serializable{
 			
 			if(controller.getCalculatemode()==3){
 				try{
-					SortedMap<Date, Double> newOrders = controller.getProxy().getPoints(controller.getQuantity(), controller.getFixedFeatureOrders(),controller.getStartDate(), finishChartDate, controller.getProcessedOrders(), true, (double)controller.getItemsForPack());
+					SortedMap<Date, Double> newOrders = controller.getProxy().getPoints(controller.getQuantity(), controller.getMaxThreshold(), controller.getFixedFeatureOrders(),controller.getStartDate(), finishChartDate, controller.getProcessedOrders(), true, (double)controller.getItemsForPack());
 					allProcessedOrders.putAll(newOrders);
 					controller.setComputedOrders(newOrders);
 				}catch(Exception e){					

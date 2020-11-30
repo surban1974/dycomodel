@@ -108,5 +108,28 @@ public class PolynomialF extends APolynomial<Float>{
 			return false;					
 	}
 	
-
+	@Override
+	public boolean more(Float value1, Float value2) {
+		if(value1==null || value2==null)
+			return false;
+		else if(value1.floatValue()>value2.floatValue())
+			return true;
+		else 
+			return false;					
+	}
+	
+	@Override
+	public boolean less(Float value1, Float value2) {
+		if(value1==null || value2==null)
+			return false;
+		else if(value1.floatValue()<value2.floatValue())
+			return true;
+		else 
+			return false;					
+	}	
+	
+	@Override
+	public Float zero() {
+		return 0f;
+	}
 }

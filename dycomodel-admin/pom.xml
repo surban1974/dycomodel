@@ -2,7 +2,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>dycomodel-admin</groupId>
   <artifactId>dycomodel-admin</artifactId>
-  <version>1.0.0</version>
+  <version>1.0.1</version>
   <packaging>war</packaging>
   <name>DyCoModel</name>
   	<issueManagement>
@@ -97,13 +97,13 @@
 
 
   <dependencies>
-<!-- 
-	<dependency>
-		<groupId>com.github.surban1974.classhidra</groupId>
-		<artifactId>classhidra-base-7</artifactId>
-		<version>1.5.6</version>
-	</dependency>
- -->	
+
+		<dependency>
+			<groupId>com.github.surban1974.classhidra</groupId>
+			<artifactId>classhidra-base-7</artifactId>
+			<version>1.5.7</version>
+		</dependency>
+	
 		<dependency>
 		    <groupId>org.apache.commons</groupId>
 		    <artifactId>commons-math3</artifactId>
