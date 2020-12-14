@@ -104,27 +104,36 @@ public class ViewSliders implements Serializable{
 		if(!this.initialising){
 			if(slider!=null){
 				if(slider.getType().equals("C")){
-					controller.getConsumption().put(slider.getPoint(),slider.getValue());
-					if(controller.getDayStockDelta()>0){
-						double stock = slider.getValue()*controller.getDayStockDelta();
-						for(ViewSlider stockSlider: getStock()){
-							if(stockSlider.getPoint().compareTo(slider.getPoint())==0){
-								stockSlider.setValueFromOwner(stock);
-								controller.getSecureStock().put(stockSlider.getPoint(),stockSlider.getValue());
-								break;
+					for(Date d:controller.getConsumption().keySet()) {
+						if(d.compareTo(slider.getPoint())==0) {
+							controller.getConsumption().put(slider.getPoint(),slider.getValue());
+							if(controller.getDayStockDelta()>0){
+								double stock = slider.getValue()*controller.getDayStockDelta();
+								for(ViewSlider stockSlider: getStock()){
+									if(stockSlider.getPoint().compareTo(slider.getPoint())==0){
+										stockSlider.setValueFromOwner(stock);
+										controller.getSecureStock().put(stockSlider.getPoint(),stockSlider.getValue());
+										break;
+									}										
+								}								
 							}
-								
+							break;
 						}
-						
 					}
 				}
-				if(slider.getType().equals("S"))
-					controller.getSecureStock().put(slider.getPoint(),slider.getValue());	
+				if(slider.getType().equals("S")) {
+					for(Date d:controller.getSecureStock().keySet()) {
+						if(d.compareTo(slider.getPoint())==0) {
+							controller.getSecureStock().put(slider.getPoint(),slider.getValue());
+							break;
+						}
+					}
+				}
 				try{
 					controller.getProxy().init(controller.getEnabledConsumption(), controller.getEnabledSecureStock());
 					controller.setRedrawcharts(true);
 				}catch(Exception e){
-					
+					e.toString();
 				}
 			}
 		}

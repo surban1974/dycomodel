@@ -16,6 +16,7 @@
     <link rel="stylesheet" href="css/dropzone.css">   
 
 
+
   </head>
 
 
@@ -173,15 +174,17 @@
 		        	</md-content>
 				</md-tab>
 		      	<md-tab label="STEP 2 - Correction & Model Adjustment" md-on-select="selectTabForecasting()" md-active="view.model.page_tab == 1">
-			    	<md-content class="md-padding">
-			        	<div id="chartavr_div" style="width: 1250px; height: 200px;"></div>
-			        	<div style="width: 1250px; height: 5px;" >
+			    	<md-content class="md-padding" style="padding-top:3px;">
+<div style="width: calc(100% - 5px);">			    	
+			        	<div id="chartavr_div" style="width: 100%; height: 200px;"></div>
+			        	<div style="width: 100%; height: 5px; " >
 							<md-progress-linear md-mode="indeterminate" ng-if="view.model.redrawslider==true || view.model.chartsInProgressAv==true"/>
 						</div>
 						<div id="tuning_div" style="padding:0px;" ng-if="view.model.redrawslider==false">
-						<table  cellspacing="0" cellpadding="0" >
-							<tr>
-								<td style="min-width:{{view.model.viewFullApproximation==true ? 67 : 108}}px;max-width:{{view.model.viewFullApproximation==true ? 67 : 108}}px;" data-ng-repeat="consumption in view.model.sliders.consumption" ng-if="view.model.tunemode==1">
+						<table  cellspacing="0" cellpadding="0" style="width:100%;">
+							<tr ng-if="view.model.tunemode==1">
+								<td style="min-width:20px;max-width:20px;">&nbsp;</td>
+								<td style="min-width:calc((100%/11)+1px);max-width:calc((100%/11)+1px);" data-ng-repeat="consumption in view.model.sliders.consumption" >
 									<md-slider-container flex ng-disabled="consumption.enabled == false">
 										<md-input-container>
 											<input flex type="number" ng-model="consumption.value" aria-label="consumption" aria-controls="consumption-slider" >
@@ -196,8 +199,9 @@
 									</md-slider-container>
 								</td>
 							</tr>
-							<tr >
-								<td style="min-width:{{view.model.viewFullApproximation==true ? 67 : 108}}px;max-width:{{view.model.viewFullApproximation==true ? 67 : 108}}px;" data-ng-repeat="stock in view.model.sliders.stock" ng-if="view.model.tunemode == 2">
+							<tr ng-if="view.model.tunemode==2">
+								<td style="min-width:20px;max-width:20px;">&nbsp;</td>
+								<td style="min-width:calc((100%/11)+1px);max-width:calc((100%/11)+1px);" data-ng-repeat="stock in view.model.sliders.stock" >
 									<md-slider-container flex ng-disabled="stock.enabled == false">
 										<md-input-container>
 											<input flex type="number" ng-model="stock.value" aria-label="stock" aria-controls="stock-slider" >
@@ -212,6 +216,7 @@
 							</tr>
 						</table>
 					</div>
+</div>					
 
 					<div layout="row">
 						<div flex layout-padding>
@@ -221,7 +226,9 @@
 									<md-radio-button value="1" class="md-primary"> Consumption </md-radio-button>
 									<md-radio-button value="2" class="md-accent"> Secure Stock </md-radio-button>
 								</md-radio-group>
-								<br>
+							</section>
+						</div>
+						<div flex >
 								<md-input-container class="md-block">
 									<label>Algorithm</label>
 									<md-select ng-model="view.model.approximationAlgorithm">
@@ -238,7 +245,7 @@
 										<input flex type="number" ng-model="view.model.leastSqDegree" aria-label="leastSqDegree" aria-controls="leastSqDegree-slider">
 									</md-input-container>
 								</md-slider-container>
-							</section>
+						
 						</div>
 
 						<div flex >
@@ -247,6 +254,7 @@
 						 	</md-switch>
 
 						</div>
+						
 					</div>
 
 				</md-content>
