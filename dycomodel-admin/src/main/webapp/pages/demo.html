@@ -253,14 +253,14 @@
 								</md-slider-container>
 						
 						</div>
-<!-- 
+ 
 						<div flex >
 							<md-switch ng-model="view.model.viewFullApproximation" aria-label="viewFullApproximation" ng-true-value="true" ng-false-value="false" class="md-warn">
 						    	Full approximation set: {{ view.model.viewFullApproximation }}
 						 	</md-switch>
 
 						</div>
- -->						
+						
 					</div>
 
 				</md-content>
@@ -322,7 +322,7 @@
 							<div layout="row">
 								<div flex layout-padding>
 									<md-slider-container >
-										<span class="md-body-1">Lead</span>
+										<span class="md-body-1" style="min-width: 100px;">Lead interval</span>
 										<md-slider flex md-discrete ng-model="view.model.leadDays" step="1" min="0" max="90"
 													aria-label="leadDays"
 													id="leadDays-slider"
@@ -335,7 +335,7 @@
 										</md-input-container>
 									</md-slider-container>
 									<md-slider-container >
-										<span class="md-body-1">Items x Pack</span>
+										<span class="md-body-1" style="min-width: 100px;">Items x Pack</span>
 										<md-slider flex md-discrete ng-model="view.model.itemsForPack" step="1" min="1" max="100"
 													aria-label="itemsForPack"
 													id="itemsForPack-slider"
@@ -348,7 +348,7 @@
 										</md-input-container>
 									</md-slider-container>
 									<md-slider-container >
-										<span class="md-body-1">Scale</span>
+										<span class="md-body-1" style="min-width: 100px;">Chart Scale</span>
 										<md-slider flex md-discrete ng-model="view.model.chartConsumptionDayInterval" step="1" min="1" max="7"
 													aria-label="chartConsumptionDayInterval"
 													id="chartConsumptionDayInterval-slider"
@@ -884,7 +884,7 @@
 				            desc:'?',
 				            enabled:true,
 				            point: new Date(),
-				            pointL: new Date().getTime()
+				            pointL: new Date().getTime()+''
 						}
 					},
 
@@ -938,7 +938,7 @@
    			    	getScope().view.model.editor.consumption.enabled = data.slider.enabled;
    			    	getScope().view.model.editor.consumption.value = data.slider.value;
    			    	getScope().view.model.editor.consumption.pointL = data.slider.pointL;
-   			    	getScope().view.model.editor.consumption.point = new Date(getScope().view.model.editor.consumption.pointL);
+   			    	getScope().view.model.editor.consumption.point = new Date(getScope().view.model.editor.consumption.pointL/1);
    					$mdDialog.show({
    					      contentElement: '#panelEditConsumption',
    					      parent: angular.element(document.body),
@@ -960,7 +960,7 @@
 		    	getScope().view.model.editor.consumption.enabled = true;
 		    	getScope().view.model.editor.consumption.value = 0;		    	
 		    	getScope().view.model.editor.consumption.point = new Date();
-		    	getScope().view.model.editor.consumption.pointL = new Date().getTime();
+		    	getScope().view.model.editor.consumption.pointL = getScope().view.model.editor.consumption.point.getTime()+'';
 				$mdDialog.show({
 				      contentElement: '#panelEditConsumption',
 				      parent: angular.element(document.body),
@@ -975,7 +975,7 @@
 		}
 		
 		$scope.updateEditConsumption = function(ev) {
-			getScope().view.model.editor.consumption.pointL = getScope().view.model.editor.consumption.point.getTime();
+			getScope().view.model.editor.consumption.pointL = getScope().view.model.editor.consumption.point.getTime()+'';
 			var key = {value: getScope().view.model.editor.consumption};
 			$http.put('demo-editconsumption', JSON.stringify(key))
 			.then(
@@ -994,8 +994,9 @@
 		}		
 		
 		$scope.insertEditConsumption = function(ev) {
-			getScope().view.model.editor.consumption.pointL = getScope().view.model.editor.consumption.point.getTime();
+			getScope().view.model.editor.consumption.pointL = getScope().view.model.editor.consumption.point.getTime()+'';
 			var key = {value: getScope().view.model.editor.consumption};
+			key.value.point = new Date(key.value.pointL/1);
 			$http.post('demo-editconsumption', JSON.stringify(key))
 			.then(
 				function (response){
@@ -1013,8 +1014,9 @@
 		}			
 
 		$scope.removeEditConsumption = function(ev) {
-			getScope().view.model.editor.consumption.pointL = getScope().view.model.editor.consumption.point.getTime();
+			getScope().view.model.editor.consumption.pointL = getScope().view.model.editor.consumption.point.getTime()+'';
 			var key = {value: getScope().view.model.editor.consumption};
+			key.value.point = new Date(key.value.pointL/1);
 			$http({
 			    method: 'DELETE',
 			    url: 'demo-editconsumption',

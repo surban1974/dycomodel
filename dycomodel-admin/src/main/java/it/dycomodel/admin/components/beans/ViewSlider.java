@@ -98,15 +98,15 @@ public class ViewSlider implements Serializable{
 	}	
 	
 	@Serialized
-	public long getPointL(){
+	public String getPointL(){
 		if(point!=null)
-			return point.getTime();
+			return String.valueOf(point.getTime());
 		else
-			return new Date().getTime();
+			return String.valueOf(new Date().getTime());
 	}
 	
 	@Serialized
-	public void setPointL(long pointL){
-		point=new Date(pointL);
+	public void setPointL(String pointL){
+		point=new Date(Long.valueOf(pointL));
 	}	
 }
