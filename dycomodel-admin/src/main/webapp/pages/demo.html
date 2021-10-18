@@ -667,7 +667,8 @@
 	app.controller('demoCtrl', function($scope, $http, $browser, $timeout, $mdDialog, Browsertype) {
 
 		$scope.view = Object.create(GenericViewModel)
-		.extend({
+		.extend(
+		{
 			initMessage : function(parsed){
 				var self = this;
 				self.initialisation = true;
@@ -727,6 +728,8 @@
 					    		    		var data = response.data;
 					    		    		if(data.model.sliders)
 												json2model(self.model.sliders,data.model.sliders);
+					    		    		if(data.model.rawdata)
+												self.model.rawdata = data.model.rawdata;
 					    		    	},
 					    		    	function (response){
 					    		    	}
@@ -848,7 +851,8 @@
 				}
 			}
 			
-		})
+		}
+		)
 		.set(
 				Object.create(GenericServerModel)
 				.extend({
