@@ -49,13 +49,19 @@
 							</div>
 							<div flex layout-padding >
 								<section >
-									<md-toolbar class="md-primary _md _md-toolbar-transitions">
+									<md-toolbar class="md-primary _md _md-toolbar-transitions">										
 										<div class="md-toolbar-tools">
-											<h5 flex >Prior Consumption&nbsp;</h5>
+											<h5 flex >Prior Consumption&nbsp;</h5>											
 											<h5 flex >{{view.model.forecastingStartDate}}  {{view.model.forecastingFinishDate}}</h5>
 									   		<img src="images/download.png" style="cursor: pointer;" onclick="location.replace('demo-download?');"/>
 									    </div>
+									    
+									    
 									</md-toolbar>
+									<md-input-container class="md-block">
+										<label>Forecasting Date</label>
+										<input  name="forecastingDate" ng-model="view.model.forecastingDate" ng-model-options="{ debounce: 500 }"/>
+									</md-input-container>
 								</section>
 							</div>
 							<div flex layout-padding>
@@ -131,7 +137,7 @@
 							</div>
 							<div flex layout-padding >
 								<md-list >
-									<md-list-item class="md-2-line" ng-repeat="(key, value) in view.model.rawdata">
+									<md-list-item class="md-2-line" ng-repeat="(key,value) in view.model.rawdata">
 										<div class="md-list-item-text">
 									    	<h4>{{key | date:'dd/MM/yyyy'}}</h4>
 									      	<p>{{value}}</p>
@@ -283,16 +289,16 @@
 									</md-input-container>	
 									<md-input-container class="md-block">
 										<label>Initial Quantity</label>
-										<input type="number" step="100" name="quantity" ng-model="view.model.quantity" min="0" max="100000" ng-model-options="{ debounce: 500 }"/>
+										<input type="number" step_="100" name="quantity" ng-model="view.model.quantity" min="0" max="1000000" ng-model-options="{ debounce: 500 }"/>
 									</md-input-container>
 									<md-input-container class="md-block" ng-if="view.model.calculatemode==2 || view.model.calculatemode==3">
 										<label>Max Threshold</label>
-										<input type="number" step="100" name="maxThreshold" ng-model="view.model.maxThreshold" min="0" max="100000" ng-model-options="{ debounce: 500 }"/>
+										<input type="number" step="100" name="maxThreshold" ng-model="view.model.maxThreshold" min="0" max="1000000" ng-model-options="{ debounce: 500 }"/>
 									</md-input-container>
 
 									<md-input-container class="md-block" ng-if="view.model.calculatemode==2">
 										<label>Fixed Quantity</label>
-										<input type="number" step="100" name="fixedQuantity" ng-model="view.model.fixedQuantity" min="0" max="100000" ng-model-options="{ debounce: 500 }"/>
+										<input type="number" step="100" name="fixedQuantity" ng-model="view.model.fixedQuantity" min="0" max="1000000" ng-model-options="{ debounce: 500 }"/>
 									</md-input-container>
 									<md-input-container class="md-block" ng-if="view.model.calculatemode==3">
 							          	<label>Periodicity</label>
@@ -878,6 +884,7 @@
 					viewFullApproximation: false,
 					uploadType: 'C',
 					startDate: '',
+					forecastingDate: '',
 					editor: {
 						consumption: {
 				        	value:0.1,

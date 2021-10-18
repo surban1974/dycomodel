@@ -130,6 +130,12 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	@Serialized(output=@Format(format="dd/MM/yyyy"))
 	private Date forecastingFinishDate;
 	
+	@Serialized(output=@Format(format="dd/MM/yyyy"))
+	private Date forecastingDate;
+	
+
+
+
 	@Serialized
 	private ViewSliders sliders;
 	
@@ -237,6 +243,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			
 		}
 	};
+
 
 	public ControllerDemo(){
 		super();
@@ -761,9 +768,9 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		}
 	}		
 
-	private Date demoFromStartDate(int months){
+	private Date demoFromForecastingDate(int months){
 		Calendar demoC = Calendar.getInstance();
-		demoC.setTimeInMillis(startDate.getTime());
+		demoC.setTimeInMillis(forecastingDate.getTime());
 		demoC.set(Calendar.MONTH, demoC.get(Calendar.MONTH)-1+months);
 		return normalizeDate(demoC.getTime());
 	}
@@ -777,6 +784,66 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		demoC.set(Calendar.MILLISECOND,0);
 		return demoC.getTime();
 	}	
+	
+	
+	public void reinitForecasting() {
+		
+		setFinishDate(demoFromForecastingDate(12));
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(getForecastingDate());
+			setRawdata(DemoRawData.prepareDemoRawData(calendar.get(Calendar.YEAR)-1));
+			
+			setAdapter = new DefaultSetAdapter().setDayStockDelta(new Double(getDayStockDelta()));
+			
+			
+			Calendar startAC = Calendar.getInstance();
+				startAC.setTime(forecastingDate);
+				startAC.set(Calendar.DAY_OF_MONTH,1);
+				startAC.set(Calendar.MONTH,startAC.get(Calendar.MONTH)-3);
+				startAC.set(Calendar.YEAR,startAC.get(Calendar.YEAR));
+			Calendar finishAC = Calendar.getInstance();
+				finishAC.setTime(finishDate);
+				finishAC.set(Calendar.DAY_OF_MONTH,finishAC.getActualMaximum(Calendar.DAY_OF_MONTH));
+				finishAC.set(Calendar.MONTH,finishAC.get(Calendar.MONTH)+3);			
+			
+
+			
+			setApproximator(
+					new ADateApproximator()
+					.setLogger(logger)
+					.setStartApproximationDate(startAC.getTime())
+					.setFinishApproximationDate(finishAC.getTime())
+					.setStartDate(getForecastingDate())
+					.setType(ADateApproximator.APPROXIMATION_MEAN)
+					.setStockAdapter(setAdapter)
+					.approximation(getRawdata())
+				);
+			
+			forecastingStartDate = getApproximator().getApproximation().getStartInterval();
+			forecastingFinishDate = getApproximator().getApproximation().getFinishInterval();
+			
+			setConsumption(getApproximator().getForecastedConsumption(1));
+			setSecureStock(getApproximator().getForecastedStock(1));
+			
+			for(Map.Entry<Date, Double> entry :  getConsumption().entrySet()){
+				if( Integer.valueOf(util_format.dataToString(entry.getKey(), "yyyyMM")).intValue() == Integer.valueOf(util_format.dataToString(getForecastingDate(), "yyyyMM")).intValue())
+					setStartAvrDate(entry.getKey());
+				if( Integer.valueOf(util_format.dataToString(entry.getKey(), "yyyyMM")).intValue() == Integer.valueOf(util_format.dataToString(getFinishDate(), "yyyyMM")).intValue())
+					setFinishAvrDate(entry.getKey());
+				
+			}	
+			
+			if(getProxy()!=null){
+				try{
+					getProxy().init(getEnabledConsumption(), getEnabledSecureStock());
+					getSliders().init(true);
+					redraworders=true;
+				}catch(Exception e){
+					
+				}
+				
+			}
+	}
 
 	@Override
 	public void reimposta() {
@@ -784,12 +851,15 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 		try{
 			setUploadType("M");
 			setStartDate(normalizeDate(new Date()));
-			setFinishDate(demoFromStartDate(12));
+			
+			setForecastingDate(getStartDate());
+			
+			setFinishDate(demoFromForecastingDate(12));
 			setStartAvrDate(getStartDate());
 			setFinishAvrDate(getFinishDate());
 			
 			Calendar calendar = Calendar.getInstance();
-				calendar.setTime(getStartDate());
+				calendar.setTime(getForecastingDate());
 			setRawdata(DemoRawData.prepareDemoRawData(calendar.get(Calendar.YEAR)-1));
 			setDayStockDelta(3);
 			setItemsForPack(1);
@@ -815,7 +885,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 					.setLogger(logger)
 					.setStartApproximationDate(startAC.getTime())
 					.setFinishApproximationDate(finishAC.getTime())
-					.setStartDate(getStartDate())
+					.setStartDate(getForecastingDate())
 					.setType(ADateApproximator.APPROXIMATION_MEAN)
 					.setStockAdapter(setAdapter)
 					.approximation(getRawdata())
@@ -828,7 +898,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			setSecureStock(getApproximator().getForecastedStock(1));
 			
 			for(Map.Entry<Date, Double> entry :  getConsumption().entrySet()){
-				if( Integer.valueOf(util_format.dataToString(entry.getKey(), "yyyyMM")).intValue() == Integer.valueOf(util_format.dataToString(getStartDate(), "yyyyMM")).intValue())
+				if( Integer.valueOf(util_format.dataToString(entry.getKey(), "yyyyMM")).intValue() == Integer.valueOf(util_format.dataToString(getForecastingDate(), "yyyyMM")).intValue())
 					setStartAvrDate(entry.getKey());
 				if( Integer.valueOf(util_format.dataToString(entry.getKey(), "yyyyMM")).intValue() == Integer.valueOf(util_format.dataToString(getFinishDate(), "yyyyMM")).intValue())
 					setFinishAvrDate(entry.getKey());
@@ -1370,7 +1440,7 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	public void setStartDate(Date startDate) {
 		if(startDate!=null && this.startDate!=null && this.startDate.compareTo(startDate)!=0){
 			this.startDate = startDate;		
-			setFinishDate(demoFromStartDate(12));
+			setFinishDate(demoFromForecastingDate(12));
 			setRedrawcharts(true);
 		}else
 			this.startDate = startDate;		
@@ -1877,5 +1947,15 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 	public void setMaxThreshold(double maxThreshold) {
 		this.maxThreshold = maxThreshold;
 		setRedrawcharts(true);
+	}
+	
+	public Date getForecastingDate() {
+		return forecastingDate;
+	}
+
+
+	public void setForecastingDate(Date forecastingDate) {
+		this.forecastingDate = forecastingDate;
+		reinitForecasting();
 	}
 }
