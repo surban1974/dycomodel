@@ -198,6 +198,7 @@
 											<input flex type="number" ng-model="consumption.value" aria-label="consumption" aria-controls="consumption-slider" 
 											ng-model-options="{ debounce: 500 }">
 										</md-input-container>
+										
 										<md-slider 	md-discrete ng-model="consumption.value" min="{{view.model.sliders.minC}}" max="{{view.model.sliders.maxC}}" step="1"
 													id="consumption-slider"
 													aria-label="bass" class="md-primary"
@@ -205,6 +206,7 @@
 													style="padding:0px;height:50px"
 													ng-model-options="{ debounce: 500 }"
 													></md-slider>
+													
 								      	<h5>{{consumption.desc}}</h5>
 									</md-slider-container>
 								</td>
@@ -217,11 +219,13 @@
 											<input flex type="number" ng-model="stock.value" aria-label="stock" aria-controls="stock-slider" 
 											ng-model-options="{ debounce: 500 }">
 										</md-input-container>
+									
 										<md-slider 	md-discrete ng-model="stock.value" min="{{view.model.sliders.minS}}" max="{{view.model.sliders.maxS}}" step="1"
 												      id="stock-slider"
 												      aria-label="stock" class="md-accent"
 												       md-vertical md-range
 												       ng-model-options="{ debounce: 500 }"></md-slider>
+												       
 										<h5>{{stock.desc}}</h5>
 									</md-slider-container>
 								</td>

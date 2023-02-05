@@ -808,15 +808,16 @@ public class ControllerDemo extends AbstractBase implements i_action, i_bean, Se
 			
 
 			
-			getApproximator()
+			setApproximator(
+					new ADateApproximator()
 					.setLogger(logger)
 					.setStartApproximationDate(startAC.getTime())
 					.setFinishApproximationDate(finishAC.getTime())
 					.setStartDate(getForecastingDate())
-					.setType((getApproximationType()==0 || getApproximationType()==4)?ADateApproximator.APPROXIMATION_MEAN:getApproximationType())
+					.setType(ADateApproximator.APPROXIMATION_MEAN)
 					.setStockAdapter(setAdapter)
 					.approximation(getRawdata())
-				;
+				);
 			
 			forecastingStartDate = getApproximator().getApproximation().getStartInterval();
 			forecastingFinishDate = getApproximator().getApproximation().getFinishInterval();
